@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polymarket Explorer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        poly: {
+                            bg: '#0f111a',
+                            card: '#1a1d2d',
+                            accent: '#2d3348',
+                            blue: '#2e75ff',
+                            green: '#00c388',
+                            red: '#ff4d4d'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0f111a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .table-row-hover:hover { background-color: #1a1d2d; }
+    </style>
+</head>
+<body class="h-screen overflow-hidden flex flex-col">
+
+    <div id="app" class="flex flex-col h-full">
+        
+        <!-- Header -->
+        <header class="bg-poly-card border-b border-poly-accent p-4 flex justify-between items-center shadow-md z-10">
+            <div class="flex items-center gap-3">
+                <i class="ph ph-chart-line-up text-poly-blue text-2xl"></i>
+                <h1 class="text-xl font-bold tracking-tight">Polymarket <span class="text-poly-blue">Scanner</span></h1>
+                <span class="text-xs text-gray-500 ml-2 bg-poly-bg px-2 py-1 rounded border border-poly-accent">
+                    Updated: {{ lastUpdatedTime }}
+                </span>
+            </div>
+            <div class="flex gap-4 text-sm font-medium">
+                <div class="flex flex-col items-end">
+                    <span class="text-gray-400 text-xs">Active Markets</span>
+                    <span class="text-white">16,000+</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="flex flex-1 overflow-hidden">
+            
+            <!-- Sidebar Filters -->
+            <aside class="w-64 bg-poly-card border-r border-poly-accent p-4 flex flex-col gap-6 overflow-y-auto">
+                
+                <!-- Presets -->
+                <div class="grid grid-cols-2 gap-2">
+                    <button @click="applyPreset('sure_bets')" class="bg-poly-green/20 text-poly-green border border-poly-green/50 rounded py-1 px-2 text-xs hover:bg-poly-green/30 transition">
+                        Safe Haven (>95%)
+                    </button>
+                    <button @click="applyPreset('expiring_soon')" class="bg-poly-red/20 text-poly-red border border-poly-red/50 rounded py-1 px-2 text-xs hover:bg-poly-red/30 transition">
+                        Expiring < 24h
+                    </button>
+                    <button @click="applyPreset('crypto_volume')" class="col-span-2 bg-poly-blue/20 text-poly-blue border border-poly-blue/50 rounded py-1 px-2 text-xs hover:bg-poly-blue/30 transition">
+                        High Vol Crypto
+                    </button>
+                </div>
+
+                <!-- Search -->
+                <div>
+                    <label class="text-xs text-gray-400 uppercase font-bold mb-2 block">Search</label>
+                    <div class="relative">
+                        <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-gray-500"></i>
+                        <input type="text" v-model="filters.search" @input="debouncedFetch" 
+                            class="w-full bg-poly-bg border border-poly-accent rounded pl-9 pr-3 py-2 text-sm focus:border-poly-blue outline-none transition" 
+                            placeholder="Trump, BTC, etc...">
+                    </div>
+                </div>
+
+                <hr class="border-poly-accent/30 my-2">
+
+                <!-- Tags -->
+                <div>
+                    <label class="text-xs text-gray-400 uppercase font-bold mb-2 block">Include Category</label>
+                    <select v-model="filters.tag" @change="resetAndFetch" 
+                        class="w-full bg-poly-bg border border-poly-accent rounded px-3 py-2 text-sm focus:border-poly-blue outline-none">
+                        <option value="">All Categories</option>
+                        <option v-for="tag in tags" :key="tag.tag_label" :value="tag.tag_label">
+                            {{ tag.tag_label }} ({{ tag.count }})
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Exclude Tags -->
+                <div class="mt-4">
+                    <label class="text-xs text-gray-400 uppercase font-bold mb-2 block">Exclude Categories</label>
+                    <input type="text" v-model="filters.excluded_tags_input" @change="resetAndFetch"
+                        class="w-full bg-poly-bg border border-poly-accent rounded px-3 py-2 text-sm focus:border-poly-blue outline-none"
+                        placeholder="Sports, Pop Culture (comma sep)">
+                </div>
+
+                <hr class="border-poly-accent/30 my-2">
+
+                <!-- Expiration -->
+                <div>
+                    <label class="text-xs text-gray-400 uppercase font-bold mb-2 block flex justify-between">
+                        <span>Expires Within</span>
+                        <span class="text-poly-blue">{{ filters.max_hours_to_expire > 0 ? filters.max_hours_to_expire + 'h' : 'Anytime' }}</span>
+                    </label>
+                    <input type="range" min="0" max="168" step="1" v-model.number="filters.max_hours_to_expire" @change="resetAndFetch" 
+                        class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
+                    <div class="flex justify-between text-[10px] text-gray-500 mt-1 mb-2">
+                        <span>Now</span>
+                        <span>1 Week</span>
+                    </div>
+                    
+                    <!-- Include Expired Toggle -->
+                    <label class="flex items-center gap-2 text-xs cursor-pointer select-none">
+                        <input type="checkbox" v-model="filters.include_expired" @change="resetAndFetch" 
+                            class="w-4 h-4 rounded bg-poly-bg border-poly-accent text-poly-blue focus:ring-0">
+                        <span :class="filters.include_expired ? 'text-white' : 'text-gray-500'">Include Past Due (Expired)</span>
+                    </label>
+                </div>
+
+                <hr class="border-poly-accent/30 my-2">
+
+                <!-- Price Range -->
+                <div>
+                    <label class="text-xs text-gray-400 uppercase font-bold mb-2 block">Price Range (Probability)</label>
+                    
+                    <!-- Min Price -->
+                    <div class="mb-3">
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-gray-500">Min</span>
+                            <span class="text-poly-blue font-mono">{{ (filters.min_price * 100).toFixed(0) }}%</span>
+                        </div>
+                        <input type="range" min="0" max="1" step="0.01" v-model.number="filters.min_price" @change="resetAndFetch"
+                            class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
+                    </div>
+
+                    <!-- Max Price -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-gray-500">Max</span>
+                            <span class="text-poly-blue font-mono">{{ (filters.max_price * 100).toFixed(0) }}%</span>
+                        </div>
+                        <input type="range" min="0" max="1" step="0.01" v-model.number="filters.max_price" @change="resetAndFetch"
+                            class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+
+                <hr class="border-poly-accent/30 my-2">
+
+                <!-- Max Spread -->
+                <div>
+                    <label class="text-xs text-gray-400 uppercase font-bold mb-2 block flex justify-between">
+                        <span>Max Spread</span>
+                        <span class="text-poly-blue">{{ (filters.max_spread * 100).toFixed(1) }}¢</span>
+                    </label>
+                    <input type="range" min="0" max="0.2" step="0.001" v-model.number="filters.max_spread" @change="resetAndFetch" 
+                        class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
+                    <div class="flex justify-between text-[10px] text-gray-500 mt-1">
+                        <span>0¢</span>
+                        <span>20¢</span>
+                    </div>
+                </div>
+
+                <hr class="border-poly-accent/30 my-2">
+
+                <!-- Min Volume -->
+                <div>
+                    <label class="text-xs text-gray-400 uppercase font-bold mb-2 block flex justify-between">
+                        <span>Min Volume</span>
+                        <span class="text-poly-blue">{{ formatCurrency(filters.min_volume) }}</span>
+                    </label>
+                    <input type="range" min="0" max="1000000" step="1000" v-model.number="filters.min_volume" @change="resetAndFetch" 
+                        class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <!-- Min Liquidity -->
+                <div class="mt-4">
+                    <label class="text-xs text-gray-400 uppercase font-bold mb-2 block flex justify-between">
+                        <span>Min Liquidity</span>
+                        <span class="text-poly-blue">{{ formatCurrency(filters.min_liquidity) }}</span>
+                    </label>
+                    <input type="range" min="0" max="100000" step="100" v-model.number="filters.min_liquidity" @change="resetAndFetch" 
+                        class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <div class="mt-auto pt-4 border-t border-poly-accent text-xs text-center text-gray-500">
+                    <p>Showing {{ markets.length }} markets</p>
+                    <p class="mt-1 opacity-50">Scraped Data from Gamma API</p>
+                </div>
+            </aside>
+
+            <!-- Data Grid -->
+            <main class="flex-1 overflow-hidden flex flex-col bg-poly-bg">
+                
+                <!-- Table Header (Sticky) -->
+                <div class="grid grid-cols-12 gap-4 px-6 py-3 border-b border-poly-accent bg-poly-bg text-xs font-bold text-gray-400 uppercase tracking-wider z-10 shadow-sm">
+                    <div class="col-span-1 text-center">Icon</div>
+                    <div class="col-span-4 cursor-pointer hover:text-white" @click="setSort('question')">Market / Outcome</div>
+                    <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('price')">Price</div>
+                    <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('spread')">Spread</div>
+                    <div class="col-span-2 text-right cursor-pointer hover:text-white" @click="setSort('volume_usd')">Volume</div>
+                    <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('liquidity_usd')">Liq</div>
+                    <div class="col-span-2 text-right cursor-pointer hover:text-white" @click="setSort('end_date')">Expires</div>
+                </div>
+
+                <!-- Table Body (Scrollable) -->
+                <div class="flex-1 overflow-y-auto px-2" id="market-list">
+                    
+                    <!-- Empty State -->
+                    <div v-if="markets.length === 0 && !loading" class="flex flex-col justify-center items-center h-full text-gray-500">
+                        <i class="ph ph-ghost text-4xl mb-2"></i>
+                        <p>No markets found matching filters.</p>
+                    </div>
+
+                    <!-- List -->
+                    <div v-else class="pb-4">
+                        <div v-for="m in markets" :key="m.market_id + m.outcome_name" class="border-b border-poly-accent/50">
+                            
+                            <!-- Main Row -->
+                            <div @click="toggleDetails(m)" 
+                                 class="grid grid-cols-12 gap-4 px-4 py-4 text-sm items-center hover:bg-poly-card transition-colors cursor-pointer group">
+                                
+                                <!-- Icon -->
+                                <div class="col-span-1 flex justify-center">
+                                    <img v-if="m.icon_url" :src="m.icon_url" class="w-10 h-10 rounded-full object-cover border border-poly-accent shadow-sm" alt="">
+                                    <div v-else class="w-10 h-10 rounded-full bg-poly-accent flex items-center justify-center text-gray-500">
+                                        <i class="ph ph-image"></i>
+                                    </div>
+                                </div>
+
+                                <!-- Question & Outcome -->
+                                <div class="col-span-4 pr-2">
+                                    <div class="mb-1">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-poly-accent text-gray-300 font-mono whitespace-nowrap" v-if="m.category">{{ m.category }}</span>
+                                        </div>
+                                        <span class="text-white font-medium block leading-tight group-hover:text-poly-blue transition-colors">
+                                            {{ m.question }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Price -->
+                                <div class="col-span-1 text-right">
+                                    <div class="flex flex-col items-end">
+                                        <span class="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">{{ m.outcome_name }}</span>
+                                        <span class="font-mono font-bold text-base"
+                                            :class="m.outcome_name === 'No' ? 'text-poly-red' : 'text-poly-green'">
+                                            {{ (m.price * 100).toFixed(2) }}¢
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Spread -->
+                                <div class="col-span-1 text-right text-gray-400 text-xs">
+                                    {{ (m.spread * 100).toFixed(1) }}¢
+                                </div>
+
+                                <!-- Volume -->
+                                <div class="col-span-2 text-right font-mono text-gray-300">
+                                    {{ formatCurrency(m.volume_usd) }}
+                                </div>
+
+                                <!-- Liquidity -->
+                                <div class="col-span-1 text-right font-mono text-gray-400 text-xs">
+                                    {{ formatCompact(m.liquidity_usd) }}
+                                </div>
+
+                                <!-- Expires -->
+                                <div class="col-span-2 text-right text-xs text-gray-500 flex flex-col items-end">
+                                    <span>{{ formatDate(m.end_date) }}</span>
+                                    <span class="text-[10px]">{{ timeFromNow(m.end_date) }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Detail View -->
+                            <div v-if="expandedId === m.market_id + m.outcome_name" class="bg-poly-card/50 p-4 pl-10 text-xs text-gray-300 grid grid-cols-2 gap-4 shadow-inner">
+                                <div>
+                                    <h4 class="text-gray-500 font-bold uppercase mb-2">Market Details</h4>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <span class="text-gray-500">Market ID:</span> <span class="font-mono text-white select-all">{{ m.market_id }}</span>
+                                        <span class="text-gray-500">Start Date:</span> <span class="text-white">{{ m.start_date.replace('T', ' ').replace('Z', '') }}</span>
+                                        <span class="text-gray-500">End Date:</span> <span class="text-white">{{ m.end_date.replace('T', ' ').replace('Z', '') }}</span>
+                                        <span class="text-gray-500">Exact Vol:</span> <span class="font-mono text-white">{{ m.volume_usd.toLocaleString() }} USD</span>
+                                    </div>
+                                    <div class="mt-4">
+                                        <a :href="m.url" target="_blank" class="inline-flex items-center gap-2 bg-poly-blue hover:bg-blue-600 text-white px-3 py-1.5 rounded transition">
+                                            Open on Polymarket <i class="ph ph-arrow-square-out"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="text-gray-500 font-bold uppercase mb-2">Analysis</h4>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <span class="text-gray-500">Event Slug:</span> <span class="font-mono text-white select-all">{{ m.event_slug }}</span>
+                                        <span class="text-gray-500">Probability:</span> <span class="text-white font-bold">{{ (m.price * 100).toFixed(2) }}%</span>
+                                        <span class="text-gray-500">Implied Odds:</span> <span class="text-white font-mono">1 : {{ (1 / (m.price || 0.0001)).toFixed(2) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        
+                        <!-- Load More Button -->
+                        <div class="p-4 text-center">
+                            <button @click="loadMore" :disabled="loading" 
+                                class="bg-poly-accent hover:bg-poly-blue text-white px-6 py-2 rounded text-sm transition disabled:opacity-50 flex items-center gap-2 mx-auto">
+                                <i v-if="loading" class="ph ph-spinner animate-spin"></i>
+                                <span v-if="!loading">Load More Markets</span>
+                                <span v-else>Loading...</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted, watch } = Vue;
+
+        createApp({
+            setup() {
+                const markets = ref([]);
+                const tags = ref([]);
+                const loading = ref(false);
+                const expandedId = ref(null);
+                const offset = ref(0);
+                const limit = 100; // Load 100 at a time
+                const lastUpdated = ref(new Date());
+                
+                const filters = ref({
+                    tag: "",
+                    excluded_tags_input: "", // "Sports, Pop"
+                    min_volume: 0,
+                    min_liquidity: 10000,     // Default: $10k
+                    min_price: 0.02,          // Default: 2%
+                    max_price: 0.99,          // Default: 99%
+                    max_spread: 0.1,
+                    max_hours_to_expire: 24,  // Default: 24h
+                    include_expired: true,    // Default: Show past due
+                    search: "",
+                    sort_by: "volume_usd",
+                    sort_dir: "desc"
+                });
+
+                let debounceTimer = null;
+                let refreshInterval = null;
+
+                const lastUpdatedTime = Vue.computed(() => {
+                    return lastUpdated.value.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                });
+
+                // Toggle Details
+                const toggleDetails = (market) => {
+                    const id = market.market_id + market.outcome_name;
+                    expandedId.value = expandedId.value === id ? null : id;
+                };
+
+                // Presets
+                const applyPreset = (name) => {
+                    // Reset defaults
+                    filters.value.min_price = 0.02;
+                    filters.value.max_price = 0.99;
+                    filters.value.max_spread = 0.1;
+                    filters.value.max_hours_to_expire = 0;
+                    filters.value.min_volume = 0;
+                    filters.value.min_liquidity = 0;
+                    filters.value.include_expired = true;
+                    filters.value.excluded_tags_input = "";
+
+                    if (name === 'sure_bets') {
+                        filters.value.min_price = 0.95;
+                        filters.value.max_price = 1.00;
+                        filters.value.min_liquidity = 500;
+                    } else if (name === 'expiring_soon') {
+                        filters.value.max_hours_to_expire = 24;
+                    } else if (name === 'crypto_volume') {
+                        filters.value.tag = 'Crypto';
+                        filters.value.min_volume = 10000;
+                    }
+                    resetAndFetch();
+                };
+
+                // Formatters
+                const formatCurrency = (value) => {
+                    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+                };
+
+                const formatCompact = (value) => {
+                    return new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short", style: 'currency', currency: 'USD' }).format(value);
+                };
+
+                const formatDate = (dateStr) => {
+                    if (!dateStr) return "-";
+                    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                };
+                
+                const timeFromNow = (dateStr) => {
+                    if (!dateStr) return "";
+                    const diff = new Date(dateStr) - new Date();
+                    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+                    const hours = Math.ceil(diff / (1000 * 60 * 60));
+                    
+                    if (hours < 0) return "Expired";
+                    if (hours < 24) return `${hours}h left`;
+                    if (days === 0) return "Today";
+                    return `in ${days} days`;
+                };
+
+                // API Calls
+                const fetchTags = async () => {
+                    try {
+                        const res = await fetch('/api/tags');
+                        tags.value = await res.json();
+                    } catch (e) { console.error(e); }
+                };
+
+                const fetchMarkets = async (append = false) => {
+                    if (loading.value) return;
+                    loading.value = true;
+                    
+                    try {
+                        const params = new URLSearchParams();
+                        
+                        // Basic fields
+                        if (filters.value.tag) params.append("tag", filters.value.tag);
+                        params.append("min_volume", filters.value.min_volume);
+                        params.append("min_liquidity", filters.value.min_liquidity);
+                        params.append("min_price", filters.value.min_price);
+                        params.append("max_price", filters.value.max_price);
+                        params.append("max_spread", filters.value.max_spread);
+                        params.append("include_expired", filters.value.include_expired);
+                        if (filters.value.search) params.append("search", filters.value.search);
+                        params.append("sort_by", filters.value.sort_by);
+                        params.append("sort_dir", filters.value.sort_dir);
+                        
+                        // Hours
+                        if (filters.value.max_hours_to_expire > 0) {
+                            params.append("max_hours_to_expire", filters.value.max_hours_to_expire);
+                        }
+
+                        // Excluded Tags (List)
+                        if (filters.value.excluded_tags_input) {
+                            const tags = filters.value.excluded_tags_input.split(',').map(t => t.trim()).filter(t => t);
+                            tags.forEach(t => params.append("excluded_tags", t));
+                        }
+                        
+                        // Pagination
+                        params.append("limit", limit);
+                        params.append("offset", offset.value);
+
+                        const res = await fetch(`/api/markets?${params}`);
+                        const newMarkets = await res.json();
+                        
+                        if (append) {
+                            markets.value = [...markets.value, ...newMarkets];
+                        } else {
+                            markets.value = newMarkets;
+                        }
+                        
+                    } catch (e) {
+                        console.error(e);
+                    } finally {
+                        loading.value = false;
+                        lastUpdated.value = new Date();
+                    }
+                };
+
+                const resetAndFetch = () => {
+                    offset.value = 0;
+                    fetchMarkets(false);
+                };
+                
+                const loadMore = () => {
+                    offset.value += limit;
+                    fetchMarkets(true);
+                };
+
+                const debouncedFetch = () => {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(resetAndFetch, 500);
+                };
+
+                const setSort = (column) => {
+                    if (filters.value.sort_by === column) {
+                        filters.value.sort_dir = filters.value.sort_dir === 'desc' ? 'asc' : 'desc';
+                    } else {
+                        filters.value.sort_by = column;
+                        filters.value.sort_dir = 'desc';
+                    }
+                    resetAndFetch();
+                };
+
+                onMounted(() => {
+                    fetchTags();
+                    fetchMarkets();
+                    // Auto-refresh every 60 seconds
+                    refreshInterval = setInterval(() => fetchMarkets(false), 60000);
+                });
+
+                return {
+                    markets,
+                    tags,
+                    loading,
+                    filters,
+                    expandedId,
+                    lastUpdatedTime,
+                    formatCurrency,
+                    formatCompact,
+                    formatDate,
+                    timeFromNow,
+                    resetAndFetch,
+                    loadMore,
+                    debouncedFetch,
+                    setSort,
+                    toggleDetails,
+                    applyPreset
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

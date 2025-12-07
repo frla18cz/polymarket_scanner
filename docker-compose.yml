@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # 1. Web Server (FastAPI)
+  web:
+    build: .
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    # Ports mapping removed because Caddy handles ingress
+    # ports:
+    #   - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    networks:
+      - poly_net
+
+  # 2. Worker (Background Scraper)
+  worker:
+    build: .
+    command: python auto_refresh.py
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    depends_on:
+      - web
+    networks:
+      - poly_net
+
+  # 3. Caddy (Reverse Proxy & HTTPS)
+  caddy:
+    image: caddy:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+    networks:
+      - poly_net
+
+networks:
+  poly_net:
+
+volumes:
+  caddy_data:
+  caddy_config:
