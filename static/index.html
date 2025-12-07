@@ -382,6 +382,7 @@
 
                 let debounceTimer = null;
                 let refreshInterval = null;
+                let abortController = null;
 
                 const lastUpdatedTime = Vue.computed(() => {
                     if (!serverLastUpdated.value) return "Loading...";
@@ -465,8 +466,17 @@
                 };
 
                 const fetchMarkets = async (append = false) => {
-                    if (loading.value) return;
+                    // Cancel previous request if exists and we are starting a new search (not appending)
+                    if (!append && abortController) {
+                        abortController.abort();
+                        abortController = null;
+                    }
+
+                    // If appending and already loading, prevent duplicate requests
+                    if (append && loading.value) return;
+
                     loading.value = true;
+                    abortController = new AbortController();
                     
                     try {
                         const params = new URLSearchParams();
@@ -501,7 +511,7 @@
                         params.append("limit", limit);
                         params.append("offset", offset.value);
 
-                        const res = await fetch(`/api/markets?${params}`);
+                        const res = await fetch(`/api/markets?${params}`, { signal: abortController.signal });
                         const newMarkets = await res.json();
                         
                         if (append) {
@@ -514,9 +524,17 @@
                         fetchStatus();
                         
                     } catch (e) {
+                        if (e.name === 'AbortError') {
+                            // Request cancelled, do nothing (loading stays true for the new request)
+                            return; 
+                        }
                         console.error(e);
                     } finally {
-                        loading.value = false;
+                        // Only turn off loading if this was the last request (controller matches) or if it wasn't aborted
+                        if (abortController && !abortController.signal.aborted) {
+                            loading.value = false;
+                            abortController = null;
+                        }
                     }
                 };
 
