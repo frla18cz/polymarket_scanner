@@ -38,30 +38,30 @@
 </head>
 <body class="h-screen overflow-hidden flex flex-col">
 
-    <div id="app" class="flex flex-col h-full">
+    <div id="app" class="flex flex-col h-full relative">
         
         <!-- Header -->
-        <header class="bg-poly-card border-b border-poly-accent p-4 flex justify-between items-center shadow-md z-10">
+        <header class="bg-poly-card border-b border-poly-accent p-4 flex justify-between items-center shadow-md z-30 shrink-0">
             <div class="flex items-center gap-3">
                 <i class="ph ph-chart-line-up text-poly-blue text-2xl"></i>
-                <h1 class="text-xl font-bold tracking-tight">Polymarket <span class="text-poly-blue">Scanner</span></h1>
-                <span class="text-xs text-gray-500 ml-2 bg-poly-bg px-2 py-1 rounded border border-poly-accent">
-                    Updated: {{ lastUpdatedTime }}
+                <h1 class="text-xl font-bold tracking-tight">Poly<span class="text-poly-blue">Scan</span></h1>
+                <span class="text-[10px] md:text-xs text-gray-500 ml-1 md:ml-2 bg-poly-bg px-2 py-1 rounded border border-poly-accent whitespace-nowrap">
+                    {{ lastUpdatedTime }}
                 </span>
             </div>
             <div class="flex gap-4 text-sm font-medium">
-                <div class="flex flex-col items-end">
+                <div class="flex flex-col items-end hidden md:flex">
                     <span class="text-gray-400 text-xs">Active Markets</span>
                     <span class="text-white">16,000+</span>
                 </div>
             </div>
         </header>
 
-        <!-- Main Content -->
-        <div class="flex flex-1 overflow-hidden">
+        <!-- Main Content (Sidebar + Grid) -->
+        <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
             
             <!-- Sidebar Filters -->
-            <aside class="w-64 bg-poly-card border-r border-poly-accent p-4 flex flex-col gap-6 overflow-y-auto">
+            <aside class="w-full md:w-64 bg-poly-card border-b md:border-b-0 md:border-r border-poly-accent p-4 flex flex-col gap-6 overflow-y-auto shrink-0 max-h-[40vh] md:max-h-full">
                 
                 <!-- Presets -->
                 <div class="grid grid-cols-2 gap-2">
@@ -100,6 +100,9 @@
                         </option>
                     </select>
                 </div>
+                
+                <!-- More Filters Section (Collapsible on mobile maybe? No, "always visible") -->
+                <!-- Just keeping them here as requested -->
 
                 <!-- Exclude Tags -->
                 <div class="mt-4">
@@ -204,117 +207,135 @@
             </aside>
 
             <!-- Data Grid -->
-            <main class="flex-1 overflow-hidden flex flex-col bg-poly-bg">
+            <main class="flex-1 overflow-hidden flex flex-col bg-poly-bg w-full">
                 
-                <!-- Table Header (Sticky) -->
-                <div class="grid grid-cols-12 gap-4 px-6 py-3 border-b border-poly-accent bg-poly-bg text-xs font-bold text-gray-400 uppercase tracking-wider z-10 shadow-sm">
-                    <div class="col-span-1 text-center">Icon</div>
-                    <div class="col-span-4 cursor-pointer hover:text-white" @click="setSort('question')">Market / Outcome</div>
-                    <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('price')">Price</div>
-                    <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('spread')">Spread</div>
-                    <div class="col-span-2 text-right cursor-pointer hover:text-white" @click="setSort('volume_usd')">Volume</div>
-                    <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('liquidity_usd')">Liq</div>
-                    <div class="col-span-2 text-right cursor-pointer hover:text-white" @click="setSort('end_date')">Expires</div>
+                <!-- Table Container with Horizontal Scroll -->
+                <div class="flex-1 overflow-auto" id="market-list"> <!-- overflow-auto handles both X and Y scrolling -->
+                    
+                    <div class="min-w-[800px]"> <!-- Force minimum width to trigger scroll on small screens -->
+                        
+                        <!-- Table Header (Sticky) -->
+                        <div class="grid grid-cols-12 gap-4 px-6 py-3 border-b border-poly-accent bg-poly-bg text-xs font-bold text-gray-400 uppercase tracking-wider z-10 sticky top-0 shadow-sm">
+                            <div class="col-span-1 text-center">Icon</div>
+                            <div class="col-span-4 cursor-pointer hover:text-white" @click="setSort('question')">Market</div>
+                            <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('price')">Price</div>
+                            <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('spread')">Spread</div>
+                            <div class="col-span-2 text-right cursor-pointer hover:text-white" @click="setSort('volume_usd')">Volume</div>
+                            <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('liquidity_usd')">Liq</div>
+                            <div class="col-span-2 text-right cursor-pointer hover:text-white" @click="setSort('end_date')">Expires</div>
+                        </div>
+
+                        <!-- Empty State -->
+                        <div v-if="markets.length === 0 && !loading" class="flex flex-col justify-center items-center py-20 text-gray-500">
+                            <i class="ph ph-ghost text-4xl mb-2"></i>
+                            <p>No markets found matching filters.</p>
+                        </div>
+
+                        <!-- List -->
+                        <div v-else class="pb-4">
+                            <div v-for="m in markets" :key="m.market_id + m.outcome_name" class="border-b border-poly-accent/50">
+                                
+                                <!-- Main Row -->
+                                <div @click="toggleDetails(m)" 
+                                     class="grid grid-cols-12 gap-4 px-6 py-4 text-sm items-center hover:bg-poly-card transition-colors cursor-pointer group">
+                                    
+                                    <!-- Icon -->
+                                    <div class="col-span-1 flex justify-center">
+                                        <img v-if="m.icon_url" :src="m.icon_url" class="w-10 h-10 rounded-full object-cover border border-poly-accent shadow-sm" alt="">
+                                        <div v-else class="w-10 h-10 rounded-full bg-poly-accent flex items-center justify-center text-gray-500">
+                                            <i class="ph ph-image"></i>
+                                        </div>
+                                    </div>
+
+                                    <!-- Question & Outcome -->
+                                    <div class="col-span-4 pr-2">
+                                        <div class="mb-1">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-poly-accent text-gray-300 font-mono whitespace-nowrap truncate max-w-[150px]" v-if="m.category">{{ m.category }}</span>
+                                            </div>
+                                            <span class="text-white font-medium block leading-tight group-hover:text-poly-blue transition-colors line-clamp-2">
+                                                {{ m.question }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Price -->
+                                    <div class="col-span-1 text-right">
+                                        <div class="flex flex-col items-end">
+                                            <span class="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5 truncate max-w-full">{{ m.outcome_name }}</span>
+                                            <span class="font-mono font-bold text-base"
+                                                :class="m.outcome_name === 'No' ? 'text-poly-red' : 'text-poly-green'">
+                                                {{ (m.price * 100).toFixed(1) }}¢
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Spread -->
+                                    <div class="col-span-1 text-right text-gray-400 text-xs">
+                                        {{ (m.spread * 100).toFixed(1) }}¢
+                                    </div>
+
+                                    <!-- Volume -->
+                                    <div class="col-span-2 text-right font-mono text-gray-300">
+                                        {{ formatCurrency(m.volume_usd) }}
+                                    </div>
+
+                                    <!-- Liquidity -->
+                                    <div class="col-span-1 text-right font-mono text-gray-400 text-xs">
+                                        {{ formatCompact(m.liquidity_usd) }}
+                                    </div>
+
+                                    <!-- Expires -->
+                                    <div class="col-span-2 text-right text-xs text-gray-500 flex flex-col items-end">
+                                        <span>{{ formatDate(m.end_date) }}</span>
+                                        <span class="text-[10px]">{{ timeFromNow(m.end_date) }}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Detail View (Full width within scroll container) -->
+                                <div v-if="expandedId === m.market_id + m.outcome_name" class="bg-poly-card/50 p-4 pl-10 text-xs text-gray-300 grid grid-cols-2 gap-4 shadow-inner">
+                                    <div>
+                                        <h4 class="text-gray-500 font-bold uppercase mb-2">Market Details</h4>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <span class="text-gray-500">Market ID:</span> <span class="font-mono text-white select-all truncate">{{ m.market_id }}</span>
+                                            <span class="text-gray-500">Start Date:</span> <span class="text-white">{{ m.start_date ? m.start_date.replace('T', ' ').slice(0, 16) : '-' }}</span>
+                                            <span class="text-gray-500">End Date:</span> <span class="text-white">{{ m.end_date ? m.end_date.replace('T', ' ').slice(0, 16) : '-' }}</span>
+                                            <span class="text-gray-500">Volume:</span> <span class="font-mono text-white">{{ m.volume_usd.toLocaleString() }} USD</span>
+                                        </div>
+                                        <div class="mt-4">
+                                            <a :href="m.url" target="_blank" class="inline-flex items-center gap-2 bg-poly-blue hover:bg-blue-600 text-white px-3 py-1.5 rounded transition">
+                                                Open on Polymarket <i class="ph ph-arrow-square-out"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-gray-500 font-bold uppercase mb-2">Analysis</h4>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <span class="text-gray-500">Event Slug:</span> <span class="font-mono text-white select-all truncate">{{ m.event_slug }}</span>
+                                            <span class="text-gray-500">Probability:</span> <span class="text-white font-bold">{{ (m.price * 100).toFixed(2) }}%</span>
+                                            <span class="text-gray-500">Implied Odds:</span> <span class="text-white font-mono">1 : {{ (1 / (m.price || 0.0001)).toFixed(2) }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                            
+                            <!-- Load More Button -->
+                            <div class="p-4 text-center">
+                                <button @click="loadMore" :disabled="loading" 
+                                    class="bg-poly-accent hover:bg-poly-blue text-white px-6 py-2 rounded text-sm transition disabled:opacity-50 flex items-center gap-2 mx-auto">
+                                    <i v-if="loading" class="ph ph-spinner animate-spin"></i>
+                                    <span v-if="!loading">Load More Markets</span>
+                                    <span v-else>Loading...</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Table Body (Scrollable) -->
-                <div class="flex-1 overflow-y-auto px-2" id="market-list">
-                    
-                    <!-- Empty State -->
-                    <div v-if="markets.length === 0 && !loading" class="flex flex-col justify-center items-center h-full text-gray-500">
-                        <i class="ph ph-ghost text-4xl mb-2"></i>
-                        <p>No markets found matching filters.</p>
-                    </div>
-
-                    <!-- List -->
-                    <div v-else class="pb-4">
-                        <div v-for="m in markets" :key="m.market_id + m.outcome_name" class="border-b border-poly-accent/50">
-                            
-                            <!-- Main Row -->
-                            <div @click="toggleDetails(m)" 
-                                 class="grid grid-cols-12 gap-4 px-4 py-4 text-sm items-center hover:bg-poly-card transition-colors cursor-pointer group">
-                                
-                                <!-- Icon -->
-                                <div class="col-span-1 flex justify-center">
-                                    <img v-if="m.icon_url" :src="m.icon_url" class="w-10 h-10 rounded-full object-cover border border-poly-accent shadow-sm" alt="">
-                                    <div v-else class="w-10 h-10 rounded-full bg-poly-accent flex items-center justify-center text-gray-500">
-                                        <i class="ph ph-image"></i>
-                                    </div>
-                                </div>
-
-                                <!-- Question & Outcome -->
-                                <div class="col-span-4 pr-2">
-                                    <div class="mb-1">
-                                        <div class="flex items-center gap-2 mb-1">
-                                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-poly-accent text-gray-300 font-mono whitespace-nowrap" v-if="m.category">{{ m.category }}</span>
-                                        </div>
-                                        <span class="text-white font-medium block leading-tight group-hover:text-poly-blue transition-colors">
-                                            {{ m.question }}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <!-- Price -->
-                                <div class="col-span-1 text-right">
-                                    <div class="flex flex-col items-end">
-                                        <span class="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">{{ m.outcome_name }}</span>
-                                        <span class="font-mono font-bold text-base"
-                                            :class="m.outcome_name === 'No' ? 'text-poly-red' : 'text-poly-green'">
-                                            {{ (m.price * 100).toFixed(2) }}¢
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <!-- Spread -->
-                                <div class="col-span-1 text-right text-gray-400 text-xs">
-                                    {{ (m.spread * 100).toFixed(1) }}¢
-                                </div>
-
-                                <!-- Volume -->
-                                <div class="col-span-2 text-right font-mono text-gray-300">
-                                    {{ formatCurrency(m.volume_usd) }}
-                                </div>
-
-                                <!-- Liquidity -->
-                                <div class="col-span-1 text-right font-mono text-gray-400 text-xs">
-                                    {{ formatCompact(m.liquidity_usd) }}
-                                </div>
-
-                                <!-- Expires -->
-                                <div class="col-span-2 text-right text-xs text-gray-500 flex flex-col items-end">
-                                    <span>{{ formatDate(m.end_date) }}</span>
-                                    <span class="text-[10px]">{{ timeFromNow(m.end_date) }}</span>
-                                </div>
-                            </div>
-
-                            <!-- Detail View -->
-                            <div v-if="expandedId === m.market_id + m.outcome_name" class="bg-poly-card/50 p-4 pl-10 text-xs text-gray-300 grid grid-cols-2 gap-4 shadow-inner">
-                                <div>
-                                    <h4 class="text-gray-500 font-bold uppercase mb-2">Market Details</h4>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <span class="text-gray-500">Market ID:</span> <span class="font-mono text-white select-all">{{ m.market_id }}</span>
-                                        <span class="text-gray-500">Start Date:</span> <span class="text-white">{{ m.start_date.replace('T', ' ').replace('Z', '') }}</span>
-                                        <span class="text-gray-500">End Date:</span> <span class="text-white">{{ m.end_date.replace('T', ' ').replace('Z', '') }}</span>
-                                        <span class="text-gray-500">Exact Vol:</span> <span class="font-mono text-white">{{ m.volume_usd.toLocaleString() }} USD</span>
-                                    </div>
-                                    <div class="mt-4">
-                                        <a :href="m.url" target="_blank" class="inline-flex items-center gap-2 bg-poly-blue hover:bg-blue-600 text-white px-3 py-1.5 rounded transition">
-                                            Open on Polymarket <i class="ph ph-arrow-square-out"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h4 class="text-gray-500 font-bold uppercase mb-2">Analysis</h4>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <span class="text-gray-500">Event Slug:</span> <span class="font-mono text-white select-all">{{ m.event_slug }}</span>
-                                        <span class="text-gray-500">Probability:</span> <span class="text-white font-bold">{{ (m.price * 100).toFixed(2) }}%</span>
-                                        <span class="text-gray-500">Implied Odds:</span> <span class="text-white font-mono">1 : {{ (1 / (m.price || 0.0001)).toFixed(2) }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                        
+            </main>
+        </div>
+    </div>                        
                         <!-- Load More Button -->
                         <div class="p-4 text-center">
                             <button @click="loadMore" :disabled="loading" 
@@ -342,7 +363,7 @@
                 const expandedId = ref(null);
                 const offset = ref(0);
                 const limit = 100; // Load 100 at a time
-                const lastUpdated = ref(new Date());
+                const serverLastUpdated = ref(null);
                 
                 const filters = ref({
                     tag: "",
@@ -363,7 +384,9 @@
                 let refreshInterval = null;
 
                 const lastUpdatedTime = Vue.computed(() => {
-                    return lastUpdated.value.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    if (!serverLastUpdated.value) return "Loading...";
+                    const d = new Date(serverLastUpdated.value + "Z"); // Ensure UTC parsing if string is ISO without Z
+                    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " (" + d.toLocaleDateString() + ")";
                 });
 
                 // Toggle Details
@@ -430,6 +453,16 @@
                         tags.value = await res.json();
                     } catch (e) { console.error(e); }
                 };
+                
+                const fetchStatus = async () => {
+                    try {
+                        const res = await fetch(`/api/status?_t=${Date.now()}`);
+                        const data = await res.json();
+                        if (data.last_updated) {
+                            serverLastUpdated.value = data.last_updated;
+                        }
+                    } catch (e) { console.error(e); }
+                };
 
                 const fetchMarkets = async (append = false) => {
                     if (loading.value) return;
@@ -438,6 +471,9 @@
                     try {
                         const params = new URLSearchParams();
                         
+                        // Cache buster
+                        params.append("_t", Date.now());
+
                         // Basic fields
                         if (filters.value.tag) params.append("tag", filters.value.tag);
                         params.append("min_volume", filters.value.min_volume);
@@ -474,17 +510,23 @@
                             markets.value = newMarkets;
                         }
                         
+                        // Also update status
+                        fetchStatus();
+                        
                     } catch (e) {
                         console.error(e);
                     } finally {
                         loading.value = false;
-                        lastUpdated.value = new Date();
                     }
                 };
 
                 const resetAndFetch = () => {
                     offset.value = 0;
                     fetchMarkets(false);
+                    // Close mobile menu on filter change
+                    if (window.innerWidth < 768) {
+                        // Optional: close menu or keep open? keep open might be better while filtering
+                    }
                 };
                 
                 const loadMore = () => {
@@ -509,9 +551,13 @@
 
                 onMounted(() => {
                     fetchTags();
+                    fetchStatus();
                     fetchMarkets();
                     // Auto-refresh every 60 seconds
-                    refreshInterval = setInterval(() => fetchMarkets(false), 60000);
+                    refreshInterval = setInterval(() => {
+                        fetchMarkets(false);
+                        fetchStatus();
+                    }, 60000);
                 });
 
                 return {

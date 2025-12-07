@@ -2,7 +2,7 @@ import os
 import sqlite3
 from datetime import datetime, timedelta
 from typing import Optional, List
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Response
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import uvicorn
@@ -32,8 +32,22 @@ def get_tags():
     conn.close()
     return [{"tag_label": r["tag_label"], "count": r["count"]} for r in rows]
 
+@app.get("/api/status")
+def get_status(response: Response):
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        row = cursor.execute("SELECT MAX(snapshot_at) as last_updated FROM active_market_outcomes").fetchone()
+        last_updated = row["last_updated"] if row else None
+    except:
+        last_updated = None
+    conn.close()
+    return {"last_updated": last_updated}
+
 @app.get("/api/markets")
 def get_markets(
+    response: Response,
     tag: Optional[str] = None,
     excluded_tags: Optional[List[str]] = Query(None),
     sort_by: str = "volume_usd",
@@ -51,6 +65,11 @@ def get_markets(
 ):
     conn = get_db_connection()
     cursor = conn.cursor()
+    
+    # Disable caching
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
     
     where_clauses = ["1=1"]
     params = []
