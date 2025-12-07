@@ -20,18 +20,18 @@ def log_stats(duration):
         writer.writerow([datetime.datetime.now().isoformat(), f"{duration:.2f}"])
 
 def start_loop():
-    print(f"[{datetime.datetime.now()}] Starting Auto-Refresh Loop (Interval: {INTERVAL_SECONDS}s)")
+    print(f"[{datetime.datetime.now()}] Starting Auto-Refresh Loop (Interval: {INTERVAL_SECONDS}s)", flush=True)
     
     while True:
         try:
-            print(f"\n--- Running Update Task ---")
+            print(f"\n--- Running Update Task ---", flush=True)
             t0 = time.time()
             run_scrape()
             duration = time.time() - t0
             log_stats(duration)
-            print(f"--- Update Finished in {duration:.2f}s. Sleeping for {INTERVAL_SECONDS}s ---")
+            print(f"--- Update Finished in {duration:.2f}s. Sleeping for {INTERVAL_SECONDS}s ---", flush=True)
         except Exception as e:
-            print(f"!!! Error during scrape: {e}")
+            print(f"!!! Error during scrape: {e}", flush=True)
         
         time.sleep(INTERVAL_SECONDS)
 
