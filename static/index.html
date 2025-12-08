@@ -76,9 +76,9 @@
                     </button>
                 </div>
 
-                <!-- Search -->
+                <!-- Search Markets -->
                 <div>
-                    <label class="text-xs text-gray-400 uppercase font-bold mb-2 block">Search</label>
+                    <label class="text-xs text-gray-400 uppercase font-bold mb-2 block">Search Markets</label>
                     <div class="relative">
                         <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-gray-500"></i>
                         <input type="text" v-model="filters.search" @input="debouncedFetch" 
@@ -89,27 +89,85 @@
 
                 <hr class="border-poly-accent/30 my-2">
 
-                <!-- Tags -->
-                <div>
-                    <label class="text-xs text-gray-400 uppercase font-bold mb-2 block">Include Category</label>
-                    <select v-model="filters.tag" @change="resetAndFetch" 
-                        class="w-full bg-poly-bg border border-poly-accent rounded px-3 py-2 text-sm focus:border-poly-blue outline-none">
-                        <option value="">All Categories</option>
-                        <option v-for="tag in tags" :key="tag.tag_label" :value="tag.tag_label">
-                            {{ tag.tag_label }} ({{ tag.count }})
-                        </option>
-                    </select>
-                </div>
-                
-                <!-- More Filters Section (Collapsible on mobile maybe? No, "always visible") -->
-                <!-- Just keeping them here as requested -->
+                <!-- Categories (Smart Autocomplete) -->
+                <div class="flex flex-col gap-6">
+                    
+                    <!-- INCLUDED Categories -->
+                    <div class="relative">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs text-poly-green font-bold uppercase">Include Categories</label>
+                            <span v-if="filters.includedTags.length > 0" class="text-[10px] text-gray-500 cursor-pointer hover:text-white" @click="resetIncludedTags">Clear</span>
+                        </div>
+                        
+                        <!-- Selected Pills -->
+                        <div class="flex flex-wrap gap-1.5 mb-2" v-if="filters.includedTags.length > 0">
+                            <span v-for="tag in filters.includedTags" :key="'inc-'+tag" 
+                                class="px-2 py-0.5 rounded text-[10px] font-medium border border-poly-green bg-poly-green/10 text-poly-green flex items-center gap-1">
+                                {{ tag }}
+                                <button @click="removeIncludedTag(tag)" class="hover:text-white"><i class="ph ph-x"></i></button>
+                            </span>
+                        </div>
 
-                <!-- Exclude Tags -->
-                <div class="mt-4">
-                    <label class="text-xs text-gray-400 uppercase font-bold mb-2 block">Exclude Categories</label>
-                    <input type="text" v-model="filters.excluded_tags_input" @change="resetAndFetch"
-                        class="w-full bg-poly-bg border border-poly-accent rounded px-3 py-2 text-sm focus:border-poly-blue outline-none"
-                        placeholder="Sports, Pop Culture (comma sep)">
+                        <!-- Input & Dropdown -->
+                        <div class="relative group">
+                            <i class="ph ph-plus absolute left-3 top-2 text-gray-500 group-focus-within:text-poly-green"></i>
+                            <input type="text" v-model="includeSearch" 
+                                @focus="showIncludeDropdown = true" 
+                                @blur="hideDropdown('include')"
+                                class="w-full bg-poly-bg border border-poly-accent rounded pl-9 pr-3 py-1.5 text-xs focus:border-poly-green outline-none transition placeholder-gray-600" 
+                                placeholder="Add category to include...">
+                            
+                            <!-- Dropdown -->
+                            <div v-if="showIncludeDropdown" class="absolute left-0 right-0 top-full mt-1 bg-poly-card border border-poly-accent rounded shadow-xl z-50 max-h-60 overflow-y-auto">
+                                <div v-if="availableTagsForInclude.length === 0" class="p-2 text-gray-500 text-xs text-center">No matching tags found.</div>
+                                <button v-for="tag in availableTagsForInclude" :key="tag.tag_label" 
+                                    @mousedown.prevent="addIncludedTag(tag.tag_label)"
+                                    class="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-poly-accent hover:text-white flex justify-between items-center border-b border-poly-accent/30 last:border-0">
+                                    <span>{{ tag.tag_label }}</span>
+                                    <span class="text-[9px] text-gray-600">{{ tag.count }}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- EXCLUDED Categories -->
+                    <div class="relative">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs text-poly-red font-bold uppercase">Exclude Categories</label>
+                            <span v-if="filters.excludedTags.length > 0" class="text-[10px] text-gray-500 cursor-pointer hover:text-white" @click="resetExcludedTags">Clear</span>
+                        </div>
+
+                        <!-- Selected Pills -->
+                        <div class="flex flex-wrap gap-1.5 mb-2" v-if="filters.excludedTags.length > 0">
+                            <span v-for="tag in filters.excludedTags" :key="'exc-'+tag" 
+                                class="px-2 py-0.5 rounded text-[10px] font-medium border border-poly-red bg-poly-red/10 text-poly-red flex items-center gap-1">
+                                {{ tag }}
+                                <button @click="removeExcludedTag(tag)" class="hover:text-white"><i class="ph ph-x"></i></button>
+                            </span>
+                        </div>
+
+                        <!-- Input & Dropdown -->
+                        <div class="relative group">
+                            <i class="ph ph-minus absolute left-3 top-2 text-gray-500 group-focus-within:text-poly-red"></i>
+                            <input type="text" v-model="excludeSearch" 
+                                @focus="showExcludeDropdown = true" 
+                                @blur="hideDropdown('exclude')"
+                                class="w-full bg-poly-bg border border-poly-accent rounded pl-9 pr-3 py-1.5 text-xs focus:border-poly-red outline-none transition placeholder-gray-600" 
+                                placeholder="Add category to exclude...">
+                            
+                            <!-- Dropdown -->
+                            <div v-if="showExcludeDropdown" class="absolute left-0 right-0 top-full mt-1 bg-poly-card border border-poly-accent rounded shadow-xl z-50 max-h-60 overflow-y-auto">
+                                <div v-if="availableTagsForExclude.length === 0" class="p-2 text-gray-500 text-xs text-center">No matching tags found.</div>
+                                <button v-for="tag in availableTagsForExclude" :key="tag.tag_label" 
+                                    @mousedown.prevent="addExcludedTag(tag.tag_label)"
+                                    class="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-poly-accent hover:text-white flex justify-between items-center border-b border-poly-accent/30 last:border-0">
+                                    <span>{{ tag.tag_label }}</span>
+                                    <span class="text-[9px] text-gray-600">{{ tag.count }}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <hr class="border-poly-accent/30 my-2">
@@ -358,22 +416,28 @@
         createApp({
             setup() {
                 const markets = ref([]);
-                const tags = ref([]);
+                const tags = ref([]); // All available tags from API
                 const loading = ref(false);
                 const expandedId = ref(null);
                 const offset = ref(0);
                 const limit = 100; // Load 100 at a time
                 const serverLastUpdated = ref(null);
                 
+                // Autocomplete State
+                const includeSearch = ref("");
+                const excludeSearch = ref("");
+                const showIncludeDropdown = ref(false);
+                const showExcludeDropdown = ref(false);
+                
                 const filters = ref({
-                    tag: "",
-                    excluded_tags_input: "", // "Sports, Pop"
+                    includedTags: [], // Array of strings
+                    excludedTags: [], // Array of strings
                     min_volume: 0,
                     min_liquidity: 10000,     // Default: $10k
                     min_price: 0.02,          // Default: 2%
                     max_price: 0.99,          // Default: 99%
                     max_spread: 0.1,
-                    max_hours_to_expire: 24,  // Default: 24h
+                    max_hours_to_expire: 0,   // Default: Anytime
                     include_expired: true,    // Default: Show past due
                     search: "",
                     sort_by: "volume_usd",
@@ -384,9 +448,78 @@
                 let refreshInterval = null;
                 let abortController = null;
 
+                // --- Tag Logic (Autocomplete) ---
+
+                // Helper to get available tags (not already selected)
+                const getAvailableTags = (searchQuery) => {
+                    const activeTags = new Set([...filters.value.includedTags, ...filters.value.excludedTags]);
+                    let list = tags.value.filter(t => !activeTags.has(t.tag_label));
+                    
+                    if (searchQuery) {
+                        const s = searchQuery.toLowerCase();
+                        list = list.filter(t => t.tag_label.toLowerCase().includes(s));
+                    }
+                    return list.slice(0, 50); // Limit dropdown size
+                };
+
+                const availableTagsForInclude = Vue.computed(() => getAvailableTags(includeSearch.value));
+                const availableTagsForExclude = Vue.computed(() => getAvailableTags(excludeSearch.value));
+
+                const addIncludedTag = (tagLabel) => {
+                    if (!filters.value.includedTags.includes(tagLabel)) {
+                        filters.value.includedTags.push(tagLabel);
+                        includeSearch.value = ""; // Clear input
+                        showIncludeDropdown.value = false;
+                        resetAndFetch();
+                    }
+                };
+
+                const removeIncludedTag = (tagLabel) => {
+                    filters.value.includedTags = filters.value.includedTags.filter(t => t !== tagLabel);
+                    resetAndFetch();
+                };
+
+                const addExcludedTag = (tagLabel) => {
+                    if (!filters.value.excludedTags.includes(tagLabel)) {
+                        filters.value.excludedTags.push(tagLabel);
+                        excludeSearch.value = ""; // Clear input
+                        showExcludeDropdown.value = false;
+                        resetAndFetch();
+                    }
+                };
+
+                const removeExcludedTag = (tagLabel) => {
+                    filters.value.excludedTags = filters.value.excludedTags.filter(t => t !== tagLabel);
+                    resetAndFetch();
+                };
+
+                const resetIncludedTags = () => {
+                    filters.value.includedTags = [];
+                    resetAndFetch();
+                };
+
+                const resetExcludedTags = () => {
+                    filters.value.excludedTags = [];
+                    resetAndFetch();
+                };
+
+                const hideDropdown = (type) => {
+                    // Small delay to allow click event to register on dropdown items
+                    setTimeout(() => {
+                        if (type === 'include') showIncludeDropdown.value = false;
+                        if (type === 'exclude') showExcludeDropdown.value = false;
+                    }, 200);
+                };
+
                 const lastUpdatedTime = Vue.computed(() => {
                     if (!serverLastUpdated.value) return "Loading...";
-                    const d = new Date(serverLastUpdated.value + "Z"); // Ensure UTC parsing if string is ISO without Z
+                    // Handle ISO strings that might already have timezone info
+                    let dateStr = serverLastUpdated.value;
+                    if (!dateStr.endsWith("Z") && !dateStr.includes("+")) {
+                        dateStr += "Z";
+                    }
+                    const d = new Date(dateStr);
+                    if (isNaN(d.getTime())) return "Invalid Date";
                     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " (" + d.toLocaleDateString() + ")";
                 });
 
@@ -406,7 +539,8 @@
                     filters.value.min_volume = 0;
                     filters.value.min_liquidity = 0;
                     filters.value.include_expired = true;
-                    filters.value.excluded_tags_input = "";
+                    filters.value.includedTags = []; // Reset arrays
+                    filters.value.excludedTags = []; // Reset arrays
 
                     if (name === 'sure_bets') {
                         filters.value.min_price = 0.95;
@@ -415,7 +549,7 @@
                     } else if (name === 'expiring_soon') {
                         filters.value.max_hours_to_expire = 24;
                     } else if (name === 'crypto_volume') {
-                        filters.value.tag = 'Crypto';
+                        addIncludedTag('Crypto'); // Use new helper
                         filters.value.min_volume = 10000;
                     }
                     resetAndFetch();
@@ -485,7 +619,6 @@
                         params.append("_t", Date.now());
 
                         // Basic fields
-                        if (filters.value.tag) params.append("tag", filters.value.tag);
                         params.append("min_volume", filters.value.min_volume);
                         params.append("min_liquidity", filters.value.min_liquidity);
                         params.append("min_price", filters.value.min_price);
@@ -496,15 +629,13 @@
                         params.append("sort_by", filters.value.sort_by);
                         params.append("sort_dir", filters.value.sort_dir);
                         
+                        // Tag Logic (Arrays)
+                        filters.value.includedTags.forEach(t => params.append("included_tags", t));
+                        filters.value.excludedTags.forEach(t => params.append("excluded_tags", t));
+                        
                         // Hours
                         if (filters.value.max_hours_to_expire > 0) {
                             params.append("max_hours_to_expire", filters.value.max_hours_to_expire);
-                        }
-
-                        // Excluded Tags (List)
-                        if (filters.value.excluded_tags_input) {
-                            const tags = filters.value.excluded_tags_input.split(',').map(t => t.trim()).filter(t => t);
-                            tags.forEach(t => params.append("excluded_tags", t));
                         }
                         
                         // Pagination
@@ -585,6 +716,22 @@
                     filters,
                     expandedId,
                     lastUpdatedTime,
+                    // New Autocomplete State
+                    includeSearch,
+                    excludeSearch,
+                    showIncludeDropdown,
+                    showExcludeDropdown,
+                    availableTagsForInclude,
+                    availableTagsForExclude,
+                    // Methods
+                    addIncludedTag,
+                    removeIncludedTag,
+                    addExcludedTag,
+                    removeExcludedTag,
+                    resetIncludedTags,
+                    resetExcludedTags,
+                    hideDropdown,
+                    // Formatters & Others
                     formatCurrency,
                     formatCompact,
                     formatDate,

@@ -27,7 +27,7 @@ def get_db_connection():
 def get_tags():
     conn = get_db_connection()
     cursor = conn.cursor()
-    query = "SELECT tag_label, COUNT(*) as count FROM market_tags GROUP BY tag_label ORDER BY count DESC LIMIT 50"
+    query = "SELECT tag_label, COUNT(*) as count FROM market_tags GROUP BY tag_label ORDER BY count DESC"
     rows = cursor.execute(query).fetchall()
     conn.close()
     return [{"tag_label": r["tag_label"], "count": r["count"]} for r in rows]
@@ -48,14 +48,14 @@ def get_status(response: Response):
 @app.get("/api/markets")
 def get_markets(
     response: Response,
-    tag: Optional[str] = None,
+    included_tags: Optional[List[str]] = Query(None),
     excluded_tags: Optional[List[str]] = Query(None),
     sort_by: str = "volume_usd",
     sort_dir: str = "desc",
     limit: int = 100,
     offset: int = 0,
     min_volume: Optional[float] = 0,
-    min_liquidity: Optional[float] = 0,
+        min_liquidity: Optional[float] = 0,
     min_price: Optional[float] = 0.0,
     max_price: Optional[float] = 1.0,
     max_spread: Optional[float] = None,
@@ -111,9 +111,10 @@ def get_markets(
             params.append(now_str)
 
     # Tag Logic
-    if tag:
-        where_clauses.append("EXISTS (SELECT 1 FROM market_tags t WHERE t.market_id = active_market_outcomes.market_id AND t.tag_label = ?)")
-        params.append(tag)
+    if included_tags:
+        placeholders = ",".join("?" * len(included_tags))
+        where_clauses.append(f"EXISTS (SELECT 1 FROM market_tags t WHERE t.market_id = active_market_outcomes.market_id AND t.tag_label IN ({placeholders}))")
+        params.extend(included_tags)
 
     if excluded_tags:
         placeholders = ",".join("?" * len(excluded_tags))
@@ -121,6 +122,22 @@ def get_markets(
         params.extend(excluded_tags)
 
     where_str = " AND ".join(where_clauses)
+    
+    # Sorting
+    valid_sorts = ["volume_usd", "liquidity_usd", "end_date", "price", "spread"]
+    if sort_by not in valid_sorts: sort_by = "volume_usd"
+    
+    sql = f"""
+        SELECT * FROM active_market_outcomes
+        WHERE {where_str}
+        ORDER BY {sort_by} {'ASC' if sort_dir == 'asc' else 'DESC'}
+        LIMIT {limit} OFFSET {offset}
+    """
+    
+    rows = cursor.execute(sql, params).fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
     
     # Sorting
     valid_sorts = ["volume_usd", "liquidity_usd", "end_date", "price", "spread"]
