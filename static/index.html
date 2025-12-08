@@ -65,14 +65,20 @@
                 
                 <!-- Presets -->
                 <div class="grid grid-cols-2 gap-2">
-                    <button @click="applyPreset('sure_bets')" class="bg-poly-green/20 text-poly-green border border-poly-green/50 rounded py-1 px-2 text-xs hover:bg-poly-green/30 transition">
-                        Safe Haven (>95%)
+                    <button v-for="preset in displayedPresets" :key="preset.id"
+                        @click="applyPreset(preset)" 
+                        class="border rounded py-2 px-1 text-xs transition flex flex-col items-center gap-1 text-center h-full justify-center"
+                        :class="preset.class">
+                        <i :class="['ph text-xl', preset.icon]"></i>
+                        <span class="leading-tight">{{ preset.label }}</span>
                     </button>
-                    <button @click="applyPreset('expiring_soon')" class="bg-poly-red/20 text-poly-red border border-poly-red/50 rounded py-1 px-2 text-xs hover:bg-poly-red/30 transition">
-                        Expiring < 24h
-                    </button>
-                    <button @click="applyPreset('crypto_volume')" class="col-span-2 bg-poly-blue/20 text-poly-blue border border-poly-blue/50 rounded py-1 px-2 text-xs hover:bg-poly-blue/30 transition">
-                        High Vol Crypto
+                    
+                    <!-- Show More / Less -->
+                    <button v-if="presetDefinitions.length > 4" 
+                        @click="showAllPresets = !showAllPresets"
+                        class="col-span-2 text-[10px] text-gray-500 hover:text-white mt-1 flex items-center justify-center gap-1 transition uppercase tracking-wider font-bold py-1">
+                        <span>{{ showAllPresets ? 'Show Less' : 'Show More' }}</span>
+                        <i :class="showAllPresets ? 'ph-caret-up' : 'ph-caret-down'"></i>
                     </button>
                 </div>
 
@@ -265,8 +271,22 @@
             </aside>
 
             <!-- Data Grid -->
-            <main class="flex-1 overflow-hidden flex flex-col bg-poly-bg w-full">
+            <main class="flex-1 overflow-hidden flex flex-col bg-poly-bg w-full relative">
                 
+                <!-- Loading Overlay (Only for fresh fetches, not pagination) -->
+                <div v-show="loading && offset === 0" class="absolute inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity duration-200">
+                    <div class="bg-poly-card border border-poly-accent p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-6 animate-pulse">
+                        <div class="relative">
+                            <i class="ph ph-spinner animate-spin text-5xl text-poly-blue"></i>
+                            <div class="absolute inset-0 bg-poly-blue/30 blur-2xl rounded-full"></div>
+                        </div>
+                        <div class="text-center">
+                            <h3 class="text-white font-bold text-xl">Updating Markets</h3>
+                            <p class="text-gray-400 text-sm mt-2">Fetching fresh data...</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Table Container with Horizontal Scroll -->
                 <div class="flex-1 overflow-auto" id="market-list"> <!-- overflow-auto handles both X and Y scrolling -->
                     
@@ -428,20 +448,108 @@
                 const excludeSearch = ref("");
                 const showIncludeDropdown = ref(false);
                 const showExcludeDropdown = ref(false);
+
+                // Presets State
+                const showAllPresets = ref(false);
                 
+                // Default Filters (User Request: 5c spread, 5k vol, 1k liq, 0-100 prob)
                 const filters = ref({
-                    includedTags: [], // Array of strings
-                    excludedTags: [], // Array of strings
-                    min_volume: 0,
-                    min_liquidity: 10000,     // Default: $10k
-                    min_price: 0.02,          // Default: 2%
-                    max_price: 0.99,          // Default: 99%
-                    max_spread: 0.1,
-                    max_hours_to_expire: 0,   // Default: Anytime
-                    include_expired: true,    // Default: Show past due
+                    includedTags: [], 
+                    excludedTags: [],
+                    min_volume: 5000,
+                    min_liquidity: 1000,
+                    min_price: 0.00,
+                    max_price: 1.00,
+                    max_spread: 0.05,
+                    max_hours_to_expire: 0,
+                    include_expired: true,
                     search: "",
                     sort_by: "volume_usd",
                     sort_dir: "desc"
+                });
+
+                const presetDefinitions = [
+                    {
+                        id: 'safe_haven',
+                        label: 'Safe Haven (>95%)',
+                        icon: 'ph-hand-heart',
+                        class: 'bg-poly-green/20 text-poly-green border-poly-green/50 hover:bg-poly-green/30',
+                        apply: () => {
+                            filters.value.min_price = 0.95;
+                            filters.value.max_price = 1.00;
+                            filters.value.min_liquidity = 500;
+                        }
+                    },
+                    {
+                        id: 'yolo',
+                        label: 'YOLO',
+                        icon: 'ph-smiley-x-eyes', 
+                        class: 'bg-poly-red/20 text-poly-red border-poly-red/50 hover:bg-poly-red/30',
+                        apply: () => {
+                            filters.value.max_price = 0.05; 
+                            filters.value.min_volume = 1000;
+                            filters.value.sort_by = 'price';
+                            filters.value.sort_dir = 'asc'; 
+                        }
+                    },
+                    {
+                        id: 'buffett',
+                        label: 'Warren Buffett',
+                        icon: 'ph-briefcase',
+                        class: 'bg-poly-green/20 text-poly-green border-poly-green/50 hover:bg-poly-green/30',
+                        apply: () => {
+                            filters.value.min_price = 0.90; 
+                            filters.value.min_liquidity = 50000;
+                            filters.value.max_spread = 0.02; 
+                        }
+                    },
+                    {
+                        id: 'sniper',
+                        label: 'Sniper / Last Min',
+                        icon: 'ph-crosshair',
+                        class: 'bg-orange-500/20 text-orange-400 border-orange-500/50 hover:bg-orange-500/30',
+                        apply: () => {
+                            filters.value.max_hours_to_expire = 24;
+                            filters.value.include_expired = false;
+                            filters.value.sort_by = 'end_date';
+                            filters.value.sort_dir = 'asc'; 
+                        }
+                    },
+                    {
+                        id: 'coinflip',
+                        label: 'Coinflip Club',
+                        icon: 'ph-coins',
+                        class: 'bg-purple-500/20 text-purple-400 border-purple-500/50 hover:bg-purple-500/30',
+                        apply: () => {
+                            filters.value.min_price = 0.45;
+                            filters.value.max_price = 0.55;
+                        }
+                    },
+                    {
+                        id: 'longshot',
+                        label: 'Long Shot',
+                        icon: 'ph-trend-up',
+                        class: 'bg-pink-500/20 text-pink-400 border-pink-500/50 hover:bg-pink-500/30',
+                        apply: () => {
+                            filters.value.max_price = 0.15;
+                            filters.value.min_liquidity = 500;
+                        }
+                    },
+                    {
+                        id: 'newsmaker',
+                        label: 'Newsmaker',
+                        icon: 'ph-newspaper',
+                        class: 'bg-poly-blue/20 text-poly-blue border-poly-blue/50 hover:bg-poly-blue/30',
+                        apply: () => {
+                            filters.value.min_volume = 100000; 
+                            filters.value.sort_by = 'volume_usd';
+                            filters.value.sort_dir = 'desc';
+                        }
+                    }
+                ];
+
+                const displayedPresets = Vue.computed(() => {
+                    return showAllPresets.value ? presetDefinitions : presetDefinitions.slice(0, 4);
                 });
 
                 let debounceTimer = null;
@@ -530,27 +638,21 @@
                 };
 
                 // Presets
-                const applyPreset = (name) => {
+                const applyPreset = (preset) => {
                     // Reset defaults
-                    filters.value.min_price = 0.02;
-                    filters.value.max_price = 0.99;
-                    filters.value.max_spread = 0.1;
+                    filters.value.min_volume = 5000;
+                    filters.value.min_liquidity = 1000;
+                    filters.value.min_price = 0.00;
+                    filters.value.max_price = 1.00;
+                    filters.value.max_spread = 0.05;
                     filters.value.max_hours_to_expire = 0;
-                    filters.value.min_volume = 0;
-                    filters.value.min_liquidity = 0;
                     filters.value.include_expired = true;
-                    filters.value.includedTags = []; // Reset arrays
-                    filters.value.excludedTags = []; // Reset arrays
+                    filters.value.includedTags = []; 
+                    filters.value.excludedTags = [];
+                    filters.value.sort_by = "volume_usd";
 
-                    if (name === 'sure_bets') {
-                        filters.value.min_price = 0.95;
-                        filters.value.max_price = 1.00;
-                        filters.value.min_liquidity = 500;
-                    } else if (name === 'expiring_soon') {
-                        filters.value.max_hours_to_expire = 24;
-                    } else if (name === 'crypto_volume') {
-                        addIncludedTag('Crypto'); // Use new helper
-                        filters.value.min_volume = 10000;
+                    if (preset && preset.apply) {
+                        preset.apply();
                     }
                     resetAndFetch();
                 };
@@ -600,14 +702,17 @@
                 };
 
                 const fetchMarkets = async (append = false) => {
-                    // Cancel previous request if exists and we are starting a new search (not appending)
-                    if (!append && abortController) {
-                        abortController.abort();
-                        abortController = null;
+                    if (!append) {
+                        console.log("fetchMarkets: Starting new fetch. Setting loading=true, offset=0");
+                        offset.value = 0;
+                        if (abortController) {
+                            abortController.abort();
+                            abortController = null;
+                        }
+                    } else if (loading.value) {
+                        console.log("fetchMarkets: Appending, but already loading. Skipping.");
+                        return;
                     }
-
-                    // If appending and already loading, prevent duplicate requests
-                    if (append && loading.value) return;
 
                     loading.value = true;
                     abortController = new AbortController();
@@ -642,6 +747,7 @@
                         params.append("limit", limit);
                         params.append("offset", offset.value);
 
+                        console.log("fetchMarkets: Fetching with params", params.toString());
                         const res = await fetch(`/api/markets?${params}`, { signal: abortController.signal });
                         const newMarkets = await res.json();
                         
@@ -656,13 +762,13 @@
                         
                     } catch (e) {
                         if (e.name === 'AbortError') {
-                            // Request cancelled, do nothing (loading stays true for the new request)
+                            console.log("fetchMarkets: Request aborted.");
                             return; 
                         }
-                        console.error(e);
+                        console.error("fetchMarkets: Error during fetch", e);
                     } finally {
-                        // Only turn off loading if this was the last request (controller matches) or if it wasn't aborted
                         if (abortController && !abortController.signal.aborted) {
+                            console.log("fetchMarkets: Fetch complete. Setting loading=false.");
                             loading.value = false;
                             abortController = null;
                         }
@@ -670,7 +776,7 @@
                 };
 
                 const resetAndFetch = () => {
-                    offset.value = 0;
+                    // No need to set offset here, it's handled in fetchMarkets(false)
                     fetchMarkets(false);
                     // Close mobile menu on filter change
                     if (window.innerWidth < 768) {
@@ -723,6 +829,10 @@
                     showExcludeDropdown,
                     availableTagsForInclude,
                     availableTagsForExclude,
+                    // Presets
+                    showAllPresets,
+                    displayedPresets,
+                    presetDefinitions,
                     // Methods
                     addIncludedTag,
                     removeIncludedTag,
