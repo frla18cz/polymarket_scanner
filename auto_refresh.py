@@ -8,7 +8,7 @@ import csv
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from scraper import run_scrape
 
-INTERVAL_SECONDS = 300  # Update every 5 minutes (adjust as needed)
+INTERVAL_SECONDS = 3600  # Update every 1 hour (testing)
 STATS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scrape_stats.csv")
 
 def log_stats(duration):

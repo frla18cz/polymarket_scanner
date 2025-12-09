@@ -56,6 +56,10 @@ def ensure_indices():
             CREATE INDEX IF NOT EXISTS idx_amo_spread ON active_market_outcomes(spread);
             CREATE INDEX IF NOT EXISTS idx_amo_liquidity ON active_market_outcomes(liquidity_usd);
             
+            -- Text Search Indices (helps with sorting/exact match)
+            CREATE INDEX IF NOT EXISTS idx_amo_question ON active_market_outcomes(question);
+            CREATE INDEX IF NOT EXISTS idx_amo_outcome ON active_market_outcomes(outcome_name);
+            
             ANALYZE;
         """)
         conn.commit()
