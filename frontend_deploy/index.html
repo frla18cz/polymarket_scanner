@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polymarket Explorer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        poly: {
+                            bg: '#0f111a',
+                            card: '#1a1d2d',
+                            accent: '#2d3348',
+                            blue: '#2e75ff',
+                            green: '#00c388',
+                            red: '#ff4d4d'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0f111a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .table-row-hover:hover { background-color: #1a1d2d; }
+    </style>
+</head>
+<body class="h-screen overflow-hidden flex flex-col">
+
+    <div id="app" class="flex flex-col h-full relative">
+        
+        <!-- Header -->
+        <header class="bg-poly-card border-b border-poly-accent p-4 flex justify-between items-center shadow-md z-30 shrink-0">
+            <div class="flex items-center gap-3">
+                <i class="ph ph-chart-line-up text-poly-blue text-2xl"></i>
+                <h1 class="text-xl font-bold tracking-tight">Poly<span class="text-poly-blue">Scan</span></h1>
+                <span class="text-[10px] md:text-xs text-gray-500 ml-1 md:ml-2 bg-poly-bg px-2 py-1 rounded border border-poly-accent whitespace-nowrap">
+                    {{ lastUpdatedTime }}
+                </span>
+            </div>
+            <div class="flex gap-4 text-sm font-medium">
+                <div class="flex flex-col items-end hidden md:flex">
+                    <span class="text-gray-400 text-xs">Active Markets</span>
+                    <span class="text-white">16,000+</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content (Sidebar + Grid) -->
+        <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
+            
+            <!-- Sidebar Filters -->
+            <aside class="w-full md:w-64 bg-poly-card border-b md:border-b-0 md:border-r border-poly-accent p-4 flex flex-col gap-6 overflow-y-auto shrink-0 max-h-[40vh] md:max-h-full">
+                
+                <!-- Presets -->
+                <div class="grid grid-cols-2 gap-2">
+                    <button v-for="preset in displayedPresets" :key="preset.id"
+                        @click="applyPreset(preset)" 
+                        class="border rounded py-2 px-1 text-xs transition flex flex-col items-center gap-1 text-center h-full justify-center"
+                        :class="preset.class">
+                        <i :class="['ph text-xl', preset.icon]"></i>
+                        <span class="leading-tight">{{ preset.label }}</span>
+                    </button>
+                    
+                    <!-- Show More / Less -->
+                    <button v-if="presetDefinitions.length > 4" 
+                        @click="showAllPresets = !showAllPresets"
+                        class="col-span-2 text-[10px] text-gray-500 hover:text-white mt-1 flex items-center justify-center gap-1 transition uppercase tracking-wider font-bold py-1">
+                        <span>{{ showAllPresets ? 'Show Less' : 'Show More' }}</span>
+                        <i :class="showAllPresets ? 'ph-caret-up' : 'ph-caret-down'"></i>
+                    </button>
+                </div>
+
+                <!-- Search Markets -->
+                <div>
+                    <label class="text-xs text-gray-400 uppercase font-bold mb-2 block">Search Markets</label>
+                    <div class="relative">
+                        <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-gray-500"></i>
+                        <input type="text" v-model="filters.search" @input="debouncedFetch" 
+                            class="w-full bg-poly-bg border border-poly-accent rounded pl-9 pr-3 py-2 text-sm focus:border-poly-blue outline-none transition" 
+                            placeholder="Trump, BTC, etc...">
+                    </div>
+                </div>
+
+                <hr class="border-poly-accent/30 my-2">
+
+                <!-- Categories (Smart Autocomplete) -->
+                <div class="flex flex-col gap-6">
+                    
+                    <!-- INCLUDED Categories -->
+                    <div class="relative">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs text-poly-green font-bold uppercase">Include Categories</label>
+                            <span v-if="filters.includedTags.length > 0" class="text-[10px] text-gray-500 cursor-pointer hover:text-white" @click="resetIncludedTags">Clear</span>
+                        </div>
+                        
+                        <!-- Selected Pills -->
+                        <div class="flex flex-wrap gap-1.5 mb-2" v-if="filters.includedTags.length > 0">
+                            <span v-for="tag in filters.includedTags" :key="'inc-'+tag" 
+                                class="px-2 py-0.5 rounded text-[10px] font-medium border border-poly-green bg-poly-green/10 text-poly-green flex items-center gap-1">
+                                {{ tag }}
+                                <button @click="removeIncludedTag(tag)" class="hover:text-white"><i class="ph ph-x"></i></button>
+                            </span>
+                        </div>
+
+                        <!-- Input & Dropdown -->
+                        <div class="relative group">
+                            <i class="ph ph-plus absolute left-3 top-2 text-gray-500 group-focus-within:text-poly-green"></i>
+                            <input type="text" v-model="includeSearch" 
+                                @focus="showIncludeDropdown = true" 
+                                @blur="hideDropdown('include')"
+                                class="w-full bg-poly-bg border border-poly-accent rounded pl-9 pr-3 py-1.5 text-xs focus:border-poly-green outline-none transition placeholder-gray-600" 
+                                placeholder="Add category to include...">
+                            
+                            <!-- Dropdown -->
+                            <div v-if="showIncludeDropdown" class="absolute left-0 right-0 top-full mt-1 bg-poly-card border border-poly-accent rounded shadow-xl z-50 max-h-60 overflow-y-auto">
+                                <div v-if="availableTagsForInclude.length === 0" class="p-2 text-gray-500 text-xs text-center">No matching tags found.</div>
+                                <button v-for="tag in availableTagsForInclude" :key="tag.tag_label" 
+                                    @mousedown.prevent="addIncludedTag(tag.tag_label)"
+                                    class="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-poly-accent hover:text-white flex justify-between items-center border-b border-poly-accent/30 last:border-0">
+                                    <span>{{ tag.tag_label }}</span>
+                                    <span class="text-[9px] text-gray-600">{{ tag.count }}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- EXCLUDED Categories -->
+                    <div class="relative">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs text-poly-red font-bold uppercase">Exclude Categories</label>
+                            <span v-if="filters.excludedTags.length > 0" class="text-[10px] text-gray-500 cursor-pointer hover:text-white" @click="resetExcludedTags">Clear</span>
+                        </div>
+
+                        <!-- Selected Pills -->
+                        <div class="flex flex-wrap gap-1.5 mb-2" v-if="filters.excludedTags.length > 0">
+                            <span v-for="tag in filters.excludedTags" :key="'exc-'+tag" 
+                                class="px-2 py-0.5 rounded text-[10px] font-medium border border-poly-red bg-poly-red/10 text-poly-red flex items-center gap-1">
+                                {{ tag }}
+                                <button @click="removeExcludedTag(tag)" class="hover:text-white"><i class="ph ph-x"></i></button>
+                            </span>
+                        </div>
+
+                        <!-- Input & Dropdown -->
+                        <div class="relative group">
+                            <i class="ph ph-minus absolute left-3 top-2 text-gray-500 group-focus-within:text-poly-red"></i>
+                            <input type="text" v-model="excludeSearch" 
+                                @focus="showExcludeDropdown = true" 
+                                @blur="hideDropdown('exclude')"
+                                class="w-full bg-poly-bg border border-poly-accent rounded pl-9 pr-3 py-1.5 text-xs focus:border-poly-red outline-none transition placeholder-gray-600" 
+                                placeholder="Add category to exclude...">
+                            
+                            <!-- Dropdown -->
+                            <div v-if="showExcludeDropdown" class="absolute left-0 right-0 top-full mt-1 bg-poly-card border border-poly-accent rounded shadow-xl z-50 max-h-60 overflow-y-auto">
+                                <div v-if="availableTagsForExclude.length === 0" class="p-2 text-gray-500 text-xs text-center">No matching tags found.</div>
+                                <button v-for="tag in availableTagsForExclude" :key="tag.tag_label" 
+                                    @mousedown.prevent="addExcludedTag(tag.tag_label)"
+                                    class="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-poly-accent hover:text-white flex justify-between items-center border-b border-poly-accent/30 last:border-0">
+                                    <span>{{ tag.tag_label }}</span>
+                                    <span class="text-[9px] text-gray-600">{{ tag.count }}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <hr class="border-poly-accent/30 my-2">
+
+                <!-- Expiration -->
+                <div>
+                    <label class="text-xs text-gray-400 uppercase font-bold mb-2 block flex justify-between">
+                        <span>Expires Within</span>
+                        <span class="text-poly-blue">{{ filters.max_hours_to_expire > 0 ? filters.max_hours_to_expire + 'h' : 'Anytime' }}</span>
+                    </label>
+                    <input type="range" min="0" max="168" step="1" v-model.number="filters.max_hours_to_expire" @change="resetAndFetch" 
+                        class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
+                    <div class="flex justify-between text-[10px] text-gray-500 mt-1 mb-2">
+                        <span>Now</span>
+                        <span>1 Week</span>
+                    </div>
+                    
+                    <!-- Include Expired Toggle -->
+                    <label class="flex items-center gap-2 text-xs cursor-pointer select-none">
+                        <input type="checkbox" v-model="filters.include_expired" @change="resetAndFetch" 
+                            class="w-4 h-4 rounded bg-poly-bg border-poly-accent text-poly-blue focus:ring-0">
+                        <span :class="filters.include_expired ? 'text-white' : 'text-gray-500'">Include Past Due (Expired)</span>
+                    </label>
+                </div>
+
+                <hr class="border-poly-accent/30 my-2">
+
+                <!-- Price Range -->
+                <div>
+                    <label class="text-xs text-gray-400 uppercase font-bold mb-2 block">Price Range (Probability)</label>
+                    
+                    <!-- Min Price -->
+                    <div class="mb-3">
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-gray-500">Min</span>
+                            <span class="text-poly-blue font-mono">{{ (filters.min_price * 100).toFixed(0) }}%</span>
+                        </div>
+                        <input type="range" min="0" max="1" step="0.01" v-model.number="filters.min_price" @change="resetAndFetch"
+                            class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
+                    </div>
+
+                    <!-- Max Price -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-gray-500">Max</span>
+                            <span class="text-poly-blue font-mono">{{ (filters.max_price * 100).toFixed(0) }}%</span>
+                        </div>
+                        <input type="range" min="0" max="1" step="0.01" v-model.number="filters.max_price" @change="resetAndFetch"
+                            class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+
+                <hr class="border-poly-accent/30 my-2">
+
+                <!-- Max Spread -->
+                <div>
+                    <label class="text-xs text-gray-400 uppercase font-bold mb-2 block flex justify-between">
+                        <span>Max Spread</span>
+                        <span class="text-poly-blue">{{ (filters.max_spread * 100).toFixed(1) }}¢</span>
+                    </label>
+                    <input type="range" min="0" max="0.2" step="0.001" v-model.number="filters.max_spread" @change="resetAndFetch" 
+                        class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
+                    <div class="flex justify-between text-[10px] text-gray-500 mt-1">
+                        <span>0¢</span>
+                        <span>20¢</span>
+                    </div>
+                </div>
+
+                <hr class="border-poly-accent/30 my-2">
+
+                <!-- Min Volume -->
+                <div>
+                    <label class="text-xs text-gray-400 uppercase font-bold mb-2 block flex justify-between">
+                        <span>Min Volume</span>
+                        <span class="text-poly-blue">{{ formatCurrency(filters.min_volume) }}</span>
+                    </label>
+                    <input type="range" min="0" max="1000000" step="1000" v-model.number="filters.min_volume" @change="resetAndFetch" 
+                        class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <!-- Min Liquidity -->
+                <div class="mt-4">
+                    <label class="text-xs text-gray-400 uppercase font-bold mb-2 block flex justify-between">
+                        <span>Min Liquidity</span>
+                        <span class="text-poly-blue">{{ formatCurrency(filters.min_liquidity) }}</span>
+                    </label>
+                    <input type="range" min="0" max="100000" step="100" v-model.number="filters.min_liquidity" @change="resetAndFetch" 
+                        class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <div class="mt-auto pt-4 border-t border-poly-accent text-xs text-center text-gray-500">
+                    <p>Showing {{ markets.length }} markets</p>
+                    <p class="mt-1 opacity-50">Scraped Data from Gamma API</p>
+                </div>
+            </aside>
+
+            <!-- Data Grid -->
+            <main class="flex-1 overflow-hidden flex flex-col bg-poly-bg w-full relative">
+                
+                <!-- Loading Overlay (Only for fresh fetches, not pagination) -->
+                <div v-show="loading && offset === 0" class="absolute inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity duration-200">
+                    <div class="bg-poly-card border border-poly-accent p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-6 animate-pulse">
+                        <div class="relative">
+                            <i class="ph ph-spinner animate-spin text-5xl text-poly-blue"></i>
+                            <div class="absolute inset-0 bg-poly-blue/30 blur-2xl rounded-full"></div>
+                        </div>
+                        <div class="text-center">
+                            <h3 class="text-white font-bold text-xl">Updating Markets</h3>
+                            <p class="text-gray-400 text-sm mt-2">Fetching fresh data...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Container with Horizontal Scroll -->
+                <div class="flex-1 overflow-auto" id="market-list"> <!-- overflow-auto handles both X and Y scrolling -->
+                    
+                    <div class="min-w-[800px]"> <!-- Force minimum width to trigger scroll on small screens -->
+                        
+                        <!-- Table Header (Sticky) -->
+                        <div class="grid grid-cols-12 gap-4 px-6 py-3 border-b border-poly-accent bg-poly-bg text-xs font-bold text-gray-400 uppercase tracking-wider z-10 sticky top-0 shadow-sm">
+                            <div class="col-span-1 text-center">Icon</div>
+                            <div class="col-span-4 cursor-pointer hover:text-white" @click="setSort('question')">Market</div>
+                            <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('price')">Price</div>
+                            <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('spread')">Spread</div>
+                            <div class="col-span-2 text-right cursor-pointer hover:text-white" @click="setSort('volume_usd')">Volume</div>
+                            <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('liquidity_usd')">Liq</div>
+                            <div class="col-span-2 text-right cursor-pointer hover:text-white" @click="setSort('end_date')">Expires</div>
+                        </div>
+
+                        <!-- Empty State -->
+                        <div v-if="markets.length === 0 && !loading" class="flex flex-col justify-center items-center py-20 text-gray-500">
+                            <i class="ph ph-ghost text-4xl mb-2"></i>
+                            <p>No markets found matching filters.</p>
+                        </div>
+
+                        <!-- List -->
+                        <div v-else class="pb-4">
+                            <div v-for="m in markets" :key="m.market_id + m.outcome_name" class="border-b border-poly-accent/50">
+                                
+                                <!-- Main Row -->
+                                <div @click="toggleDetails(m)" 
+                                     class="grid grid-cols-12 gap-4 px-6 py-4 text-sm items-center hover:bg-poly-card transition-colors cursor-pointer group">
+                                    
+                                    <!-- Icon -->
+                                    <div class="col-span-1 flex justify-center">
+                                        <img v-if="m.icon_url" :src="m.icon_url" class="w-10 h-10 rounded-full object-cover border border-poly-accent shadow-sm" alt="">
+                                        <div v-else class="w-10 h-10 rounded-full bg-poly-accent flex items-center justify-center text-gray-500">
+                                            <i class="ph ph-image"></i>
+                                        </div>
+                                    </div>
+
+                                    <!-- Question & Outcome -->
+                                    <div class="col-span-4 pr-2">
+                                        <div class="mb-1">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-poly-accent text-gray-300 font-mono whitespace-nowrap truncate max-w-[150px]" v-if="m.category">{{ m.category }}</span>
+                                            </div>
+                                            <span class="text-white font-medium block leading-tight group-hover:text-poly-blue transition-colors line-clamp-2">
+                                                {{ m.question }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Price -->
+                                    <div class="col-span-1 text-right">
+                                        <div class="flex flex-col items-end">
+                                            <span class="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5 truncate max-w-full">{{ m.outcome_name }}</span>
+                                            <span class="font-mono font-bold text-base"
+                                                :class="m.outcome_name === 'No' ? 'text-poly-red' : 'text-poly-green'">
+                                                {{ (m.price * 100).toFixed(1) }}¢
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Spread -->
+                                    <div class="col-span-1 text-right text-gray-400 text-xs">
+                                        {{ (m.spread * 100).toFixed(1) }}¢
+                                    </div>
+
+                                    <!-- Volume -->
+                                    <div class="col-span-2 text-right font-mono text-gray-300">
+                                        {{ formatCurrency(m.volume_usd) }}
+                                    </div>
+
+                                    <!-- Liquidity -->
+                                    <div class="col-span-1 text-right font-mono text-gray-400 text-xs">
+                                        {{ formatCompact(m.liquidity_usd) }}
+                                    </div>
+
+                                    <!-- Expires -->
+                                    <div class="col-span-2 text-right text-xs text-gray-500 flex flex-col items-end">
+                                        <span>{{ formatDate(m.end_date) }}</span>
+                                        <span class="text-[10px]">{{ timeFromNow(m.end_date) }}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Detail View (Full width within scroll container) -->
+                                <div v-if="expandedId === m.market_id + m.outcome_name" class="bg-poly-card/50 p-4 pl-10 text-xs text-gray-300 grid grid-cols-2 gap-4 shadow-inner">
+                                    <div>
+                                        <h4 class="text-gray-500 font-bold uppercase mb-2">Market Details</h4>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <span class="text-gray-500">Market ID:</span> <span class="font-mono text-white select-all truncate">{{ m.market_id }}</span>
+                                            <span class="text-gray-500">Start Date:</span> <span class="text-white">{{ m.start_date ? m.start_date.replace('T', ' ').slice(0, 16) : '-' }}</span>
+                                            <span class="text-gray-500">End Date:</span> <span class="text-white">{{ m.end_date ? m.end_date.replace('T', ' ').slice(0, 16) : '-' }}</span>
+                                            <span class="text-gray-500">Volume:</span> <span class="font-mono text-white">{{ m.volume_usd.toLocaleString() }} USD</span>
+                                        </div>
+                                        <div class="mt-4">
+                                            <a :href="m.url" target="_blank" class="inline-flex items-center gap-2 bg-poly-blue hover:bg-blue-600 text-white px-3 py-1.5 rounded transition">
+                                                Open on Polymarket <i class="ph ph-arrow-square-out"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-gray-500 font-bold uppercase mb-2">Analysis</h4>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <span class="text-gray-500">Event Slug:</span> <span class="font-mono text-white select-all truncate">{{ m.event_slug }}</span>
+                                            <span class="text-gray-500">Probability:</span> <span class="text-white font-bold">{{ (m.price * 100).toFixed(2) }}%</span>
+                                            <span class="text-gray-500">Implied Odds:</span> <span class="text-white font-mono">1 : {{ (1 / (m.price || 0.0001)).toFixed(2) }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                            
+                            <!-- Load More Button -->
+                            <div class="p-4 text-center">
+                                <button @click="loadMore" :disabled="loading" 
+                                    class="bg-poly-accent hover:bg-poly-blue text-white px-6 py-2 rounded text-sm transition disabled:opacity-50 flex items-center gap-2 mx-auto">
+                                    <i v-if="loading" class="ph ph-spinner animate-spin"></i>
+                                    <span v-if="!loading">Load More Markets</span>
+                                    <span v-else>Loading...</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted, watch } = Vue;
+
+        // Configuration
+        // When running on Vercel, this should point to your VPS IP/Domain.
+        // For local development, it can be localhost.
+        const API_BASE_URL = ""; 
+
+        createApp({
+            setup() {
+                const markets = ref([]);
+                const tags = ref([]); // All available tags from API
+                const loading = ref(false);
+                const expandedId = ref(null);
+                const offset = ref(0);
+                const limit = 100; // Load 100 at a time
+                const serverLastUpdated = ref(null);
+                
+                // Autocomplete State
+                const includeSearch = ref("");
+                const excludeSearch = ref("");
+                const showIncludeDropdown = ref(false);
+                const showExcludeDropdown = ref(false);
+
+                // Presets State
+                const showAllPresets = ref(false);
+                
+                // Default Filters (User Request: 5c spread, 5k vol, 1k liq, 0-100 prob)
+                const filters = ref({
+                    includedTags: [], 
+                    excludedTags: [],
+                    min_volume: 5000,
+                    min_liquidity: 1000,
+                    min_price: 0.00,
+                    max_price: 1.00,
+                    max_spread: 0.05,
+                    max_hours_to_expire: 0,
+                    include_expired: true,
+                    search: "",
+                    sort_by: "volume_usd",
+                    sort_dir: "desc"
+                });
+
+                const presetDefinitions = [
+                    {
+                        id: 'safe_haven',
+                        label: 'Safe Haven (>95%)',
+                        icon: 'ph-hand-heart',
+                        class: 'bg-poly-green/20 text-poly-green border-poly-green/50 hover:bg-poly-green/30',
+                        apply: () => {
+                            filters.value.min_price = 0.95;
+                            filters.value.max_price = 1.00;
+                            filters.value.min_liquidity = 500;
+                        }
+                    },
+                    {
+                        id: 'yolo',
+                        label: 'YOLO',
+                        icon: 'ph-smiley-x-eyes', 
+                        class: 'bg-poly-red/20 text-poly-red border-poly-red/50 hover:bg-poly-red/30',
+                        apply: () => {
+                            filters.value.max_price = 0.05; 
+                            filters.value.min_volume = 1000;
+                            filters.value.sort_by = 'price';
+                            filters.value.sort_dir = 'asc'; 
+                        }
+                    },
+                    {
+                        id: 'buffett',
+                        label: 'Warren Buffett',
+                        icon: 'ph-briefcase',
+                        class: 'bg-poly-green/20 text-poly-green border-poly-green/50 hover:bg-poly-green/30',
+                        apply: () => {
+                            filters.value.min_price = 0.90; 
+                            filters.value.min_liquidity = 50000;
+                            filters.value.max_spread = 0.02; 
+                        }
+                    },
+                    {
+                        id: 'sniper',
+                        label: 'Sniper / Last Min',
+                        icon: 'ph-crosshair',
+                        class: 'bg-orange-500/20 text-orange-400 border-orange-500/50 hover:bg-orange-500/30',
+                        apply: () => {
+                            filters.value.max_hours_to_expire = 24;
+                            filters.value.include_expired = false;
+                            filters.value.sort_by = 'end_date';
+                            filters.value.sort_dir = 'asc'; 
+                        }
+                    },
+                    {
+                        id: 'coinflip',
+                        label: 'Coinflip Club',
+                        icon: 'ph-coins',
+                        class: 'bg-purple-500/20 text-purple-400 border-purple-500/50 hover:bg-purple-500/30',
+                        apply: () => {
+                            filters.value.min_price = 0.45;
+                            filters.value.max_price = 0.55;
+                        }
+                    },
+                    {
+                        id: 'longshot',
+                        label: 'Long Shot',
+                        icon: 'ph-trend-up',
+                        class: 'bg-pink-500/20 text-pink-400 border-pink-500/50 hover:bg-pink-500/30',
+                        apply: () => {
+                            filters.value.max_price = 0.15;
+                            filters.value.min_liquidity = 500;
+                        }
+                    },
+                    {
+                        id: 'newsmaker',
+                        label: 'Newsmaker',
+                        icon: 'ph-newspaper',
+                        class: 'bg-poly-blue/20 text-poly-blue border-poly-blue/50 hover:bg-poly-blue/30',
+                        apply: () => {
+                            filters.value.min_volume = 100000; 
+                            filters.value.sort_by = 'volume_usd';
+                            filters.value.sort_dir = 'desc';
+                        }
+                    }
+                ];
+
+                const displayedPresets = Vue.computed(() => {
+                    return showAllPresets.value ? presetDefinitions : presetDefinitions.slice(0, 4);
+                });
+
+                let debounceTimer = null;
+                let refreshInterval = null;
+                let abortController = null;
+
+                // --- Tag Logic (Autocomplete) ---
+
+                // Helper to get available tags (not already selected)
+                const getAvailableTags = (searchQuery) => {
+                    const activeTags = new Set([...filters.value.includedTags, ...filters.value.excludedTags]);
+                    let list = tags.value.filter(t => !activeTags.has(t.tag_label));
+                    
+                    if (searchQuery) {
+                        const s = searchQuery.toLowerCase();
+                        list = list.filter(t => t.tag_label.toLowerCase().includes(s));
+                    }
+                    return list.slice(0, 50); // Limit dropdown size
+                };
+
+                const availableTagsForInclude = Vue.computed(() => getAvailableTags(includeSearch.value));
+                const availableTagsForExclude = Vue.computed(() => getAvailableTags(excludeSearch.value));
+
+                const addIncludedTag = (tagLabel) => {
+                    if (!filters.value.includedTags.includes(tagLabel)) {
+                        filters.value.includedTags.push(tagLabel);
+                        includeSearch.value = ""; // Clear input
+                        showIncludeDropdown.value = false;
+                        resetAndFetch();
+                    }
+                };
+
+                const removeIncludedTag = (tagLabel) => {
+                    filters.value.includedTags = filters.value.includedTags.filter(t => t !== tagLabel);
+                    resetAndFetch();
+                };
+
+                const addExcludedTag = (tagLabel) => {
+                    if (!filters.value.excludedTags.includes(tagLabel)) {
+                        filters.value.excludedTags.push(tagLabel);
+                        excludeSearch.value = ""; // Clear input
+                        showExcludeDropdown.value = false;
+                        resetAndFetch();
+                    }
+                };
+
+                const removeExcludedTag = (tagLabel) => {
+                    filters.value.excludedTags = filters.value.excludedTags.filter(t => t !== tagLabel);
+                    resetAndFetch();
+                };
+
+                const resetIncludedTags = () => {
+                    filters.value.includedTags = [];
+                    resetAndFetch();
+                };
+
+                const resetExcludedTags = () => {
+                    filters.value.excludedTags = [];
+                    resetAndFetch();
+                };
+
+                const hideDropdown = (type) => {
+                    // Small delay to allow click event to register on dropdown items
+                    setTimeout(() => {
+                        if (type === 'include') showIncludeDropdown.value = false;
+                        if (type === 'exclude') showExcludeDropdown.value = false;
+                    }, 200);
+                };
+
+                const lastUpdatedTime = Vue.computed(() => {
+                    if (!serverLastUpdated.value) return "Loading...";
+                    // Handle ISO strings that might already have timezone info
+                    let dateStr = serverLastUpdated.value;
+                    if (!dateStr.endsWith("Z") && !dateStr.includes("+")) {
+                        dateStr += "Z";
+                    }
+                    const d = new Date(dateStr);
+                    if (isNaN(d.getTime())) return "Invalid Date";
+                    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " (" + d.toLocaleDateString() + ")";
+                });
+
+                // Toggle Details
+                const toggleDetails = (market) => {
+                    const id = market.market_id + market.outcome_name;
+                    expandedId.value = expandedId.value === id ? null : id;
+                };
+
+                // Presets
+                const applyPreset = (preset) => {
+                    // Reset defaults
+                    filters.value.min_volume = 5000;
+                    filters.value.min_liquidity = 1000;
+                    filters.value.min_price = 0.00;
+                    filters.value.max_price = 1.00;
+                    filters.value.max_spread = 0.05;
+                    filters.value.max_hours_to_expire = 0;
+                    filters.value.include_expired = true;
+                    filters.value.includedTags = []; 
+                    filters.value.excludedTags = [];
+                    filters.value.sort_by = "volume_usd";
+
+                    if (preset && preset.apply) {
+                        preset.apply();
+                    }
+                    resetAndFetch();
+                };
+
+                // Formatters
+                const formatCurrency = (value) => {
+                    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+                };
+
+                const formatCompact = (value) => {
+                    return new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short", style: 'currency', currency: 'USD' }).format(value);
+                };
+
+                const formatDate = (dateStr) => {
+                    if (!dateStr) return "-";
+                    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                };
+                
+                const timeFromNow = (dateStr) => {
+                    if (!dateStr) return "";
+                    const diff = new Date(dateStr) - new Date();
+                    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+                    const hours = Math.ceil(diff / (1000 * 60 * 60));
+                    
+                    if (hours < 0) return "Expired";
+                    if (hours < 24) return `${hours}h left`;
+                    if (days === 0) return "Today";
+                    return `in ${days} days`;
+                };
+
+                // API Calls
+                const fetchTags = async () => {
+                    try {
+                        const res = await fetch(`${API_BASE_URL}/api/tags`);
+                        tags.value = await res.json();
+                    } catch (e) { console.error(e); }
+                };
+                
+                const fetchStatus = async () => {
+                    try {
+                        const res = await fetch(`${API_BASE_URL}/api/status?_t=${Date.now()}`);
+                        const data = await res.json();
+                        if (data.last_updated) {
+                            serverLastUpdated.value = data.last_updated;
+                        }
+                    } catch (e) { console.error(e); }
+                };
+
+                const fetchMarkets = async (append = false) => {
+                    if (!append) {
+                        console.log("fetchMarkets: Starting new fetch. Setting loading=true, offset=0");
+                        offset.value = 0;
+                        if (abortController) {
+                            abortController.abort();
+                            abortController = null;
+                        }
+                    } else if (loading.value) {
+                        console.log("fetchMarkets: Appending, but already loading. Skipping.");
+                        return;
+                    }
+
+                    loading.value = true;
+                    abortController = new AbortController();
+                    
+                    try {
+                        const params = new URLSearchParams();
+                        
+                        // Cache buster
+                        params.append("_t", Date.now());
+
+                        // Basic fields
+                        params.append("min_volume", filters.value.min_volume);
+                        params.append("min_liquidity", filters.value.min_liquidity);
+                        params.append("min_price", filters.value.min_price);
+                        params.append("max_price", filters.value.max_price);
+                        params.append("max_spread", filters.value.max_spread);
+                        params.append("include_expired", filters.value.include_expired);
+                        if (filters.value.search) params.append("search", filters.value.search);
+                        params.append("sort_by", filters.value.sort_by);
+                        params.append("sort_dir", filters.value.sort_dir);
+                        
+                        // Tag Logic (Arrays)
+                        filters.value.includedTags.forEach(t => params.append("included_tags", t));
+                        filters.value.excludedTags.forEach(t => params.append("excluded_tags", t));
+                        
+                        // Hours
+                        if (filters.value.max_hours_to_expire > 0) {
+                            params.append("max_hours_to_expire", filters.value.max_hours_to_expire);
+                        }
+                        
+                        // Pagination
+                        params.append("limit", limit);
+                        params.append("offset", offset.value);
+
+                        console.log("fetchMarkets: Fetching with params", params.toString());
+                        const res = await fetch(`${API_BASE_URL}/api/markets?${params}`, { signal: abortController.signal });
+                        const newMarkets = await res.json();
+                        
+                        if (append) {
+                            markets.value = [...markets.value, ...newMarkets];
+                        } else {
+                            markets.value = newMarkets;
+                        }
+                        
+                        // Also update status
+                        fetchStatus();
+                        
+                    } catch (e) {
+                        if (e.name === 'AbortError') {
+                            console.log("fetchMarkets: Request aborted.");
+                            return; 
+                        }
+                        console.error("fetchMarkets: Error during fetch", e);
+                    } finally {
+                        if (abortController && !abortController.signal.aborted) {
+                            console.log("fetchMarkets: Fetch complete. Setting loading=false.");
+                            loading.value = false;
+                            abortController = null;
+                        }
+                    }
+                };
+
+                const resetAndFetch = () => {
+                    // No need to set offset here, it's handled in fetchMarkets(false)
+                    fetchMarkets(false);
+                    // Close mobile menu on filter change
+                    if (window.innerWidth < 768) {
+                        // Optional: close menu or keep open? keep open might be better while filtering
+                    }
+                };
+                
+                const loadMore = () => {
+                    offset.value += limit;
+                    fetchMarkets(true);
+                };
+
+                const debouncedFetch = () => {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(resetAndFetch, 500);
+                };
+
+                const setSort = (column) => {
+                    if (filters.value.sort_by === column) {
+                        filters.value.sort_dir = filters.value.sort_dir === 'desc' ? 'asc' : 'desc';
+                    } else {
+                        filters.value.sort_by = column;
+                        filters.value.sort_dir = 'desc';
+                    }
+                    resetAndFetch();
+                };
+
+                onMounted(() => {
+                    fetchTags();
+                    fetchStatus();
+                    fetchMarkets();
+                    // Auto-refresh every 60 seconds
+                    refreshInterval = setInterval(() => {
+                        fetchMarkets(false);
+                        fetchStatus();
+                    }, 60000);
+                });
+
+                return {
+                    markets,
+                    tags,
+                    loading,
+                    filters,
+                    expandedId,
+                    lastUpdatedTime,
+                    // New Autocomplete State
+                    includeSearch,
+                    excludeSearch,
+                    showIncludeDropdown,
+                    showExcludeDropdown,
+                    availableTagsForInclude,
+                    availableTagsForExclude,
+                    // Presets
+                    showAllPresets,
+                    displayedPresets,
+                    presetDefinitions,
+                    // Methods
+                    addIncludedTag,
+                    removeIncludedTag,
+                    addExcludedTag,
+                    removeExcludedTag,
+                    resetIncludedTags,
+                    resetExcludedTags,
+                    hideDropdown,
+                    // Formatters & Others
+                    formatCurrency,
+                    formatCompact,
+                    formatDate,
+                    timeFromNow,
+                    resetAndFetch,
+                    loadMore,
+                    debouncedFetch,
+                    setSort,
+                    toggleDetails,
+                    applyPreset
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

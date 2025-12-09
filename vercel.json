@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "http://35.238.7.116/api/:path*"
+    },
+    {
+      "source": "/",
+      "destination": "/frontend_deploy/index.html"
+    }
+  ]
+}
