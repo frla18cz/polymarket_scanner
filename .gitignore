@@ -29,3 +29,4 @@ archive.zip
 local_db*
 .gemini-clipboard/
 *.log
+data/markets.db
