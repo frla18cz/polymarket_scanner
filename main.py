@@ -37,6 +37,25 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+def ensure_indices():
+    """Create indices for performance optimization if they don't exist."""
+    conn = get_db_connection()
+    try:
+        conn.executescript("""
+            CREATE INDEX IF NOT EXISTS idx_market_tags_label ON market_tags(tag_label);
+            CREATE INDEX IF NOT EXISTS idx_market_tags_market_id ON market_tags(market_id);
+            CREATE INDEX IF NOT EXISTS idx_amo_market_id ON active_market_outcomes(market_id);
+            CREATE INDEX IF NOT EXISTS idx_amo_volume ON active_market_outcomes(volume_usd DESC);
+            CREATE INDEX IF NOT EXISTS idx_amo_end_date ON active_market_outcomes(end_date);
+            ANALYZE;
+        """)
+        conn.commit()
+        print("DEBUG: Database indices verified/created.")
+    except Exception as e:
+        print(f"WARNING: Failed to create indices: {e}")
+    finally:
+        conn.close()
+
 @app.get("/api/tags", response_model=List[TagStats])
 def get_tags():
     conn = get_db_connection()
@@ -178,5 +197,10 @@ def get_markets(
     conn.close()
     return [dict(row) for row in rows]
 
+    if os.path.exists(STATIC_PATH):
+        with open(STATIC_PATH, "r") as f: return f.read()
+    return "Dashboard HTML not found in static/"
+
 if __name__ == "__main__":
+    ensure_indices()
     uvicorn.run(app, host="0.0.0.0", port=8000)
