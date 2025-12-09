@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import time
 from datetime import datetime, timedelta
 from typing import Optional, List
 from fastapi import FastAPI, Query, Response
@@ -177,8 +178,6 @@ def get_markets(
         where_clauses.append(f"NOT EXISTS (SELECT 1 FROM market_tags t WHERE t.market_id = active_market_outcomes.market_id AND t.tag_label IN ({placeholders}))")
         params.extend(excluded_tags)
 
-    where_str = " AND ".join(where_clauses)
-    
     # Sorting
     valid_sorts = ["volume_usd", "liquidity_usd", "end_date", "price", "spread"]
     if sort_by not in valid_sorts: sort_by = "volume_usd"
@@ -190,7 +189,32 @@ def get_markets(
         LIMIT {limit} OFFSET {offset}
     """
     
-    rows = cursor.execute(sql, params).fetchall()
+    # --- PERFORMANCE LOGGING ---
+    t_start = time.time()
+    try:
+        rows = cursor.execute(sql, params).fetchall()
+    except Exception as e:
+        print(f"ERROR executing SQL: {e}")
+        conn.close()
+        return []
+        
+    t_end = time.time()
+    duration = t_end - t_start
+    
+    print(f"PERF: SQL Query took {duration:.4f} seconds. Rows returned: {len(rows)}")
+    
+    if duration > 0.5: # Log anything over 500ms
+        print(f"SLOW QUERY DETECTED! SQL: {sql} PARAMS: {params}")
+        # Run Explain Query Plan for slow queries
+        try:
+            explain_sql = f"EXPLAIN QUERY PLAN {sql}"
+            plan = cursor.execute(explain_sql, params).fetchall()
+            print("QUERY PLAN:")
+            for p in plan:
+                print(dict(p))
+        except:
+            pass
+
     conn.close()
     return [dict(row) for row in rows]
 
