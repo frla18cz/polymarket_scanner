@@ -38,9 +38,12 @@ def get_db_connection():
     return conn
 
 def ensure_indices():
-    """Create indices for performance optimization if they don't exist."""
+    """Create indices and enable WAL mode for performance."""
     conn = get_db_connection()
     try:
+        # Enable Write-Ahead Logging (allows simultaneous read/write)
+        conn.execute("PRAGMA journal_mode=WAL;")
+        
         conn.executescript("""
             CREATE INDEX IF NOT EXISTS idx_market_tags_label ON market_tags(tag_label);
             CREATE INDEX IF NOT EXISTS idx_market_tags_market_id ON market_tags(market_id);
@@ -50,9 +53,9 @@ def ensure_indices():
             ANALYZE;
         """)
         conn.commit()
-        print("DEBUG: Database indices verified/created.")
+        print("DEBUG: Database WAL mode enabled and indices verified.")
     except Exception as e:
-        print(f"WARNING: Failed to create indices: {e}")
+        print(f"WARNING: Failed to optimize DB: {e}")
     finally:
         conn.close()
 
