@@ -50,6 +50,12 @@ def ensure_indices():
             CREATE INDEX IF NOT EXISTS idx_amo_market_id ON active_market_outcomes(market_id);
             CREATE INDEX IF NOT EXISTS idx_amo_volume ON active_market_outcomes(volume_usd DESC);
             CREATE INDEX IF NOT EXISTS idx_amo_end_date ON active_market_outcomes(end_date);
+            
+            -- Missing indices for sliders (Critical for performance)
+            CREATE INDEX IF NOT EXISTS idx_amo_price ON active_market_outcomes(price);
+            CREATE INDEX IF NOT EXISTS idx_amo_spread ON active_market_outcomes(spread);
+            CREATE INDEX IF NOT EXISTS idx_amo_liquidity ON active_market_outcomes(liquidity_usd);
+            
             ANALYZE;
         """)
         conn.commit()
