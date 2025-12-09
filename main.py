@@ -3,16 +3,30 @@ import sqlite3
 from datetime import datetime, timedelta
 from typing import Optional, List
 from fastapi import FastAPI, Query, Response
-from fastapi.responses import HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
 
 app = FastAPI()
 
+# CORS Configuration
+origins = [
+    "http://localhost:3000",
+    "https://your-vercel-app.vercel.app",  # Add your Vercel domain here
+    "*" # Allow all for development convenience
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "data", "markets.db")
-STATIC_PATH = os.path.join(BASE_DIR, "static", "index.html")
 
 class TagStats(BaseModel):
     tag_label: str
@@ -153,12 +167,6 @@ def get_markets(
     rows = cursor.execute(sql, params).fetchall()
     conn.close()
     return [dict(row) for row in rows]
-
-@app.get("/", response_class=HTMLResponse)
-def read_root():
-    if os.path.exists(STATIC_PATH):
-        with open(STATIC_PATH, "r") as f: return f.read()
-    return "Dashboard HTML not found in static/"
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

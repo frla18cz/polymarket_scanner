@@ -433,6 +433,11 @@
     <script>
         const { createApp, ref, onMounted, watch } = Vue;
 
+        // Configuration
+        // When running on Vercel, this should point to your VPS IP/Domain.
+        // For local development, it can be localhost.
+        const API_BASE_URL = "http://localhost:8000"; 
+
         createApp({
             setup() {
                 const markets = ref([]);
@@ -686,14 +691,14 @@
                 // API Calls
                 const fetchTags = async () => {
                     try {
-                        const res = await fetch('/api/tags');
+                        const res = await fetch(`${API_BASE_URL}/api/tags`);
                         tags.value = await res.json();
                     } catch (e) { console.error(e); }
                 };
                 
                 const fetchStatus = async () => {
                     try {
-                        const res = await fetch(`/api/status?_t=${Date.now()}`);
+                        const res = await fetch(`${API_BASE_URL}/api/status?_t=${Date.now()}`);
                         const data = await res.json();
                         if (data.last_updated) {
                             serverLastUpdated.value = data.last_updated;
@@ -748,7 +753,7 @@
                         params.append("offset", offset.value);
 
                         console.log("fetchMarkets: Fetching with params", params.toString());
-                        const res = await fetch(`/api/markets?${params}`, { signal: abortController.signal });
+                        const res = await fetch(`${API_BASE_URL}/api/markets?${params}`, { signal: abortController.signal });
                         const newMarkets = await res.json();
                         
                         if (append) {
