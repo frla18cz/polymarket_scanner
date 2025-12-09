@@ -10,6 +10,9 @@ import uvicorn
 
 app = FastAPI()
 
+# Ensure database indices are created/verified and WAL mode is enabled on application startup
+ensure_indices()
+
 # CORS Configuration
 origins = [
     "http://localhost:3000",
@@ -239,5 +242,4 @@ def get_markets(
     return "Dashboard HTML not found in static/"
 
 if __name__ == "__main__":
-    ensure_indices()
     uvicorn.run(app, host="0.0.0.0", port=8000)
