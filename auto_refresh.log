@@ -252,3 +252,1352 @@ Events: 4145 (took 13.79s)
 Markets: 17072 (took 35.95s)
 Saved: 34144 outcomes, 74061 tags.
 Total Time: 50.13s
+[2025-12-08 15:08:22.590798] Starting Auto-Refresh Loop (Interval: 300s)
+
+--- Running Update Task ---
+[2025-12-08 15:08:22.590950] Starting Scrape...
+Events: 3886 (took 19.58s)
+Markets: 15353 (took 37.71s)
+Saved: 30706 outcomes, 66483 tags.
+Total Time: 57.81s
+--- Update Finished in 57.86s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 15:14:20.454424] Starting Scrape...
+Events: 3883 (took 16.90s)
+Markets: 15353 (took 40.69s)
+Saved: 30706 outcomes, 66497 tags.
+Total Time: 58.11s
+--- Update Finished in 58.15s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 15:20:18.615364] Starting Scrape...
+Events: 3883 (took 18.15s)
+Markets: 15349 (took 40.78s)
+Saved: 30698 outcomes, 66470 tags.
+Total Time: 59.30s
+--- Update Finished in 59.34s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 15:26:17.973800] Starting Scrape...
+Events: 3883 (took 15.80s)
+Markets: 15353 (took 42.15s)
+Saved: 30706 outcomes, 66499 tags.
+Total Time: 58.32s
+--- Update Finished in 58.36s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 15:32:16.338451] Starting Scrape...
+Events: 3878 (took 19.73s)
+Markets: 15348 (took 40.42s)
+Saved: 30696 outcomes, 66404 tags.
+Total Time: 60.52s
+--- Update Finished in 60.56s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 15:38:16.901157] Starting Scrape...
+Events: 3882 (took 16.90s)
+Markets: 15348 (took 36.35s)
+Saved: 30696 outcomes, 66475 tags.
+Total Time: 53.64s
+--- Update Finished in 53.68s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 16:27:41.321538] Starting Scrape...
+[GammaClient] Error fetching events (attempt 1/3): HTTPSConnectionPool(host='gamma-api.polymarket.com', port=443): Read timed out. (read timeout=30)
+[GammaClient] Error fetching events (attempt 1/3): ('Connection aborted.', ConnectionResetError(54, 'Connection reset by peer'))
+Events: 3981 (took 1253.38s)
+Markets: 15425 (took 27.96s)
+Saved: 30850 outcomes, 66827 tags.
+Total Time: 1281.83s
+--- Update Finished in 1281.87s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 16:54:03.201012] Starting Scrape...
+Events: 3985 (took 12.82s)
+Markets: 15447 (took 28.43s)
+Saved: 30894 outcomes, 66864 tags.
+Total Time: 41.64s
+--- Update Finished in 41.67s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 16:59:44.886695] Starting Scrape...
+Events: 3982 (took 14.01s)
+Markets: 15444 (took 28.95s)
+Saved: 30888 outcomes, 66878 tags.
+Total Time: 43.32s
+--- Update Finished in 43.36s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 17:05:28.253655] Starting Scrape...
+Events: 3982 (took 12.82s)
+Markets: 15444 (took 27.86s)
+Saved: 30888 outcomes, 66888 tags.
+Total Time: 41.04s
+--- Update Finished in 41.09s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 17:11:09.350896] Starting Scrape...
+Events: 3982 (took 13.76s)
+Markets: 15443 (took 27.94s)
+Saved: 30886 outcomes, 66911 tags.
+Total Time: 42.09s
+--- Update Finished in 42.13s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 17:16:51.492723] Starting Scrape...
+Events: 3977 (took 11.55s)
+Markets: 15436 (took 27.76s)
+Saved: 30872 outcomes, 66796 tags.
+Total Time: 39.68s
+--- Update Finished in 39.72s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 17:22:31.227259] Starting Scrape...
+Events: 3979 (took 11.36s)
+Markets: 15478 (took 27.56s)
+Saved: 30956 outcomes, 67165 tags.
+Total Time: 39.30s
+--- Update Finished in 39.34s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 17:28:10.577339] Starting Scrape...
+Events: 3982 (took 11.73s)
+Markets: 15478 (took 27.27s)
+Saved: 30956 outcomes, 67133 tags.
+Total Time: 39.49s
+--- Update Finished in 39.53s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 17:33:50.123061] Starting Scrape...
+Events: 3979 (took 13.80s)
+Markets: 15551 (took 27.87s)
+Saved: 31102 outcomes, 67621 tags.
+Total Time: 42.06s
+--- Update Finished in 42.10s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 17:39:32.233845] Starting Scrape...
+Events: 4009 (took 12.37s)
+Markets: 15551 (took 27.53s)
+Saved: 31102 outcomes, 67698 tags.
+Total Time: 40.30s
+--- Update Finished in 40.34s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 17:45:12.578497] Starting Scrape...
+Events: 4026 (took 14.24s)
+Markets: 15643 (took 28.34s)
+Saved: 31286 outcomes, 68118 tags.
+Total Time: 42.98s
+--- Update Finished in 43.02s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 17:50:55.608109] Starting Scrape...
+Events: 4036 (took 12.85s)
+Markets: 15643 (took 28.12s)
+Saved: 31286 outcomes, 68157 tags.
+Total Time: 41.37s
+--- Update Finished in 41.41s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 17:56:37.028792] Starting Scrape...
+Events: 4036 (took 11.19s)
+Markets: 15700 (took 28.62s)
+Saved: 31400 outcomes, 68564 tags.
+Total Time: 40.23s
+--- Update Finished in 40.27s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 18:02:17.308039] Starting Scrape...
+Events: 4031 (took 13.22s)
+Markets: 15693 (took 27.78s)
+Saved: 31386 outcomes, 68363 tags.
+Total Time: 41.39s
+--- Update Finished in 41.43s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 18:07:58.748074] Starting Scrape...
+Events: 4034 (took 12.43s)
+Markets: 15693 (took 28.06s)
+Saved: 31386 outcomes, 68255 tags.
+Total Time: 40.90s
+--- Update Finished in 40.94s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 18:47:43.572816] Starting Scrape...
+Events: 4060 (took 14.91s)
+Markets: 15801 (took 37.98s)
+Saved: 31602 outcomes, 68923 tags.
+Total Time: 53.29s
+--- Update Finished in 53.33s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 18:53:36.911339] Starting Scrape...
+Events: 4075 (took 15.48s)
+Markets: 15896 (took 38.01s)
+Saved: 31792 outcomes, 69398 tags.
+Total Time: 53.88s
+--- Update Finished in 53.92s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 18:59:30.838661] Starting Scrape...
+Events: 4076 (took 13.73s)
+Markets: 15896 (took 39.73s)
+Saved: 31792 outcomes, 69394 tags.
+Total Time: 53.86s
+--- Update Finished in 53.90s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 19:05:24.743012] Starting Scrape...
+Events: 4081 (took 14.68s)
+Markets: 15896 (took 38.44s)
+Saved: 31792 outcomes, 69236 tags.
+Total Time: 53.50s
+--- Update Finished in 53.54s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 19:11:18.294563] Starting Scrape...
+Events: 4081 (took 14.19s)
+Markets: 15921 (took 38.79s)
+Saved: 31842 outcomes, 69499 tags.
+Total Time: 53.34s
+--- Update Finished in 53.38s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 19:17:11.679745] Starting Scrape...
+Events: 4077 (took 15.39s)
+Markets: 15993 (took 39.30s)
+Saved: 31986 outcomes, 69650 tags.
+Total Time: 55.10s
+--- Update Finished in 55.14s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 19:23:06.833099] Starting Scrape...
+Events: 4080 (took 14.64s)
+Markets: 15993 (took 39.71s)
+Saved: 31986 outcomes, 69654 tags.
+Total Time: 54.71s
+--- Update Finished in 54.75s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 19:29:01.589036] Starting Scrape...
+Events: 4080 (took 14.57s)
+Markets: 15991 (took 38.28s)
+Saved: 31982 outcomes, 69712 tags.
+Total Time: 53.31s
+--- Update Finished in 53.35s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 19:34:54.945483] Starting Scrape...
+Events: 4078 (took 15.63s)
+Markets: 15989 (took 39.80s)
+Saved: 31978 outcomes, 69742 tags.
+Total Time: 55.93s
+--- Update Finished in 55.98s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 19:40:50.931453] Starting Scrape...
+Events: 4077 (took 15.40s)
+Markets: 15985 (took 38.40s)
+Saved: 31970 outcomes, 69678 tags.
+Total Time: 54.20s
+--- Update Finished in 54.24s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 19:46:45.181630] Starting Scrape...
+Events: 4076 (took 14.23s)
+Markets: 15985 (took 39.60s)
+Saved: 31970 outcomes, 69594 tags.
+Total Time: 54.24s
+--- Update Finished in 54.28s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 19:52:39.473508] Starting Scrape...
+Events: 4077 (took 15.90s)
+Markets: 15993 (took 38.80s)
+Saved: 31986 outcomes, 69627 tags.
+Total Time: 55.10s
+--- Update Finished in 55.14s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 19:58:34.621771] Starting Scrape...
+Events: 4078 (took 14.48s)
+Markets: 15993 (took 38.88s)
+Saved: 31986 outcomes, 69718 tags.
+Total Time: 53.76s
+--- Update Finished in 53.80s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 20:04:28.433034] Starting Scrape...
+Events: 4075 (took 14.81s)
+Markets: 15993 (took 39.37s)
+Saved: 31986 outcomes, 69447 tags.
+Total Time: 54.58s
+--- Update Finished in 54.62s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 20:10:23.060615] Starting Scrape...
+Events: 4072 (took 14.54s)
+Markets: 15963 (took 38.90s)
+Saved: 31926 outcomes, 69371 tags.
+Total Time: 53.84s
+--- Update Finished in 53.88s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 20:16:16.946872] Starting Scrape...
+Events: 4065 (took 14.10s)
+Markets: 15942 (took 39.71s)
+Saved: 31884 outcomes, 69253 tags.
+Total Time: 54.37s
+--- Update Finished in 54.41s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 20:22:11.366666] Starting Scrape...
+Events: 4066 (took 15.16s)
+Markets: 15945 (took 38.76s)
+Saved: 31890 outcomes, 69313 tags.
+Total Time: 54.42s
+--- Update Finished in 54.47s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 20:28:05.838457] Starting Scrape...
+Events: 4064 (took 14.09s)
+Markets: 15945 (took 36.30s)
+Saved: 31890 outcomes, 69366 tags.
+Total Time: 50.80s
+--- Update Finished in 50.84s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 20:33:56.689585] Starting Scrape...
+Events: 4060 (took 15.56s)
+Markets: 15942 (took 40.64s)
+Saved: 31884 outcomes, 69302 tags.
+Total Time: 56.57s
+--- Update Finished in 56.61s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 20:39:53.310745] Starting Scrape...
+Events: 4064 (took 14.88s)
+Markets: 15942 (took 39.38s)
+Saved: 31884 outcomes, 69347 tags.
+Total Time: 54.65s
+--- Update Finished in 54.69s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 20:45:48.008384] Starting Scrape...
+Events: 4064 (took 14.09s)
+Markets: 15943 (took 38.67s)
+Saved: 31886 outcomes, 69349 tags.
+Total Time: 53.15s
+--- Update Finished in 53.19s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 20:51:41.207166] Starting Scrape...
+Events: 4064 (took 14.29s)
+Markets: 15943 (took 40.42s)
+Saved: 31886 outcomes, 69311 tags.
+Total Time: 55.09s
+--- Update Finished in 55.13s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 20:57:36.352065] Starting Scrape...
+Events: 4064 (took 14.52s)
+Markets: 15943 (took 39.12s)
+Saved: 31886 outcomes, 69343 tags.
+Total Time: 54.04s
+--- Update Finished in 54.08s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 21:03:30.443125] Starting Scrape...
+Events: 4068 (took 15.09s)
+Markets: 15945 (took 35.20s)
+Saved: 31890 outcomes, 69340 tags.
+Total Time: 54.10s
+--- Update Finished in 54.40s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 21:09:24.936126] Starting Scrape...
+Events: 4068 (took 17.54s)
+Markets: 15945 (took 37.40s)
+Saved: 31890 outcomes, 69319 tags.
+Total Time: 59.29s
+--- Update Finished in 59.65s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 21:15:24.685069] Starting Scrape...
+Events: 4064 (took 15.48s)
+Markets: 15945 (took 34.50s)
+Saved: 31890 outcomes, 69401 tags.
+Total Time: 53.29s
+--- Update Finished in 53.74s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 21:21:18.536795] Starting Scrape...
+Events: 4063 (took 15.70s)
+Markets: 15964 (took 33.58s)
+Saved: 31928 outcomes, 69237 tags.
+Total Time: 51.56s
+--- Update Finished in 51.86s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 21:27:10.494222] Starting Scrape...
+Events: 4063 (took 14.16s)
+Markets: 15953 (took 34.04s)
+Saved: 31906 outcomes, 69217 tags.
+Total Time: 51.07s
+--- Update Finished in 51.37s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 21:33:01.967354] Starting Scrape...
+Events: 4058 (took 16.08s)
+Markets: 15955 (took 40.40s)
+Saved: 31910 outcomes, 69162 tags.
+Total Time: 60.25s
+--- Update Finished in 60.85s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 21:39:03.030452] Starting Scrape...
+Events: 4063 (took 15.95s)
+Markets: 15955 (took 34.07s)
+Saved: 31910 outcomes, 69216 tags.
+Total Time: 52.82s
+--- Update Finished in 53.16s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 21:44:56.276605] Starting Scrape...
+Events: 4063 (took 17.90s)
+Markets: 15955 (took 33.56s)
+Saved: 31910 outcomes, 69232 tags.
+Total Time: 54.25s
+--- Update Finished in 54.57s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 21:50:50.954282] Starting Scrape...
+Events: 4059 (took 13.70s)
+Markets: 15951 (took 33.62s)
+Saved: 31902 outcomes, 69191 tags.
+Total Time: 51.05s
+--- Update Finished in 51.53s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 21:56:42.583024] Starting Scrape...
+Events: 4063 (took 13.51s)
+Markets: 15951 (took 33.28s)
+Saved: 31902 outcomes, 68857 tags.
+Total Time: 49.74s
+--- Update Finished in 50.12s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 22:02:32.812055] Starting Scrape...
+Events: 4055 (took 13.55s)
+Markets: 16000 (took 32.63s)
+Saved: 32000 outcomes, 69185 tags.
+Total Time: 48.82s
+--- Update Finished in 49.10s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 22:08:22.015711] Starting Scrape...
+Events: 4055 (took 14.36s)
+Markets: 15996 (took 32.53s)
+Saved: 31992 outcomes, 69272 tags.
+Total Time: 49.49s
+--- Update Finished in 49.81s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 22:14:11.931355] Starting Scrape...
+Events: 4055 (took 15.81s)
+Markets: 15996 (took 33.56s)
+Saved: 31992 outcomes, 69272 tags.
+Total Time: 53.32s
+--- Update Finished in 53.93s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 22:20:05.947966] Starting Scrape...
+Events: 4051 (took 13.22s)
+Markets: 15996 (took 32.52s)
+Saved: 31992 outcomes, 69252 tags.
+Total Time: 48.42s
+--- Update Finished in 48.70s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 22:25:54.745463] Starting Scrape...
+Events: 4055 (took 15.21s)
+Markets: 15996 (took 32.66s)
+Saved: 31992 outcomes, 69260 tags.
+Total Time: 50.25s
+--- Update Finished in 50.52s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 22:31:45.372120] Starting Scrape...
+Events: 4055 (took 13.38s)
+Markets: 15996 (took 32.15s)
+Saved: 31992 outcomes, 69288 tags.
+Total Time: 48.30s
+--- Update Finished in 48.62s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 22:37:34.092450] Starting Scrape...
+Events: 4057 (took 13.40s)
+Markets: 16002 (took 32.35s)
+Saved: 32004 outcomes, 69200 tags.
+Total Time: 48.74s
+--- Update Finished in 49.09s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 22:43:23.290812] Starting Scrape...
+Events: 4057 (took 14.83s)
+Markets: 16065 (took 32.29s)
+Saved: 32130 outcomes, 69466 tags.
+Total Time: 50.34s
+--- Update Finished in 50.67s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 22:49:14.060492] Starting Scrape...
+Events: 4061 (took 13.54s)
+Markets: 16061 (took 32.57s)
+Saved: 32122 outcomes, 69411 tags.
+Total Time: 48.60s
+--- Update Finished in 48.91s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 22:55:03.069805] Starting Scrape...
+Events: 4061 (took 14.51s)
+Markets: 16069 (took 33.06s)
+Saved: 32138 outcomes, 69476 tags.
+Total Time: 49.80s
+--- Update Finished in 50.09s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 23:00:53.266393] Starting Scrape...
+Events: 4061 (took 13.45s)
+Markets: 16069 (took 33.15s)
+Saved: 32138 outcomes, 69439 tags.
+Total Time: 49.48s
+--- Update Finished in 49.77s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 23:06:43.133090] Starting Scrape...
+Events: 4057 (took 13.75s)
+Markets: 16065 (took 35.05s)
+Saved: 32130 outcomes, 69463 tags.
+Total Time: 51.93s
+--- Update Finished in 52.27s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 23:12:35.506271] Starting Scrape...
+Events: 4057 (took 13.72s)
+Markets: 16065 (took 31.95s)
+Saved: 32130 outcomes, 69453 tags.
+Total Time: 49.35s
+--- Update Finished in 49.57s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 23:18:25.177943] Starting Scrape...
+Events: 4066 (took 14.10s)
+Markets: 16065 (took 31.82s)
+Saved: 32130 outcomes, 69162 tags.
+Total Time: 48.88s
+--- Update Finished in 49.17s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 23:24:14.455956] Starting Scrape...
+Events: 4070 (took 13.91s)
+Markets: 16203 (took 32.23s)
+Saved: 32406 outcomes, 69839 tags.
+Total Time: 48.96s
+--- Update Finished in 49.25s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 23:30:03.811906] Starting Scrape...
+Events: 4072 (took 15.07s)
+Markets: 16242 (took 33.83s)
+Saved: 32484 outcomes, 70028 tags.
+Total Time: 51.98s
+--- Update Finished in 52.31s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 23:35:56.230142] Starting Scrape...
+Events: 4068 (took 16.31s)
+Markets: 16240 (took 32.43s)
+Saved: 32480 outcomes, 70013 tags.
+Total Time: 51.71s
+--- Update Finished in 52.03s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 23:41:48.367928] Starting Scrape...
+Events: 4069 (took 14.42s)
+Markets: 16241 (took 33.79s)
+Saved: 32482 outcomes, 70021 tags.
+Total Time: 51.13s
+--- Update Finished in 51.42s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 23:47:39.893332] Starting Scrape...
+Events: 4065 (took 14.67s)
+Markets: 16241 (took 32.46s)
+Saved: 32482 outcomes, 69985 tags.
+Total Time: 49.99s
+--- Update Finished in 50.34s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 23:53:30.340303] Starting Scrape...
+Events: 4066 (took 15.61s)
+Markets: 16241 (took 32.27s)
+Saved: 32482 outcomes, 70048 tags.
+Total Time: 50.65s
+--- Update Finished in 50.97s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-08 23:59:21.421235] Starting Scrape...
+Events: 4070 (took 15.77s)
+Markets: 16245 (took 33.54s)
+Saved: 32490 outcomes, 70121 tags.
+Total Time: 52.44s
+--- Update Finished in 52.80s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 00:05:14.330856] Starting Scrape...
+Events: 4079 (took 15.33s)
+Markets: 16301 (took 32.80s)
+Saved: 32602 outcomes, 69996 tags.
+Total Time: 51.28s
+--- Update Finished in 51.83s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 00:11:06.281783] Starting Scrape...
+Events: 4085 (took 14.55s)
+Markets: 16301 (took 32.34s)
+Saved: 32602 outcomes, 70247 tags.
+Total Time: 49.50s
+--- Update Finished in 49.79s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 00:16:56.176942] Starting Scrape...
+Events: 4081 (took 13.45s)
+Markets: 16341 (took 32.03s)
+Saved: 32682 outcomes, 70388 tags.
+Total Time: 48.06s
+--- Update Finished in 48.42s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 00:22:44.693735] Starting Scrape...
+Events: 4081 (took 14.49s)
+Markets: 16339 (took 33.04s)
+Saved: 32678 outcomes, 70400 tags.
+Total Time: 50.51s
+--- Update Finished in 50.95s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 00:28:35.749992] Starting Scrape...
+Events: 4083 (took 13.53s)
+Markets: 16341 (took 32.37s)
+Saved: 32682 outcomes, 70434 tags.
+Total Time: 48.80s
+--- Update Finished in 49.00s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 00:34:24.853865] Starting Scrape...
+Events: 4094 (took 14.20s)
+Markets: 16341 (took 32.52s)
+Saved: 32682 outcomes, 70087 tags.
+Total Time: 49.64s
+--- Update Finished in 50.08s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 00:40:15.046926] Starting Scrape...
+Events: 4090 (took 18.38s)
+Markets: 16377 (took 32.74s)
+Saved: 32754 outcomes, 70545 tags.
+Total Time: 53.70s
+--- Update Finished in 53.95s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 00:46:09.110260] Starting Scrape...
+Events: 4089 (took 13.75s)
+Markets: 16377 (took 33.37s)
+Saved: 32754 outcomes, 70517 tags.
+Total Time: 50.22s
+--- Update Finished in 50.38s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 00:51:59.592767] Starting Scrape...
+Events: 4089 (took 14.14s)
+Markets: 16377 (took 32.81s)
+Saved: 32754 outcomes, 70543 tags.
+Total Time: 49.89s
+--- Update Finished in 50.20s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 00:57:49.901515] Starting Scrape...
+Events: 4088 (took 14.40s)
+Markets: 16376 (took 33.62s)
+Saved: 32752 outcomes, 70513 tags.
+Total Time: 50.54s
+--- Update Finished in 50.82s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 01:03:40.831609] Starting Scrape...
+Events: 4087 (took 14.99s)
+Markets: 16370 (took 33.45s)
+Saved: 32740 outcomes, 70438 tags.
+Total Time: 51.79s
+--- Update Finished in 51.98s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 01:09:32.914330] Starting Scrape...
+Events: 4089 (took 15.55s)
+Markets: 16372 (took 33.48s)
+Saved: 32744 outcomes, 70537 tags.
+Total Time: 52.27s
+--- Update Finished in 52.64s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 01:15:25.662295] Starting Scrape...
+Events: 4083 (took 14.33s)
+Markets: 16372 (took 33.20s)
+Saved: 32744 outcomes, 70469 tags.
+Total Time: 50.36s
+--- Update Finished in 50.67s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 01:21:16.434894] Starting Scrape...
+Events: 4083 (took 13.90s)
+Markets: 16360 (took 33.09s)
+Saved: 32720 outcomes, 70462 tags.
+Total Time: 49.96s
+--- Update Finished in 50.28s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 01:27:06.824617] Starting Scrape...
+Events: 4083 (took 14.13s)
+Markets: 16364 (took 32.20s)
+Saved: 32728 outcomes, 70495 tags.
+Total Time: 48.78s
+--- Update Finished in 49.09s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 01:32:56.017168] Starting Scrape...
+Events: 4072 (took 16.28s)
+Markets: 16356 (took 31.46s)
+Saved: 32712 outcomes, 70290 tags.
+Total Time: 50.72s
+--- Update Finished in 51.02s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 01:38:47.132336] Starting Scrape...
+Events: 4076 (took 13.84s)
+Markets: 16356 (took 32.49s)
+Saved: 32712 outcomes, 70402 tags.
+Total Time: 50.07s
+--- Update Finished in 50.39s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 01:44:37.633187] Starting Scrape...
+Events: 4077 (took 13.37s)
+Markets: 16360 (took 34.63s)
+Saved: 32720 outcomes, 70450 tags.
+Total Time: 51.06s
+--- Update Finished in 51.48s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 01:50:29.220904] Starting Scrape...
+Events: 4074 (took 15.30s)
+Markets: 16380 (took 32.94s)
+Saved: 32760 outcomes, 70490 tags.
+Total Time: 52.31s
+--- Update Finished in 52.97s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 01:56:22.268804] Starting Scrape...
+Events: 4074 (took 14.89s)
+Markets: 16380 (took 32.02s)
+Saved: 32760 outcomes, 70445 tags.
+Total Time: 50.35s
+--- Update Finished in 50.72s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 02:02:13.073849] Starting Scrape...
+Events: 4074 (took 14.36s)
+Markets: 16407 (took 33.31s)
+Saved: 32814 outcomes, 70458 tags.
+Total Time: 50.39s
+--- Update Finished in 50.65s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 02:08:03.832563] Starting Scrape...
+Events: 4080 (took 13.43s)
+Markets: 16412 (took 33.64s)
+Saved: 32824 outcomes, 70582 tags.
+Total Time: 49.80s
+--- Update Finished in 50.17s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 02:13:54.102059] Starting Scrape...
+Events: 4076 (took 13.96s)
+Markets: 16430 (took 32.41s)
+Saved: 32860 outcomes, 70653 tags.
+Total Time: 49.11s
+--- Update Finished in 49.52s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 02:19:43.727821] Starting Scrape...
+Events: 4076 (took 14.09s)
+Markets: 16429 (took 33.38s)
+Saved: 32858 outcomes, 70636 tags.
+Total Time: 50.19s
+--- Update Finished in 50.54s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 02:25:34.373870] Starting Scrape...
+Events: 4076 (took 14.14s)
+Markets: 16429 (took 33.03s)
+Saved: 32858 outcomes, 70493 tags.
+Total Time: 50.19s
+--- Update Finished in 50.52s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 02:31:24.950669] Starting Scrape...
+Events: 4076 (took 14.88s)
+Markets: 16468 (took 31.72s)
+Saved: 32936 outcomes, 70620 tags.
+Total Time: 49.28s
+--- Update Finished in 49.55s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 02:37:14.617240] Starting Scrape...
+Events: 4076 (took 14.55s)
+Markets: 16470 (took 32.88s)
+Saved: 32940 outcomes, 70756 tags.
+Total Time: 50.15s
+--- Update Finished in 50.46s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 02:43:05.182824] Starting Scrape...
+Events: 4076 (took 14.72s)
+Markets: 16470 (took 33.54s)
+Saved: 32940 outcomes, 70778 tags.
+Total Time: 50.77s
+--- Update Finished in 51.13s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 02:48:56.419168] Starting Scrape...
+Events: 4170 (took 14.73s)
+Markets: 16470 (took 32.93s)
+Saved: 32940 outcomes, 70780 tags.
+Total Time: 50.78s
+--- Update Finished in 51.12s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 02:54:47.647382] Starting Scrape...
+Events: 4221 (took 14.75s)
+Markets: 16603 (took 33.32s)
+Saved: 33206 outcomes, 71726 tags.
+Total Time: 50.64s
+--- Update Finished in 50.96s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 03:16:21.441145] Starting Scrape...
+Events: 4217 (took 12.95s)
+Markets: 16601 (took 30.22s)
+Saved: 33202 outcomes, 71385 tags.
+Total Time: 43.69s
+--- Update Finished in 43.74s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 03:22:05.180607] Starting Scrape...
+Events: 4220 (took 12.59s)
+Markets: 16606 (took 30.16s)
+Saved: 33212 outcomes, 71800 tags.
+Total Time: 43.16s
+--- Update Finished in 43.20s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 03:27:48.392280] Starting Scrape...
+Events: 4220 (took 12.54s)
+Markets: 16606 (took 30.01s)
+Saved: 33212 outcomes, 71796 tags.
+Total Time: 42.96s
+--- Update Finished in 43.00s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 03:33:31.408631] Starting Scrape...
+Events: 4220 (took 11.81s)
+Markets: 16607 (took 30.82s)
+Saved: 33214 outcomes, 71773 tags.
+Total Time: 43.15s
+--- Update Finished in 43.19s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 03:39:14.610048] Starting Scrape...
+Events: 4220 (took 13.16s)
+Markets: 16607 (took 30.60s)
+Saved: 33214 outcomes, 71799 tags.
+Total Time: 44.14s
+--- Update Finished in 44.18s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 03:44:58.799562] Starting Scrape...
+Events: 4220 (took 11.86s)
+Markets: 16607 (took 29.81s)
+Saved: 33214 outcomes, 71799 tags.
+Total Time: 42.21s
+--- Update Finished in 42.25s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 03:50:41.059858] Starting Scrape...
+Events: 4220 (took 11.81s)
+Markets: 16607 (took 29.36s)
+Saved: 33214 outcomes, 71806 tags.
+Total Time: 41.59s
+--- Update Finished in 41.63s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 03:56:22.700591] Starting Scrape...
+Events: 4220 (took 11.54s)
+Markets: 16608 (took 27.38s)
+Saved: 33216 outcomes, 71811 tags.
+Total Time: 39.33s
+--- Update Finished in 39.37s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 04:02:02.085495] Starting Scrape...
+Events: 4220 (took 11.87s)
+Markets: 16602 (took 30.44s)
+Saved: 33204 outcomes, 71465 tags.
+Total Time: 42.72s
+--- Update Finished in 42.76s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 04:07:44.857177] Starting Scrape...
+Events: 4221 (took 11.47s)
+Markets: 16602 (took 26.43s)
+Saved: 33204 outcomes, 71754 tags.
+Total Time: 38.39s
+--- Update Finished in 38.43s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 04:13:23.297215] Starting Scrape...
+Events: 4220 (took 13.40s)
+Markets: 16603 (took 30.12s)
+Saved: 33206 outcomes, 71775 tags.
+Total Time: 44.03s
+--- Update Finished in 44.07s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 04:19:07.383081] Starting Scrape...
+Events: 4220 (took 11.64s)
+Markets: 16603 (took 30.32s)
+Saved: 33206 outcomes, 71744 tags.
+Total Time: 42.48s
+--- Update Finished in 42.52s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 04:24:49.915884] Starting Scrape...
+Events: 4220 (took 12.44s)
+Markets: 16603 (took 30.23s)
+Saved: 33206 outcomes, 71763 tags.
+Total Time: 43.19s
+--- Update Finished in 43.23s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 04:30:33.159729] Starting Scrape...
+Events: 4220 (took 11.68s)
+Markets: 16604 (took 29.15s)
+Saved: 33208 outcomes, 71779 tags.
+Total Time: 41.25s
+--- Update Finished in 41.29s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 04:36:14.459709] Starting Scrape...
+Events: 4219 (took 13.21s)
+Markets: 16604 (took 30.33s)
+Saved: 33208 outcomes, 71801 tags.
+Total Time: 44.06s
+--- Update Finished in 44.10s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 04:41:58.573517] Starting Scrape...
+Events: 4218 (took 11.36s)
+Markets: 16600 (took 30.83s)
+Saved: 33200 outcomes, 71710 tags.
+Total Time: 42.59s
+--- Update Finished in 42.63s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 04:47:41.216135] Starting Scrape...
+Events: 4211 (took 14.99s)
+Markets: 16589 (took 29.97s)
+Saved: 33178 outcomes, 71603 tags.
+Total Time: 45.43s
+--- Update Finished in 45.47s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 04:53:26.701212] Starting Scrape...
+Events: 4215 (took 12.38s)
+Markets: 16589 (took 30.09s)
+Saved: 33178 outcomes, 71702 tags.
+Total Time: 42.98s
+--- Update Finished in 43.02s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 04:59:09.733107] Starting Scrape...
+Events: 4215 (took 13.25s)
+Markets: 16586 (took 30.49s)
+Saved: 33172 outcomes, 71707 tags.
+Total Time: 44.17s
+--- Update Finished in 44.21s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 05:04:53.955878] Starting Scrape...
+Events: 4219 (took 13.28s)
+Markets: 16590 (took 30.88s)
+Saved: 33180 outcomes, 71728 tags.
+Total Time: 44.54s
+--- Update Finished in 44.58s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 05:10:38.547959] Starting Scrape...
+Events: 4215 (took 11.48s)
+Markets: 16583 (took 30.45s)
+Saved: 33166 outcomes, 71678 tags.
+Total Time: 42.44s
+--- Update Finished in 42.48s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 05:16:21.035470] Starting Scrape...
+Events: 4215 (took 12.12s)
+Markets: 16583 (took 29.69s)
+Saved: 33166 outcomes, 71666 tags.
+Total Time: 42.22s
+--- Update Finished in 42.26s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 05:22:03.310563] Starting Scrape...
+Events: 4215 (took 12.62s)
+Markets: 16592 (took 30.77s)
+Saved: 33184 outcomes, 71723 tags.
+Total Time: 43.90s
+--- Update Finished in 43.94s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 05:27:47.264543] Starting Scrape...
+Events: 4215 (took 12.19s)
+Markets: 16589 (took 30.18s)
+Saved: 33178 outcomes, 71712 tags.
+Total Time: 42.78s
+--- Update Finished in 42.82s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 05:33:30.095913] Starting Scrape...
+Events: 4215 (took 12.49s)
+Markets: 16589 (took 30.22s)
+Saved: 33178 outcomes, 71714 tags.
+Total Time: 43.13s
+--- Update Finished in 43.17s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 05:39:13.282090] Starting Scrape...
+Events: 4215 (took 12.23s)
+Markets: 16587 (took 30.26s)
+Saved: 33174 outcomes, 71716 tags.
+Total Time: 42.99s
+--- Update Finished in 43.03s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 05:44:56.324873] Starting Scrape...
+Events: 4215 (took 11.90s)
+Markets: 16587 (took 30.21s)
+Saved: 33174 outcomes, 71591 tags.
+Total Time: 42.50s
+--- Update Finished in 42.55s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 05:50:38.882473] Starting Scrape...
+Events: 4215 (took 12.52s)
+Markets: 16586 (took 30.45s)
+Saved: 33172 outcomes, 71654 tags.
+Total Time: 43.39s
+--- Update Finished in 43.43s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 05:56:22.322819] Starting Scrape...
+Events: 4215 (took 13.59s)
+Markets: 16586 (took 30.74s)
+Saved: 33172 outcomes, 71678 tags.
+Total Time: 44.74s
+--- Update Finished in 44.78s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 06:02:07.121426] Starting Scrape...
+Events: 4211 (took 14.77s)
+Markets: 16581 (took 30.85s)
+Saved: 33162 outcomes, 71358 tags.
+Total Time: 46.05s
+--- Update Finished in 46.09s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 06:07:53.219463] Starting Scrape...
+Events: 4211 (took 12.68s)
+Markets: 16577 (took 30.40s)
+Saved: 33154 outcomes, 71630 tags.
+Total Time: 43.48s
+--- Update Finished in 43.52s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 06:13:36.749507] Starting Scrape...
+Events: 4222 (took 12.47s)
+Markets: 16577 (took 30.99s)
+Saved: 33154 outcomes, 71645 tags.
+Total Time: 43.87s
+--- Update Finished in 43.92s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 06:19:20.676660] Starting Scrape...
+Events: 4218 (took 12.25s)
+Markets: 16607 (took 30.92s)
+Saved: 33214 outcomes, 71731 tags.
+Total Time: 43.69s
+--- Update Finished in 43.73s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 06:25:04.418769] Starting Scrape...
+Events: 4218 (took 15.77s)
+Markets: 16602 (took 31.28s)
+Saved: 33204 outcomes, 71738 tags.
+Total Time: 47.53s
+--- Update Finished in 47.57s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 06:30:51.996794] Starting Scrape...
+Events: 4218 (took 13.44s)
+Markets: 16597 (took 30.12s)
+Saved: 33194 outcomes, 71627 tags.
+Total Time: 43.95s
+--- Update Finished in 43.99s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 06:36:36.002277] Starting Scrape...
+Events: 4218 (took 12.48s)
+Markets: 16597 (took 30.68s)
+Saved: 33194 outcomes, 71695 tags.
+Total Time: 43.67s
+--- Update Finished in 43.71s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 06:42:19.722065] Starting Scrape...
+Events: 4217 (took 12.14s)
+Markets: 16593 (took 30.86s)
+Saved: 33186 outcomes, 71705 tags.
+Total Time: 43.40s
+--- Update Finished in 43.44s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 06:48:03.174229] Starting Scrape...
+Events: 4213 (took 11.68s)
+Markets: 16588 (took 30.90s)
+Saved: 33176 outcomes, 71686 tags.
+Total Time: 43.01s
+--- Update Finished in 43.06s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 06:53:46.243212] Starting Scrape...
+Events: 4217 (took 12.29s)
+Markets: 16588 (took 30.82s)
+Saved: 33176 outcomes, 71683 tags.
+Total Time: 43.61s
+--- Update Finished in 43.65s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 06:59:29.909161] Starting Scrape...
+Events: 4217 (took 14.46s)
+Markets: 16590 (took 30.91s)
+Saved: 33180 outcomes, 71694 tags.
+Total Time: 45.78s
+--- Update Finished in 45.83s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 07:05:15.748337] Starting Scrape...
+Events: 4246 (took 14.43s)
+Markets: 16624 (took 31.53s)
+Saved: 33248 outcomes, 71833 tags.
+Total Time: 46.49s
+--- Update Finished in 46.53s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 07:11:02.291682] Starting Scrape...
+Events: 4242 (took 12.19s)
+Markets: 16713 (took 30.72s)
+Saved: 33426 outcomes, 72234 tags.
+Total Time: 43.32s
+--- Update Finished in 43.36s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 07:16:45.665085] Starting Scrape...
+Events: 4240 (took 12.61s)
+Markets: 16713 (took 30.71s)
+Saved: 33426 outcomes, 72063 tags.
+Total Time: 43.84s
+--- Update Finished in 43.88s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 07:22:29.559450] Starting Scrape...
+Events: 4240 (took 13.02s)
+Markets: 16741 (took 30.54s)
+Saved: 33482 outcomes, 72356 tags.
+Total Time: 43.92s
+--- Update Finished in 43.96s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 07:28:13.527912] Starting Scrape...
+Events: 4240 (took 11.99s)
+Markets: 16736 (took 30.68s)
+Saved: 33472 outcomes, 72329 tags.
+Total Time: 43.07s
+--- Update Finished in 43.11s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 07:33:56.644320] Starting Scrape...
+Events: 4240 (took 12.41s)
+Markets: 16736 (took 30.69s)
+Saved: 33472 outcomes, 72289 tags.
+Total Time: 43.51s
+--- Update Finished in 43.55s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 07:39:40.208630] Starting Scrape...
+Events: 4240 (took 13.18s)
+Markets: 16736 (took 32.01s)
+Saved: 33472 outcomes, 72332 tags.
+Total Time: 45.60s
+--- Update Finished in 45.64s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 07:45:25.858944] Starting Scrape...
+Events: 4240 (took 12.18s)
+Markets: 16731 (took 30.90s)
+Saved: 33462 outcomes, 72313 tags.
+Total Time: 43.48s
+--- Update Finished in 43.52s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 07:51:09.388572] Starting Scrape...
+Events: 4239 (took 13.38s)
+Markets: 16717 (took 30.44s)
+Saved: 33434 outcomes, 72225 tags.
+Total Time: 44.35s
+--- Update Finished in 44.39s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 07:56:53.794902] Starting Scrape...
+Events: 4237 (took 12.44s)
+Markets: 16717 (took 30.19s)
+Saved: 33434 outcomes, 72263 tags.
+Total Time: 43.18s
+--- Update Finished in 43.23s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 08:58:57.139479] Starting Scrape...
+Events: 4228 (took 12.53s)
+Markets: 16677 (took 31.16s)
+Saved: 33354 outcomes, 72137 tags.
+Total Time: 44.06s
+--- Update Finished in 44.11s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 09:20:11.461231] Starting Scrape...
+Events: 4238 (took 12.79s)
+[GammaClient] Error fetching markets (attempt 1/3): ('Connection aborted.', ConnectionResetError(54, 'Connection reset by peer'))
+Markets: 16726 (took 550.70s)
+Saved: 33452 outcomes, 72341 tags.
+Total Time: 564.03s
+--- Update Finished in 564.08s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 09:50:18.315304] Starting Scrape...
+Events: 4238 (took 13.15s)
+Markets: 16726 (took 31.22s)
+Saved: 33452 outcomes, 72327 tags.
+Total Time: 44.78s
+--- Update Finished in 44.82s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 09:56:03.145417] Starting Scrape...
+Events: 4238 (took 12.63s)
+Markets: 16726 (took 31.09s)
+Saved: 33452 outcomes, 72332 tags.
+Total Time: 44.13s
+--- Update Finished in 44.18s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 10:01:47.335884] Starting Scrape...
+Events: 4232 (took 12.60s)
+Markets: 16726 (took 31.00s)
+Saved: 33452 outcomes, 72202 tags.
+Total Time: 44.03s
+--- Update Finished in 44.07s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 10:07:31.416329] Starting Scrape...
+Events: 4239 (took 14.90s)
+Markets: 16718 (took 31.78s)
+Saved: 33436 outcomes, 72310 tags.
+Total Time: 47.09s
+--- Update Finished in 47.13s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 10:13:18.560459] Starting Scrape...
+Events: 4235 (took 12.70s)
+Markets: 16713 (took 31.56s)
+Saved: 33426 outcomes, 72247 tags.
+Total Time: 44.68s
+--- Update Finished in 44.72s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 10:19:03.296595] Starting Scrape...
+[GammaClient] Error fetching events (attempt 1/3): HTTPSConnectionPool(host='gamma-api.polymarket.com', port=443): Read timed out.
+Events: 4231 (took 47.77s)
+Markets: 16713 (took 39.72s)
+Saved: 33426 outcomes, 72245 tags.
+Total Time: 87.98s
+--- Update Finished in 88.04s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 10:25:31.340913] Starting Scrape...
+Events: 4231 (took 15.17s)
+Markets: 16710 (took 38.74s)
+Saved: 33420 outcomes, 72234 tags.
+Total Time: 54.44s
+--- Update Finished in 54.48s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 10:31:25.826033] Starting Scrape...
+Events: 4231 (took 18.27s)
+Markets: 16709 (took 35.42s)
+Saved: 33418 outcomes, 72115 tags.
+Total Time: 54.25s
+--- Update Finished in 54.30s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 10:37:20.131344] Starting Scrape...
+Events: 4234 (took 15.69s)
+Markets: 16711 (took 36.47s)
+Saved: 33422 outcomes, 72245 tags.
+Total Time: 52.56s
+--- Update Finished in 52.60s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 10:43:12.741533] Starting Scrape...
+Events: 4234 (took 13.62s)
+Markets: 16711 (took 34.10s)
+Saved: 33422 outcomes, 72262 tags.
+Total Time: 48.10s
+--- Update Finished in 48.15s. Sleeping for 300s ---
+
+--- Running Update Task ---
+[2025-12-09 10:49:00.895470] Starting Scrape...
+Events: 4234 (took 14.70s)
+Markets: 16710 (took 35.16s)
+Saved: 33420 outcomes, 72251 tags.
+Total Time: 50.34s
+--- Update Finished in 50.39s. Sleeping for 300s ---

@@ -12,23 +12,29 @@ class GammaClient:
         
     def get_markets(self, params: Dict[str, Any]) -> List[Dict[str, Any]]:
         url = f"{self.base_url}/markets"
-        try:
-            response = requests.get(url, params=params)
-            response.raise_for_status()
-            return response.json()
-        except Exception as e:
-            print(f"[GammaClient] Error fetching markets: {e}")
-            return []
+        retries = 3
+        for attempt in range(retries):
+            try:
+                response = requests.get(url, params=params, timeout=30)
+                response.raise_for_status()
+                return response.json()
+            except Exception as e:
+                print(f"[GammaClient] Error fetching markets (attempt {attempt+1}/{retries}): {e}")
+                time.sleep(2 ** attempt)
+        return []
 
     def get_events(self, params: Dict[str, Any]) -> List[Dict[str, Any]]:
         url = f"{self.base_url}/events"
-        try:
-            response = requests.get(url, params=params)
-            response.raise_for_status()
-            return response.json()
-        except Exception as e:
-            print(f"[GammaClient] Error fetching events: {e}")
-            return []
+        retries = 3
+        for attempt in range(retries):
+            try:
+                response = requests.get(url, params=params, timeout=30)
+                response.raise_for_status()
+                return response.json()
+            except Exception as e:
+                print(f"[GammaClient] Error fetching events (attempt {attempt+1}/{retries}): {e}")
+                time.sleep(2 ** attempt)
+        return []
 
 class MarketFetcher:
     """
