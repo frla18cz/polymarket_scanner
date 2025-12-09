@@ -748,9 +748,13 @@
                         params.append("sort_by", filters.value.sort_by);
                         params.append("sort_dir", filters.value.sort_dir);
                         
-                        // Tag Logic (Arrays)
-                        filters.value.includedTags.forEach(t => params.append("included_tags", t));
-                        filters.value.excludedTags.forEach(t => params.append("excluded_tags", t));
+                        // Tag Logic (Comma Separated for Proxy Safety)
+                        if (filters.value.includedTags.length > 0) {
+                            params.append("included_tags", filters.value.includedTags.join(","));
+                        }
+                        if (filters.value.excludedTags.length > 0) {
+                            params.append("excluded_tags", filters.value.excludedTags.join(","));
+                        }
                         
                         // Hours
                         if (filters.value.max_hours_to_expire > 0) {

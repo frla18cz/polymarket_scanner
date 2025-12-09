@@ -77,6 +77,16 @@ def get_markets(
     include_expired: bool = True,
     search: Optional[str] = None
 ):
+    print(f"DEBUG: get_markets called with included_tags={included_tags}, excluded_tags={excluded_tags}")
+    
+    # Handle comma-separated tags (proxy fix)
+    if included_tags and len(included_tags) == 1 and "," in included_tags[0]:
+        included_tags = included_tags[0].split(",")
+        print(f"DEBUG: Parsed comma-separated included_tags: {included_tags}")
+
+    if excluded_tags and len(excluded_tags) == 1 and "," in excluded_tags[0]:
+        excluded_tags = excluded_tags[0].split(",")
+
     conn = get_db_connection()
     cursor = conn.cursor()
     
