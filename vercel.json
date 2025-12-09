@@ -1,13 +1,19 @@
 {
   "version": 2,
-  "rewrites": [
+  "builds": [
     {
-      "source": "/api/:path*",
-      "destination": "http://35.238.7.116/api/:path*"
+      "src": "frontend_deploy/index.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "http://35.238.7.116/api/$1"
     },
     {
-      "source": "/",
-      "destination": "/frontend_deploy/index.html"
+      "src": "/",
+      "dest": "/frontend_deploy/index.html"
     }
   ]
 }
