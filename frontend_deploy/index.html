@@ -102,11 +102,20 @@
                     <div class="relative">
                         <div class="flex justify-between items-center mb-1">
                             <label class="text-xs text-poly-green font-bold uppercase">Include Categories</label>
-                            <span v-if="filters.includedTags.length > 0" class="text-[10px] text-gray-500 cursor-pointer hover:text-white" @click="resetIncludedTags">Clear</span>
                         </div>
                         
-                        <!-- Selected Pills -->
-                        <div class="flex flex-wrap gap-1.5 mb-2" v-if="filters.includedTags.length > 0">
+                        <!-- Selected Pills (Including ALL) -->
+                        <div class="flex flex-wrap gap-1.5 mb-2">
+                            <!-- ALL Button -->
+                            <button @click="resetIncludedTags"
+                                class="px-2 py-0.5 rounded text-[10px] font-bold border transition-colors flex items-center gap-1"
+                                :class="filters.includedTags.length === 0 
+                                    ? 'bg-poly-green text-black border-poly-green shadow-[0_0_10px_rgba(0,195,136,0.2)]' 
+                                    : 'bg-transparent text-gray-500 border-gray-700 hover:border-poly-green hover:text-poly-green'">
+                                <i class="ph ph-list-dashes"></i> ALL
+                            </button>
+
+                            <!-- Specific Tags -->
                             <span v-for="tag in filters.includedTags" :key="'inc-'+tag" 
                                 class="px-2 py-0.5 rounded text-[10px] font-medium border border-poly-green bg-poly-green/10 text-poly-green flex items-center gap-1">
                                 {{ tag }}
