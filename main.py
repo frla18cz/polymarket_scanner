@@ -174,12 +174,14 @@ def get_markets(
     # Tag Logic
     if included_tags:
         placeholders = ",".join("?" * len(included_tags))
-        where_clauses.append(f"EXISTS (SELECT 1 FROM market_tags t WHERE t.market_id = active_market_outcomes.market_id AND t.tag_label IN ({placeholders}))")
+        # Optimized: Use IN (SELECT...) instead of correlated EXISTS. SQLite handles this better with indices.
+        where_clauses.append(f"market_id IN (SELECT market_id FROM market_tags WHERE tag_label IN ({placeholders}))")
         params.extend(included_tags)
 
     if excluded_tags:
         placeholders = ",".join("?" * len(excluded_tags))
-        where_clauses.append(f"NOT EXISTS (SELECT 1 FROM market_tags t WHERE t.market_id = active_market_outcomes.market_id AND t.tag_label IN ({placeholders}))")
+        # Optimized: Use NOT IN (SELECT...) instead of correlated NOT EXISTS.
+        where_clauses.append(f"market_id NOT IN (SELECT market_id FROM market_tags WHERE tag_label IN ({placeholders}))")
         params.extend(excluded_tags)
 
     where_str = " AND ".join(where_clauses)
