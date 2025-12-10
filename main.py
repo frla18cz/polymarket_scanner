@@ -8,26 +8,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
 
-app = FastAPI()
-
-# Ensure database indices are created/verified and WAL mode is enabled on application startup
-ensure_indices()
-
-# CORS Configuration
-origins = [
-    "http://localhost:3000",
-    "https://your-vercel-app.vercel.app",  # Add your Vercel domain here
-    "*" # Allow all for development convenience
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 # Paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "data", "markets.db")
@@ -42,7 +22,7 @@ def get_db_connection():
     return conn
 
 def ensure_indices():
-    """Create indices and enable WAL mode for performance."""
+    """Create indices and enable WAL mode for performance on startup."""
     conn = get_db_connection()
     try:
         # Enable Write-Ahead Logging (allows simultaneous read/write)
@@ -72,6 +52,27 @@ def ensure_indices():
         print(f"WARNING: Failed to optimize DB: {e}")
     finally:
         conn.close()
+
+# Initialize App
+app = FastAPI()
+
+# Run startup optimization
+ensure_indices()
+
+# CORS Configuration
+origins = [
+    "http://localhost:3000",
+    "https://your-vercel-app.vercel.app",  
+    "*" 
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/api/tags", response_model=List[TagStats])
 def get_tags():
@@ -105,7 +106,7 @@ def get_markets(
     limit: int = 100,
     offset: int = 0,
     min_volume: Optional[float] = 0,
-        min_liquidity: Optional[float] = 0,
+    min_liquidity: Optional[float] = 0,
     min_price: Optional[float] = 0.0,
     max_price: Optional[float] = 1.0,
     max_spread: Optional[float] = None,
@@ -181,6 +182,8 @@ def get_markets(
         where_clauses.append(f"NOT EXISTS (SELECT 1 FROM market_tags t WHERE t.market_id = active_market_outcomes.market_id AND t.tag_label IN ({placeholders}))")
         params.extend(excluded_tags)
 
+    where_str = " AND ".join(where_clauses)
+    
     # Sorting
     valid_sorts = ["volume_usd", "liquidity_usd", "end_date", "price", "spread"]
     if sort_by not in valid_sorts: sort_by = "volume_usd"
@@ -208,7 +211,6 @@ def get_markets(
     
     if duration > 0.5: # Log anything over 500ms
         print(f"SLOW QUERY DETECTED! SQL: {sql} PARAMS: {params}")
-        # Run Explain Query Plan for slow queries
         try:
             explain_sql = f"EXPLAIN QUERY PLAN {sql}"
             plan = cursor.execute(explain_sql, params).fetchall()
@@ -220,26 +222,6 @@ def get_markets(
 
     conn.close()
     return [dict(row) for row in rows]
-
-    
-    # Sorting
-    valid_sorts = ["volume_usd", "liquidity_usd", "end_date", "price", "spread"]
-    if sort_by not in valid_sorts: sort_by = "volume_usd"
-    
-    sql = f"""
-        SELECT * FROM active_market_outcomes
-        WHERE {where_str}
-        ORDER BY {sort_by} {'ASC' if sort_dir == 'asc' else 'DESC'}
-        LIMIT {limit} OFFSET {offset}
-    """
-    
-    rows = cursor.execute(sql, params).fetchall()
-    conn.close()
-    return [dict(row) for row in rows]
-
-    if os.path.exists(STATIC_PATH):
-        with open(STATIC_PATH, "r") as f: return f.read()
-    return "Dashboard HTML not found in static/"
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
