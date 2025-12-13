@@ -407,27 +407,103 @@
                                 </div>
 
                                 <!-- Detail View (Full width within scroll container) -->
-                                <div v-if="expandedId === m.market_id + m.outcome_name" class="bg-poly-card/50 p-4 pl-10 text-xs text-gray-300 grid grid-cols-2 gap-4 shadow-inner">
-                                    <div>
-                                        <h4 class="text-gray-500 font-bold uppercase mb-2">Market Details</h4>
-                                        <div class="grid grid-cols-2 gap-2">
-                                            <span class="text-gray-500">Market ID:</span> <span class="font-mono text-white select-all truncate">{{ m.market_id }}</span>
-                                            <span class="text-gray-500">Start Date:</span> <span class="text-white">{{ m.start_date ? m.start_date.replace('T', ' ').slice(0, 16) : '-' }}</span>
-                                            <span class="text-gray-500">End Date:</span> <span class="text-white">{{ m.end_date ? m.end_date.replace('T', ' ').slice(0, 16) : '-' }}</span>
-                                            <span class="text-gray-500">Volume:</span> <span class="font-mono text-white">{{ m.volume_usd.toLocaleString() }} USD</span>
+                                <div v-if="expandedId === m.market_id + m.outcome_name"
+                                    class="bg-poly-card/50 p-4 md:p-5 md:pl-10 text-xs text-gray-300 shadow-inner">
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-2">
+                                                <h4 class="text-gray-500 font-bold uppercase tracking-wider">Market Details</h4>
+                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold border"
+                                                    :class="m.outcome_name === 'No'
+                                                        ? 'border-poly-red/50 bg-poly-red/10 text-poly-red'
+                                                        : 'border-poly-green/50 bg-poly-green/10 text-poly-green'">
+                                                    {{ m.outcome_name }}
+                                                </span>
+                                            </div>
+                                            <div class="text-[11px] text-gray-500 mt-1 font-mono truncate" v-if="m.event_slug">
+                                                {{ m.event_slug }}
+                                            </div>
                                         </div>
-                                        <div class="mt-4">
-                                            <a :href="m.url" target="_blank" class="inline-flex items-center gap-2 bg-poly-blue hover:bg-blue-600 text-white px-3 py-1.5 rounded transition">
-                                                Open on Polymarket <i class="ph ph-arrow-square-out"></i>
+
+                                        <div class="flex items-center gap-2 shrink-0">
+                                            <a :href="m.url" target="_blank" rel="noreferrer"
+                                                class="inline-flex items-center gap-2 bg-poly-blue hover:bg-blue-600 text-white px-3 py-1.5 rounded transition"
+                                                @click.stop>
+                                                Open <i class="ph ph-arrow-square-out"></i>
                                             </a>
+                                            <button type="button" @click.stop="copyToClipboard(String(m.market_id), `id:${m.market_id}`)"
+                                                class="inline-flex items-center gap-2 px-3 py-1.5 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-gray-200 transition">
+                                                <i :class="copiedKey === `id:${m.market_id}` ? 'ph ph-check' : 'ph ph-copy'"></i>
+                                                <span>{{ copiedKey === `id:${m.market_id}` ? 'Copied' : 'Copy ID' }}</span>
+                                            </button>
+                                            <button type="button" @click.stop="copyToClipboard(m.url || '', `url:${m.market_id}:${m.outcome_name}`)" :disabled="!m.url"
+                                                class="inline-flex items-center gap-2 px-3 py-1.5 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-gray-200 transition disabled:opacity-50">
+                                                <i :class="copiedKey === `url:${m.market_id}:${m.outcome_name}` ? 'ph ph-check' : 'ph ph-link'"></i>
+                                                <span>{{ copiedKey === `url:${m.market_id}:${m.outcome_name}` ? 'Copied' : 'Copy Link' }}</span>
+                                            </button>
+                                            <button type="button" @click.stop="expandedId = null"
+                                                class="inline-flex items-center justify-center w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-gray-200 transition"
+                                                aria-label="Close details">
+                                                <i class="ph ph-x"></i>
+                                            </button>
                                         </div>
                                     </div>
-                                    <div>
-                                        <h4 class="text-gray-500 font-bold uppercase mb-2">Analysis</h4>
-                                        <div class="grid grid-cols-2 gap-2">
-                                            <span class="text-gray-500">Event Slug:</span> <span class="font-mono text-white select-all truncate">{{ m.event_slug }}</span>
-                                            <span class="text-gray-500">Probability:</span> <span class="text-white font-bold">{{ (m.price * 100).toFixed(2) }}%</span>
-                                            <span class="text-gray-500">Implied Odds:</span> <span class="text-white font-mono">1 : {{ (1 / (m.price || 0.0001)).toFixed(2) }}</span>
+
+                                    <div class="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+                                        <div class="lg:col-span-2">
+                                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                                <div class="rounded border border-poly-accent bg-poly-bg/60 p-3">
+                                                    <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Probability</div>
+                                                    <div class="mt-1 font-mono text-white text-base font-bold">{{ (m.price * 100).toFixed(2) }}%</div>
+                                                </div>
+                                                <div class="rounded border border-poly-accent bg-poly-bg/60 p-3">
+                                                    <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Spread</div>
+                                                    <div class="mt-1 font-mono text-white text-base font-bold">{{ (m.spread * 100).toFixed(2) }}¢</div>
+                                                </div>
+                                                <div class="rounded border border-poly-accent bg-poly-bg/60 p-3">
+                                                    <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Liquidity</div>
+                                                    <div class="mt-1 font-mono text-white text-base font-bold">{{ formatCompact(m.liquidity_usd) }}</div>
+                                                </div>
+                                                <div class="rounded border border-poly-accent bg-poly-bg/60 p-3">
+                                                    <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Volume</div>
+                                                    <div class="mt-1 font-mono text-white text-base font-bold">{{ formatCompact(m.volume_usd) }}</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                <div class="rounded border border-poly-accent bg-poly-bg/40 p-3">
+                                                    <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Dates</div>
+                                                    <div class="mt-2 grid grid-cols-2 gap-2">
+                                                        <span class="text-gray-500">Start</span>
+                                                        <span class="text-white">{{ m.start_date ? m.start_date.replace('T', ' ').slice(0, 16) : '-' }}</span>
+                                                        <span class="text-gray-500">End</span>
+                                                        <span class="text-white">{{ m.end_date ? m.end_date.replace('T', ' ').slice(0, 16) : '-' }}</span>
+                                                    </div>
+                                                </div>
+                                                <div class="rounded border border-poly-accent bg-poly-bg/40 p-3">
+                                                    <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Market</div>
+                                                    <div class="mt-2 grid grid-cols-2 gap-2">
+                                                        <span class="text-gray-500">Market ID</span>
+                                                        <span class="font-mono text-white select-all truncate">{{ m.market_id }}</span>
+                                                        <span class="text-gray-500">Expires</span>
+                                                        <span class="text-white">{{ timeFromNow(m.end_date) || '-' }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="rounded border border-poly-accent bg-poly-bg/40 p-3">
+                                            <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Analysis</div>
+                                            <div class="mt-2 grid grid-cols-2 gap-2">
+                                                <span class="text-gray-500">Implied odds</span>
+                                                <span class="text-white font-mono">{{ formatImpliedOdds(m.price) }}</span>
+                                                <span class="text-gray-500">Category</span>
+                                                <span class="text-white truncate">{{ m.category || '-' }}</span>
+                                                <span class="text-gray-500">Outcome</span>
+                                                <span class="text-white truncate">{{ m.outcome_name || '-' }}</span>
+                                                <span class="text-gray-500">Price</span>
+                                                <span class="text-white font-mono">{{ (m.price * 100).toFixed(2) }}¢</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -755,6 +831,43 @@
                     return `in ${days} days`;
                 };
 
+                const copiedKey = ref(null);
+                let copiedTimer = null;
+
+                const copyToClipboard = async (text, key) => {
+                    if (!text) return false;
+                    try {
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            await navigator.clipboard.writeText(text);
+                        } else {
+                            const el = document.createElement("textarea");
+                            el.value = text;
+                            el.setAttribute("readonly", "");
+                            el.style.position = "absolute";
+                            el.style.left = "-9999px";
+                            document.body.appendChild(el);
+                            el.select();
+                            document.execCommand("copy");
+                            document.body.removeChild(el);
+                        }
+                        copiedKey.value = key;
+                        if (copiedTimer) clearTimeout(copiedTimer);
+                        copiedTimer = setTimeout(() => {
+                            copiedKey.value = null;
+                        }, 1200);
+                        return true;
+                    } catch (e) {
+                        console.error("copy failed", e);
+                        return false;
+                    }
+                };
+
+                const formatImpliedOdds = (price) => {
+                    const p = Number(price);
+                    if (!isFinite(p) || p <= 0) return "∞";
+                    return `1 : ${(1 / p).toFixed(2)}`;
+                };
+
                 // API Calls
                 const fetchTags = async () => {
                     try {
@@ -924,6 +1037,9 @@
                     formatCompact,
                     formatDate,
                     timeFromNow,
+                    formatImpliedOdds,
+                    copyToClipboard,
+                    copiedKey,
                     resetAndFetch,
                     loadMore,
                     debouncedFetch,
