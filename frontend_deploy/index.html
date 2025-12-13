@@ -134,18 +134,6 @@
                     <div class="relative">
                         <div class="flex justify-between items-center mb-1">
                             <label class="text-xs text-poly-green font-bold uppercase">Include Categories</label>
-                            <div class="flex items-center gap-1">
-                                <button type="button" @click="setIncludeMatch('any')"
-                                    class="px-2 py-0.5 rounded text-[10px] font-bold border transition-colors"
-                                    :class="filters.include_match === 'any' ? 'bg-poly-green text-black border-poly-green' : 'bg-transparent text-gray-500 border-gray-700 hover:border-poly-green hover:text-poly-green'">
-                                    ANY
-                                </button>
-                                <button type="button" @click="setIncludeMatch('all')"
-                                    class="px-2 py-0.5 rounded text-[10px] font-bold border transition-colors"
-                                    :class="filters.include_match === 'all' ? 'bg-poly-green text-black border-poly-green' : 'bg-transparent text-gray-500 border-gray-700 hover:border-poly-green hover:text-poly-green'">
-                                    ALL
-                                </button>
-                            </div>
                         </div>
                         
                         <!-- Selected Pills (Including ALL) -->
@@ -698,7 +686,6 @@
                 const filters = ref({
                     includedTags: [], 
                     excludedTags: [],
-                    include_match: "any",
                     min_volume: 5000,
                     min_liquidity: 1000,
                     min_price: 0.00,
@@ -711,12 +698,6 @@
                     sort_by: "volume_usd",
                     sort_dir: "desc"
                 });
-
-                const setIncludeMatch = (mode) => {
-                    const v = String(mode || "any").toLowerCase();
-                    filters.value.include_match = v === "all" ? "all" : "any";
-                    resetAndFetch();
-                };
 
                 // Expiration slider: hours → days → weeks → months (cap at end of next year)
                 const expiryOptions = ref([]);
@@ -1295,7 +1276,6 @@
                         // Tag Logic (Comma Separated for Proxy Safety)
                         if (filters.value.includedTags.length > 0) {
                             params.append("included_tags", filters.value.includedTags.join(","));
-                            params.append("include_match", filters.value.include_match || "any");
                         }
                         if (filters.value.excludedTags.length > 0) {
                             params.append("excluded_tags", filters.value.excludedTags.join(","));
@@ -1452,7 +1432,6 @@
                     showExcludeDropdown,
                     availableTagsForInclude,
                     availableTagsForExclude,
-                    setIncludeMatch,
 	                    // Presets
 	                    showAllPresets,
 	                    displayedPresets,
