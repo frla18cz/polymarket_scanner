@@ -263,6 +263,7 @@ def get_markets(
     response: Response,
     included_tags: Optional[List[str]] = Query(None),
     excluded_tags: Optional[List[str]] = Query(None),
+    include_match: str = "any",
     sort_by: str = "volume_usd",
     sort_dir: str = "desc",
     limit: int = 100,
@@ -285,6 +286,10 @@ def get_markets(
 
     if excluded_tags and len(excluded_tags) == 1 and "," in excluded_tags[0]:
         excluded_tags = excluded_tags[0].split(",")
+
+    include_match = (include_match or "any").strip().lower()
+    if include_match not in {"any", "all"}:
+        include_match = "any"
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -335,10 +340,26 @@ def get_markets(
 
     # Tag Logic
     if included_tags:
-        placeholders = ",".join("?" * len(included_tags))
-        # Optimized: Use IN (SELECT...) instead of correlated EXISTS. SQLite handles this better with indices.
-        where_clauses.append(f"market_id IN (SELECT market_id FROM market_tags WHERE tag_label IN ({placeholders}))")
-        params.extend(included_tags)
+        uniq_included = list(dict.fromkeys(included_tags))
+        placeholders = ",".join("?" * len(uniq_included))
+        if include_match == "all":
+            where_clauses.append(
+                f"""
+                market_id IN (
+                    SELECT market_id
+                    FROM market_tags
+                    WHERE tag_label IN ({placeholders})
+                    GROUP BY market_id
+                    HAVING COUNT(DISTINCT tag_label) = ?
+                )
+                """.strip()
+            )
+            params.extend(uniq_included)
+            params.append(len(uniq_included))
+        else:
+            # ANY: at least one of selected tags
+            where_clauses.append(f"market_id IN (SELECT market_id FROM market_tags WHERE tag_label IN ({placeholders}))")
+            params.extend(uniq_included)
 
     if excluded_tags:
         placeholders = ",".join("?" * len(excluded_tags))
