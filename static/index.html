@@ -310,6 +310,22 @@
 
                 <hr class="border-poly-accent/30 my-2">
 
+                <!-- Min APR (Win) -->
+                <div>
+                    <label class="text-xs text-gray-400 uppercase font-bold mb-2 block flex justify-between">
+                        <span>Min APR (Win)</span>
+                        <span class="text-poly-blue">{{ aprLabel }}</span>
+                    </label>
+                    <input type="range" min="0" max="2000" step="10" v-model.number="filters.min_apr_percent" @change="resetAndFetch"
+                        class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
+                    <div class="flex justify-between text-[10px] text-gray-500 mt-1">
+                        <span>Any</span>
+                        <span>2000%</span>
+                    </div>
+                </div>
+
+                <hr class="border-poly-accent/30 my-2">
+
                 <!-- Min Volume -->
                 <div>
                     <label class="text-xs text-gray-400 uppercase font-bold mb-2 block flex justify-between">
@@ -370,9 +386,10 @@
                         <!-- Table Header (Sticky) -->
                         <div class="grid grid-cols-12 gap-4 px-6 py-3 border-b border-poly-accent bg-poly-bg text-xs font-bold text-gray-400 uppercase tracking-wider z-10 sticky top-0 shadow-sm">
                             <div class="col-span-1 text-center">Icon</div>
-                            <div class="col-span-4 cursor-pointer hover:text-white" @click="setSort('question')">Market</div>
+                            <div class="col-span-3 cursor-pointer hover:text-white" @click="setSort('question')">Market</div>
                             <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('price')">Price</div>
                             <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('spread')">Spread</div>
+                            <div class="col-span-1 text-right">APR</div>
                             <div class="col-span-2 text-right cursor-pointer hover:text-white" @click="setSort('volume_usd')">Volume</div>
                             <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('liquidity_usd')">Liq</div>
                             <div class="col-span-2 text-right cursor-pointer hover:text-white" @click="setSort('end_date')">Expires</div>
@@ -402,7 +419,7 @@
                                     </div>
 
                                     <!-- Question & Outcome -->
-                                    <div class="col-span-4 pr-2">
+                                    <div class="col-span-3 pr-2">
                                         <div class="mb-1">
                                             <div class="flex items-center gap-2 mb-1">
                                                 <span class="text-[10px] px-1.5 py-0.5 rounded bg-poly-accent text-gray-300 font-mono whitespace-nowrap truncate max-w-[150px]" v-if="m.category">{{ m.category }}</span>
@@ -427,6 +444,11 @@
                                     <!-- Spread -->
                                     <div class="col-span-1 text-right text-gray-400 text-xs">
                                         {{ (m.spread * 100).toFixed(1) }}¢
+                                    </div>
+
+                                    <!-- APR -->
+                                    <div class="col-span-1 text-right text-gray-300 text-xs font-mono">
+                                        {{ formatAprPercent(m.price, m.end_date) }}
                                     </div>
 
                                     <!-- Volume -->
@@ -620,6 +642,7 @@
                     min_price: 0.00,
                     max_price: 1.00,
                     max_spread: 0.05,
+                    min_apr_percent: 0,
                     max_hours_to_expire: 0,
                     expiry_index: 0,
                     include_expired: true,
@@ -730,6 +753,13 @@
                     }
                     resetAndFetch();
                 };
+
+                const aprLabel = Vue.computed(() => {
+                    const v = Number(filters.value.min_apr_percent || 0);
+                    if (!isFinite(v) || v <= 0) return "Any";
+                    if (v >= 1000) return `${(v / 1000).toFixed(1)}k%`;
+                    return `${v.toFixed(0)}%`;
+                });
 
                 const presetDefinitions = [
                     {
@@ -1032,6 +1062,7 @@
                     filters.value.min_price = 0.00;
                     filters.value.max_price = 1.00;
                     filters.value.max_spread = 0.05;
+                    filters.value.min_apr_percent = 0;
                     setExpiryHours(0);
                     filters.value.include_expired = true;
                     filters.value.includedTags = []; 
@@ -1056,6 +1087,23 @@
                 const formatDate = (dateStr) => {
                     if (!dateStr) return "-";
                     return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                };
+
+                const formatAprPercent = (price, endDate) => {
+                    const p = Number(price);
+                    if (!isFinite(p) || p <= 0 || p >= 1) return "-";
+                    const end = new Date(endDate);
+                    const now = new Date();
+                    if (!(end instanceof Date) || isNaN(end.getTime())) return "-";
+                    const days = (end.getTime() - now.getTime()) / 86400000;
+                    if (!isFinite(days) || days <= 0) return "-";
+                    const roi = (1 / p) - 1;
+                    const apr = roi * (365 / days);
+                    if (!isFinite(apr) || apr <= 0) return "-";
+                    const pct = apr * 100;
+                    const capped = Math.min(pct, 999999);
+                    if (capped >= 1000) return `${(capped / 1000).toFixed(1)}k%`;
+                    return `${capped.toFixed(0)}%`;
                 };
                 
                 const timeFromNow = (dateStr) => {
@@ -1153,6 +1201,9 @@
                         params.append("min_price", filters.value.min_price);
                         params.append("max_price", filters.value.max_price);
                         params.append("max_spread", filters.value.max_spread);
+                        if (filters.value.min_apr_percent > 0) {
+                            params.append("min_apr", String(filters.value.min_apr_percent / 100));
+                        }
                         params.append("include_expired", filters.value.include_expired);
                         if (filters.value.search) params.append("search", filters.value.search);
                         params.append("sort_by", filters.value.sort_by);
@@ -1285,6 +1336,7 @@
                     expiryMaxLabel,
                     updateExpiryFromSlider,
                     applyExpiryPreset,
+                    aprLabel,
                     expandedId,
                     selectedIndex,
                     compactMode,
@@ -1318,6 +1370,7 @@
                     formatCurrency,
                     formatCompact,
                     formatDate,
+                    formatAprPercent,
                     timeFromNow,
                     formatImpliedOdds,
                     copyToClipboard,

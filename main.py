@@ -272,6 +272,7 @@ def get_markets(
     min_price: Optional[float] = 0.0,
     max_price: Optional[float] = 1.0,
     max_spread: Optional[float] = None,
+    min_apr: Optional[float] = None,
     max_hours_to_expire: Optional[int] = None,
     include_expired: bool = True,
     search: Optional[str] = None
@@ -316,6 +317,24 @@ def get_markets(
     if max_spread is not None:
         where_clauses.append("spread <= ?")
         params.append(max_spread)
+
+    if min_apr is not None:
+        # Win-APR (linear): ((1/price)-1) * (365 / days_to_end) >= min_apr
+        # min_apr is a fraction: 1.0 == 100% APR
+        where_clauses.append(
+            """
+            (
+                price IS NOT NULL
+                AND price > 0.0
+                AND end_date IS NOT NULL
+                AND julianday(datetime(end_date)) > julianday('now')
+                AND (
+                    ((1.0 / price) - 1.0) * (365.0 / (julianday(datetime(end_date)) - julianday('now')))
+                ) >= ?
+            )
+            """.strip()
+        )
+        params.append(float(min_apr))
 
     if search:
         where_clauses.append("(question LIKE ? OR outcome_name LIKE ?)")
