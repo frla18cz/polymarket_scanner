@@ -134,6 +134,18 @@
                     <div class="relative">
                         <div class="flex justify-between items-center mb-1">
                             <label class="text-xs text-poly-green font-bold uppercase">Include Categories</label>
+                            <div class="flex items-center gap-1">
+                                <button type="button" @click="setIncludeMatch('any')"
+                                    class="px-2 py-0.5 rounded text-[10px] font-bold border transition-colors"
+                                    :class="filters.include_match === 'any' ? 'bg-poly-green text-black border-poly-green' : 'bg-transparent text-gray-500 border-gray-700 hover:border-poly-green hover:text-poly-green'">
+                                    ANY
+                                </button>
+                                <button type="button" @click="setIncludeMatch('all')"
+                                    class="px-2 py-0.5 rounded text-[10px] font-bold border transition-colors"
+                                    :class="filters.include_match === 'all' ? 'bg-poly-green text-black border-poly-green' : 'bg-transparent text-gray-500 border-gray-700 hover:border-poly-green hover:text-poly-green'">
+                                    ALL
+                                </button>
+                            </div>
                         </div>
                         
                         <!-- Selected Pills (Including ALL) -->
@@ -161,14 +173,16 @@
                             <input type="text" v-model="includeSearch" 
                                 @focus="showIncludeDropdown = true" 
                                 @blur="hideDropdown('include')"
+                                @keydown.enter.prevent="commitIncludeSearch"
+                                @paste="handleIncludePaste"
                                 class="w-full bg-poly-bg border border-poly-accent rounded pl-9 pr-3 py-1.5 text-xs focus:border-poly-green outline-none transition placeholder-gray-600" 
-                                placeholder="Add category to include...">
+                                placeholder="Add categories (comma/newline)...">
                             
                             <!-- Dropdown -->
                             <div v-if="showIncludeDropdown" class="absolute left-0 right-0 top-full mt-1 bg-poly-card border border-poly-accent rounded shadow-xl z-50 max-h-60 overflow-y-auto">
                                 <div v-if="availableTagsForInclude.length === 0" class="p-2 text-gray-500 text-xs text-center">No matching tags found.</div>
                                 <button v-for="tag in availableTagsForInclude" :key="tag.tag_label" 
-                                    @mousedown.prevent="addIncludedTag(tag.tag_label)"
+                                    @mousedown.prevent="addIncludedTag(tag.tag_label, true)"
                                     class="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-poly-accent hover:text-white flex justify-between items-center border-b border-poly-accent/30 last:border-0">
                                     <span>{{ tag.tag_label }}</span>
                                     <span class="text-[9px] text-gray-600">{{ tag.count }}</span>
@@ -199,14 +213,16 @@
                             <input type="text" v-model="excludeSearch" 
                                 @focus="showExcludeDropdown = true" 
                                 @blur="hideDropdown('exclude')"
+                                @keydown.enter.prevent="commitExcludeSearch"
+                                @paste="handleExcludePaste"
                                 class="w-full bg-poly-bg border border-poly-accent rounded pl-9 pr-3 py-1.5 text-xs focus:border-poly-red outline-none transition placeholder-gray-600" 
-                                placeholder="Add category to exclude...">
+                                placeholder="Add categories (comma/newline)...">
                             
                             <!-- Dropdown -->
                             <div v-if="showExcludeDropdown" class="absolute left-0 right-0 top-full mt-1 bg-poly-card border border-poly-accent rounded shadow-xl z-50 max-h-60 overflow-y-auto">
                                 <div v-if="availableTagsForExclude.length === 0" class="p-2 text-gray-500 text-xs text-center">No matching tags found.</div>
                                 <button v-for="tag in availableTagsForExclude" :key="tag.tag_label" 
-                                    @mousedown.prevent="addExcludedTag(tag.tag_label)"
+                                    @mousedown.prevent="addExcludedTag(tag.tag_label, true)"
                                     class="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-poly-accent hover:text-white flex justify-between items-center border-b border-poly-accent/30 last:border-0">
                                     <span>{{ tag.tag_label }}</span>
                                     <span class="text-[9px] text-gray-600">{{ tag.count }}</span>
@@ -222,14 +238,40 @@
                 <!-- Expiration -->
                 <div>
                     <label class="text-xs text-gray-400 uppercase font-bold mb-2 block flex justify-between">
-                        <span>Expires Within</span>
-                        <span class="text-poly-blue">{{ filters.max_hours_to_expire > 0 ? filters.max_hours_to_expire + 'h' : 'Anytime' }}</span>
+                        <span title="Filters markets with end_date <= now + cutoff">Expires Within</span>
+                        <span class="text-poly-blue">{{ expiryDisplay }}</span>
                     </label>
-                    <input type="range" min="0" max="168" step="1" v-model.number="filters.max_hours_to_expire" @change="resetAndFetch" 
+                    <input type="range" min="0" :max="Math.max(0, expiryOptions.length - 1)" step="1"
+                        v-model.number="filters.expiry_index"
+                        @input="updateExpiryFromSlider(false)"
+                        @change="updateExpiryFromSlider(true)"
                         class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
                     <div class="flex justify-between text-[10px] text-gray-500 mt-1 mb-2">
                         <span>Now</span>
-                        <span>1 Week</span>
+                        <span>{{ expiryMaxLabel }}</span>
+                    </div>
+
+                    <div class="flex flex-wrap gap-1.5 mb-2">
+                        <button type="button" @click="applyExpiryPreset('24h')"
+                            class="px-2 py-0.5 rounded text-[10px] font-bold border border-poly-accent bg-poly-bg hover:bg-poly-accent text-gray-200 transition">
+                            24h
+                        </button>
+                        <button type="button" @click="applyExpiryPreset('7d')"
+                            class="px-2 py-0.5 rounded text-[10px] font-bold border border-poly-accent bg-poly-bg hover:bg-poly-accent text-gray-200 transition">
+                            7d
+                        </button>
+                        <button type="button" @click="applyExpiryPreset('30d')"
+                            class="px-2 py-0.5 rounded text-[10px] font-bold border border-poly-accent bg-poly-bg hover:bg-poly-accent text-gray-200 transition">
+                            30d
+                        </button>
+                        <button type="button" @click="applyExpiryPreset('end')"
+                            class="px-2 py-0.5 rounded text-[10px] font-bold border border-poly-accent bg-poly-bg hover:bg-poly-accent text-gray-200 transition">
+                            End next year
+                        </button>
+                        <button type="button" @click="applyExpiryPreset('any')"
+                            class="px-2 py-0.5 rounded text-[10px] font-bold border border-poly-accent bg-poly-bg hover:bg-poly-accent text-gray-200 transition">
+                            Anytime
+                        </button>
                     </div>
                     
                     <!-- Include Expired Toggle -->
@@ -305,6 +347,15 @@
                         class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
                 </div>
 
+                <div class="mt-4">
+                    <label class="flex items-center justify-between gap-2 text-xs cursor-pointer select-none">
+                        <span class="text-gray-400 uppercase font-bold">Compact Rows</span>
+                        <input type="checkbox" v-model="compactMode"
+                            class="w-4 h-4 rounded bg-poly-bg border-poly-accent text-poly-blue focus:ring-0">
+                    </label>
+                    <div class="text-[10px] text-gray-600 mt-1 text-center">Keys: j/k (or ↑/↓), Enter, Esc</div>
+                </div>
+
                 <div class="mt-auto pt-4 border-t border-poly-accent text-xs text-center text-gray-500">
                     <p>Showing {{ markets.length }} markets</p>
                     <p class="mt-1 opacity-50">Scraped Data from Gamma API</p>
@@ -352,11 +403,12 @@
 
                         <!-- List -->
                         <div v-else class="pb-4">
-                            <div v-for="m in markets" :key="m.market_id + m.outcome_name" class="border-b border-poly-accent/50">
-                                
-                                <!-- Main Row -->
-                                <div @click="toggleDetails(m)" 
-                                     class="grid grid-cols-12 gap-4 px-6 py-4 text-sm items-center hover:bg-poly-card transition-colors cursor-pointer group">
+	                            <div v-for="(m, idx) in markets" :key="m.market_id + m.outcome_name" class="border-b border-poly-accent/50">
+	                                
+	                                <!-- Main Row -->
+	                                <div :id="`row-${idx}`" @click="toggleDetails(m, idx)" 
+	                                     class="grid grid-cols-12 gap-4 px-6 text-sm items-center hover:bg-poly-card transition-colors cursor-pointer group"
+	                                     :class="[compactMode ? 'py-2' : 'py-4', idx === selectedIndex ? 'bg-poly-card/70 ring-1 ring-poly-blue/50' : '']">
                                     
                                     <!-- Icon -->
                                     <div class="col-span-1 flex justify-center">
@@ -441,11 +493,16 @@
                                                 <i :class="copiedKey === `id:${m.market_id}` ? 'ph ph-check' : 'ph ph-copy'"></i>
                                                 <span>{{ copiedKey === `id:${m.market_id}` ? 'Copied' : 'Copy ID' }}</span>
                                             </button>
-                                            <button type="button" @click.stop="copyToClipboard(m.url || '', `url:${m.market_id}:${m.outcome_name}`)" :disabled="!m.url"
-                                                class="inline-flex items-center gap-2 px-3 py-1.5 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-gray-200 transition disabled:opacity-50">
-                                                <i :class="copiedKey === `url:${m.market_id}:${m.outcome_name}` ? 'ph ph-check' : 'ph ph-link'"></i>
-                                                <span>{{ copiedKey === `url:${m.market_id}:${m.outcome_name}` ? 'Copied' : 'Copy Link' }}</span>
-                                            </button>
+	                                            <button type="button" @click.stop="copyToClipboard(m.url || '', `url:${m.market_id}:${m.outcome_name}`)" :disabled="!m.url"
+	                                                class="inline-flex items-center gap-2 px-3 py-1.5 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-gray-200 transition disabled:opacity-50">
+	                                                <i :class="copiedKey === `url:${m.market_id}:${m.outcome_name}` ? 'ph ph-check' : 'ph ph-link'"></i>
+	                                                <span>{{ copiedKey === `url:${m.market_id}:${m.outcome_name}` ? 'Copied' : 'Copy Link' }}</span>
+	                                            </button>
+	                                            <button type="button" @click.stop="copyToClipboard(m.question || '', `q:${m.market_id}:${m.outcome_name}`)" :disabled="!m.question"
+	                                                class="inline-flex items-center gap-2 px-3 py-1.5 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-gray-200 transition disabled:opacity-50">
+	                                                <i :class="copiedKey === `q:${m.market_id}:${m.outcome_name}` ? 'ph ph-check' : 'ph ph-copy'"></i>
+	                                                <span>{{ copiedKey === `q:${m.market_id}:${m.outcome_name}` ? 'Copied' : 'Copy Q' }}</span>
+	                                            </button>
                                             <button type="button" @click.stop="expandedId = null"
                                                 class="inline-flex items-center justify-center w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-gray-200 transition"
                                                 aria-label="Close details">
@@ -477,14 +534,16 @@
 
                                             <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                                                 <div class="rounded border border-poly-accent bg-poly-bg/40 p-3">
-                                                    <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Dates</div>
-                                                    <div class="mt-2 grid grid-cols-2 gap-2">
-                                                        <span class="text-gray-500">Start</span>
-                                                        <span class="text-white">{{ m.start_date ? m.start_date.replace('T', ' ').slice(0, 16) : '-' }}</span>
-                                                        <span class="text-gray-500">End</span>
-                                                        <span class="text-white">{{ m.end_date ? m.end_date.replace('T', ' ').slice(0, 16) : '-' }}</span>
-                                                    </div>
-                                                </div>
+	                                                    <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Dates</div>
+	                                                    <div class="mt-2 grid grid-cols-2 gap-2">
+	                                                        <span class="text-gray-500">Start</span>
+	                                                        <span class="text-white">{{ formatDateTimeLocal(m.start_date) }}</span>
+	                                                        <span class="text-gray-500">End (Local)</span>
+	                                                        <span class="text-white">{{ formatDateTimeLocal(m.end_date) }}</span>
+	                                                        <span class="text-gray-500">End (UTC)</span>
+	                                                        <span class="text-white">{{ formatDateTimeUtc(m.end_date) }}</span>
+	                                                    </div>
+	                                                </div>
                                                 <div class="rounded border border-poly-accent bg-poly-bg/40 p-3">
                                                     <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Market</div>
                                                     <div class="mt-2 grid grid-cols-2 gap-2">
@@ -599,7 +658,7 @@
     </div>
 
     <script>
-        const { createApp, ref, onMounted, watch } = Vue;
+	        const { createApp, ref, onMounted, watch, onBeforeUnmount } = Vue;
 
         // Configuration
         // When running on Vercel, this should point to your VPS IP/Domain.
@@ -612,6 +671,8 @@
                 const tags = ref([]); // All available tags from API
                 const loading = ref(false);
                 const expandedId = ref(null);
+                const selectedIndex = ref(0);
+                const compactMode = ref(false);
                 const offset = ref(0);
                 const limit = 100; // Load 100 at a time
                 const serverLastUpdated = ref(null);
@@ -637,17 +698,128 @@
                 const filters = ref({
                     includedTags: [], 
                     excludedTags: [],
+                    include_match: "any",
                     min_volume: 5000,
                     min_liquidity: 1000,
                     min_price: 0.00,
                     max_price: 1.00,
                     max_spread: 0.05,
                     max_hours_to_expire: 0,
+                    expiry_index: 0,
                     include_expired: true,
                     search: "",
                     sort_by: "volume_usd",
                     sort_dir: "desc"
                 });
+
+                const setIncludeMatch = (mode) => {
+                    const v = String(mode || "any").toLowerCase();
+                    filters.value.include_match = v === "all" ? "all" : "any";
+                    resetAndFetch();
+                };
+
+                // Expiration slider: hours → days → weeks → months (cap at end of next year)
+                const expiryOptions = ref([]);
+
+                const buildExpiryOptions = () => {
+                    const now = new Date();
+                    const endNextYear = new Date(now.getFullYear() + 1, 11, 31, 23, 59, 59, 999);
+                    const options = [{ label: "Anytime", cutoff: null }];
+
+                    const addUnique = (label, cutoff) => {
+                        if (!(cutoff instanceof Date) || isNaN(cutoff.getTime())) return;
+                        if (cutoff <= now) return;
+                        if (cutoff > endNextYear) return;
+                        const key = cutoff.getTime();
+                        const last = options[options.length - 1];
+                        if (last && last.cutoff && last.cutoff.getTime && last.cutoff.getTime() === key) return;
+                        options.push({ label, cutoff });
+                    };
+
+                    const addHours = (h) => addUnique(`${h}h`, new Date(now.getTime() + h * 3600_000));
+                    const addDays = (d) => addUnique(`${d}d`, new Date(now.getTime() + d * 86400_000));
+                    const addWeeks = (w) => addUnique(`${w}w`, new Date(now.getTime() + w * 7 * 86400_000));
+                    const addMonths = (m) => {
+                        const dt = new Date(now.getTime());
+                        dt.setMonth(dt.getMonth() + m);
+                        addUnique(`${m}mo`, dt);
+                    };
+
+                    for (let h = 1; h <= 72; h += 1) addHours(h);
+                    for (let d = 4; d <= 14; d += 1) addDays(d);
+                    for (let w = 3; w <= 12; w += 1) addWeeks(w);
+
+                    const maxMonths =
+                        (endNextYear.getFullYear() - now.getFullYear()) * 12 +
+                        (endNextYear.getMonth() - now.getMonth()) +
+                        1;
+                    for (let m = 3; m <= Math.max(3, maxMonths); m += 1) addMonths(m);
+
+                    options.push({ label: `End ${endNextYear.getFullYear()}`, cutoff: endNextYear });
+                    expiryOptions.value = options;
+                };
+
+                const expiryDisplay = Vue.computed(() => {
+                    const opt = expiryOptions.value[filters.value.expiry_index];
+                    return opt ? opt.label : "Anytime";
+                });
+
+                const expiryMaxLabel = Vue.computed(() => {
+                    const last = expiryOptions.value[expiryOptions.value.length - 1];
+                    return last ? last.label : `End ${new Date().getFullYear() + 1}`;
+                });
+
+                const updateExpiryFromSlider = (shouldFetch) => {
+                    if (!expiryOptions.value.length) buildExpiryOptions();
+                    const opt = expiryOptions.value[filters.value.expiry_index];
+                    if (!opt || !opt.cutoff) {
+                        filters.value.max_hours_to_expire = 0;
+                    } else {
+                        const now = new Date();
+                        const hours = Math.max(1, Math.ceil((opt.cutoff.getTime() - now.getTime()) / 3600_000));
+                        filters.value.max_hours_to_expire = hours;
+                    }
+                    if (shouldFetch) resetAndFetch();
+                };
+
+                const setExpiryHours = (hours) => {
+                    if (!expiryOptions.value.length) buildExpiryOptions();
+                    const h = Number(hours || 0);
+                    if (!isFinite(h) || h <= 0) {
+                        filters.value.expiry_index = 0;
+                        filters.value.max_hours_to_expire = 0;
+                        updateExpiryFromSlider(false);
+                        return;
+                    }
+                    const now = new Date();
+                    const target = new Date(now.getTime() + h * 3600_000);
+                    let chosen = 0;
+                    for (let i = 1; i < expiryOptions.value.length; i += 1) {
+                        const c = expiryOptions.value[i].cutoff;
+                        if (c && c >= target) {
+                            chosen = i;
+                            break;
+                        }
+                    }
+                    if (chosen === 0) chosen = expiryOptions.value.length - 1;
+                    filters.value.expiry_index = chosen;
+                    updateExpiryFromSlider(false);
+                };
+
+                const applyExpiryPreset = (preset) => {
+                    if (!expiryOptions.value.length) buildExpiryOptions();
+                    const key = String(preset || "");
+                    if (key === "24h") setExpiryHours(24);
+                    else if (key === "7d") setExpiryHours(24 * 7);
+                    else if (key === "30d") setExpiryHours(24 * 30);
+                    else if (key === "end") {
+                        filters.value.expiry_index = Math.max(0, expiryOptions.value.length - 1);
+                        updateExpiryFromSlider(false);
+                    } else {
+                        setExpiryHours(0);
+                    }
+                    resetAndFetch();
+                };
 
                 const openDiagnostics = async () => {
                     showDiagnostics.value = true;
@@ -738,7 +910,7 @@
 	                        icon: 'ph-crosshair',
 	                        class: 'bg-orange-500/20 text-orange-400 border-orange-500/50 hover:bg-orange-500/30',
 	                        apply: () => {
-	                            filters.value.max_hours_to_expire = 24;
+	                            setExpiryHours(24);
 	                            filters.value.include_expired = false;
 	                            filters.value.sort_by = 'end_date';
 	                            filters.value.sort_dir = 'asc'; 
@@ -814,28 +986,68 @@
                 const availableTagsForInclude = Vue.computed(() => getAvailableTags(includeSearch.value));
                 const availableTagsForExclude = Vue.computed(() => getAvailableTags(excludeSearch.value));
 
-                const addIncludedTag = (tagLabel) => {
-                    if (!filters.value.includedTags.includes(tagLabel)) {
-                        filters.value.includedTags.push(tagLabel);
-                        includeSearch.value = ""; // Clear input
-                        showIncludeDropdown.value = false;
-                        resetAndFetch();
+                const tagLabelLookup = Vue.computed(() => {
+                    const map = new Map();
+                    for (const t of tags.value || []) {
+                        if (!t || !t.tag_label) continue;
+                        map.set(String(t.tag_label).toLowerCase(), String(t.tag_label));
+                    }
+                    return map;
+                });
+
+                const parseTagTokens = (text) => {
+                    return String(text || "")
+                        .split(/[\n,;]+/g)
+                        .map(s => s.trim())
+                        .filter(Boolean);
+                };
+
+                const resolveTagLabel = (token) => {
+                    const normalized = String(token || "").trim().toLowerCase();
+                    if (!normalized) return null;
+                    return tagLabelLookup.value.get(normalized) || null;
+                };
+
+                const addIncludedTags = (tagLabels, { keepOpen = false, clearSearch = false } = {}) => {
+                    const before = filters.value.includedTags.length;
+                    for (const label of tagLabels) {
+                        if (!label) continue;
+                        if (filters.value.excludedTags.includes(label)) {
+                            filters.value.excludedTags = filters.value.excludedTags.filter(t => t !== label);
+                        }
+                        if (!filters.value.includedTags.includes(label)) filters.value.includedTags.push(label);
+                    }
+                    if (filters.value.includedTags.length !== before) {
+                        if (clearSearch) includeSearch.value = "";
+                        showIncludeDropdown.value = keepOpen;
+                        debouncedFetch();
                     }
                 };
+
+                const addExcludedTags = (tagLabels, { keepOpen = false, clearSearch = false } = {}) => {
+                    const before = filters.value.excludedTags.length;
+                    for (const label of tagLabels) {
+                        if (!label) continue;
+                        if (filters.value.includedTags.includes(label)) {
+                            filters.value.includedTags = filters.value.includedTags.filter(t => t !== label);
+                        }
+                        if (!filters.value.excludedTags.includes(label)) filters.value.excludedTags.push(label);
+                    }
+                    if (filters.value.excludedTags.length !== before) {
+                        if (clearSearch) excludeSearch.value = "";
+                        showExcludeDropdown.value = keepOpen;
+                        debouncedFetch();
+                    }
+                };
+
+                const addIncludedTag = (tagLabel, keepOpen = false) => addIncludedTags([tagLabel], { keepOpen });
 
                 const removeIncludedTag = (tagLabel) => {
                     filters.value.includedTags = filters.value.includedTags.filter(t => t !== tagLabel);
                     resetAndFetch();
                 };
 
-                const addExcludedTag = (tagLabel) => {
-                    if (!filters.value.excludedTags.includes(tagLabel)) {
-                        filters.value.excludedTags.push(tagLabel);
-                        excludeSearch.value = ""; // Clear input
-                        showExcludeDropdown.value = false;
-                        resetAndFetch();
-                    }
-                };
+                const addExcludedTag = (tagLabel, keepOpen = false) => addExcludedTags([tagLabel], { keepOpen });
 
                 const removeExcludedTag = (tagLabel) => {
                     filters.value.excludedTags = filters.value.excludedTags.filter(t => t !== tagLabel);
@@ -860,6 +1072,58 @@
                     }, 200);
                 };
 
+                const commitIncludeSearch = () => {
+                    const tokens = parseTagTokens(includeSearch.value);
+                    if (tokens.length === 0) {
+                        if (availableTagsForInclude.value.length > 0) {
+                            addIncludedTag(availableTagsForInclude.value[0].tag_label, false);
+                            includeSearch.value = "";
+                        }
+                        return;
+                    }
+                    if (tokens.length === 1) {
+                        const exact = resolveTagLabel(tokens[0]);
+                        const fallback = availableTagsForInclude.value.length > 0 ? availableTagsForInclude.value[0].tag_label : null;
+                        addIncludedTags([exact || fallback].filter(Boolean), { keepOpen: false, clearSearch: true });
+                        return;
+                    }
+                    addIncludedTags(tokens.map(resolveTagLabel).filter(Boolean), { keepOpen: false, clearSearch: true });
+                };
+
+                const commitExcludeSearch = () => {
+                    const tokens = parseTagTokens(excludeSearch.value);
+                    if (tokens.length === 0) {
+                        if (availableTagsForExclude.value.length > 0) {
+                            addExcludedTag(availableTagsForExclude.value[0].tag_label, false);
+                            excludeSearch.value = "";
+                        }
+                        return;
+                    }
+                    if (tokens.length === 1) {
+                        const exact = resolveTagLabel(tokens[0]);
+                        const fallback = availableTagsForExclude.value.length > 0 ? availableTagsForExclude.value[0].tag_label : null;
+                        addExcludedTags([exact || fallback].filter(Boolean), { keepOpen: false, clearSearch: true });
+                        return;
+                    }
+                    addExcludedTags(tokens.map(resolveTagLabel).filter(Boolean), { keepOpen: false, clearSearch: true });
+                };
+
+                const handleIncludePaste = (e) => {
+                    const text = (e.clipboardData || window.clipboardData)?.getData?.("text") || "";
+                    if (!text || !/[,\n;]/.test(text)) return;
+                    e.preventDefault();
+                    const tokens = parseTagTokens(text);
+                    addIncludedTags(tokens.map(resolveTagLabel).filter(Boolean), { keepOpen: true, clearSearch: true });
+                };
+
+                const handleExcludePaste = (e) => {
+                    const text = (e.clipboardData || window.clipboardData)?.getData?.("text") || "";
+                    if (!text || !/[,\n;]/.test(text)) return;
+                    e.preventDefault();
+                    const tokens = parseTagTokens(text);
+                    addExcludedTags(tokens.map(resolveTagLabel).filter(Boolean), { keepOpen: true, clearSearch: true });
+                };
+
                 const lastUpdatedTime = Vue.computed(() => {
                     if (!serverLastUpdated.value) return "Loading...";
                     // Handle ISO strings that might already have timezone info
@@ -873,8 +1137,9 @@
                 });
 
                 // Toggle Details
-                const toggleDetails = (market) => {
+                const toggleDetails = (market, idx = null) => {
                     const id = market.market_id + market.outcome_name;
+                    if (typeof idx === "number") selectedIndex.value = idx;
                     expandedId.value = expandedId.value === id ? null : id;
                 };
 
@@ -885,9 +1150,9 @@
 	                    filters.value.min_volume = 5000;
 	                    filters.value.min_liquidity = 1000;
 	                    filters.value.min_price = 0.00;
-	                    filters.value.max_price = 1.00;
+                    filters.value.max_price = 1.00;
                     filters.value.max_spread = 0.05;
-                    filters.value.max_hours_to_expire = 0;
+                    setExpiryHours(0);
                     filters.value.include_expired = true;
                     filters.value.includedTags = []; 
                     filters.value.excludedTags = [];
@@ -911,6 +1176,20 @@
                 const formatDate = (dateStr) => {
                     if (!dateStr) return "-";
                     return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                };
+
+                const formatDateTimeLocal = (dateStr) => {
+                    if (!dateStr) return "-";
+                    const d = new Date(dateStr);
+                    if (isNaN(d.getTime())) return "-";
+                    return d.toLocaleString([], { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+                };
+
+                const formatDateTimeUtc = (dateStr) => {
+                    if (!dateStr) return "-";
+                    const d = new Date(dateStr);
+                    if (isNaN(d.getTime())) return "-";
+                    return d.toLocaleString("en-GB", { timeZone: "UTC", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) + " UTC";
                 };
                 
 	                const timeFromNow = (dateStr) => {
@@ -1016,6 +1295,7 @@
                         // Tag Logic (Comma Separated for Proxy Safety)
                         if (filters.value.includedTags.length > 0) {
                             params.append("included_tags", filters.value.includedTags.join(","));
+                            params.append("include_match", filters.value.include_match || "any");
                         }
                         if (filters.value.excludedTags.length > 0) {
                             params.append("excluded_tags", filters.value.excludedTags.join(","));
@@ -1038,6 +1318,8 @@
                             markets.value = [...markets.value, ...newMarkets];
                         } else {
                             markets.value = newMarkets;
+                            expandedId.value = null;
+                            selectedIndex.value = (newMarkets && newMarkets.length > 0) ? 0 : -1;
                         }
                         
                         // Also update status
@@ -1087,7 +1369,37 @@
                     resetAndFetch();
                 };
 
+                const onKeyDown = (e) => {
+                    const tag = (e.target && e.target.tagName ? String(e.target.tagName).toLowerCase() : "");
+                    if (tag === "input" || tag === "textarea" || (e.target && e.target.isContentEditable)) return;
+                    if (!markets.value || markets.value.length === 0) return;
+
+                    if (e.key === "j" || e.key === "ArrowDown") {
+                        e.preventDefault();
+                        selectedIndex.value = Math.min(markets.value.length - 1, (selectedIndex.value < 0 ? 0 : selectedIndex.value + 1));
+                        document.getElementById(`row-${selectedIndex.value}`)?.scrollIntoView?.({ block: "nearest" });
+                    } else if (e.key === "k" || e.key === "ArrowUp") {
+                        e.preventDefault();
+                        selectedIndex.value = Math.max(0, (selectedIndex.value < 0 ? 0 : selectedIndex.value - 1));
+                        document.getElementById(`row-${selectedIndex.value}`)?.scrollIntoView?.({ block: "nearest" });
+                    } else if (e.key === "Enter") {
+                        const idx = selectedIndex.value < 0 ? 0 : selectedIndex.value;
+                        const m = markets.value[idx];
+                        if (!m) return;
+                        toggleDetails(m, idx);
+                    } else if (e.key === "Escape") {
+                        expandedId.value = null;
+                    }
+                };
+
+                onBeforeUnmount(() => {
+                    window.removeEventListener("keydown", onKeyDown);
+                });
+
                 onMounted(() => {
+                    buildExpiryOptions();
+                    updateExpiryFromSlider(false);
+                    window.addEventListener("keydown", onKeyDown);
                     try {
                         const url = new URL(window.location.href);
                         // Skrytý odkaz: https://.../#diag=1
@@ -1117,7 +1429,14 @@
                     tags,
                     loading,
                     filters,
+                    expiryOptions,
+                    expiryDisplay,
+                    expiryMaxLabel,
+                    updateExpiryFromSlider,
+                    applyExpiryPreset,
                     expandedId,
+                    selectedIndex,
+                    compactMode,
                     lastUpdatedTime,
                     // Diagnostics
                     showDiagnostics,
@@ -1133,6 +1452,7 @@
                     showExcludeDropdown,
                     availableTagsForInclude,
                     availableTagsForExclude,
+                    setIncludeMatch,
 	                    // Presets
 	                    showAllPresets,
 	                    displayedPresets,
@@ -1140,18 +1460,24 @@
 	                    activePresetId,
 	                    activePreset,
 	                    // Methods
-	                    addIncludedTag,
-                    removeIncludedTag,
-                    addExcludedTag,
-                    removeExcludedTag,
-                    resetIncludedTags,
-                    resetExcludedTags,
-                    hideDropdown,
+		                    addIncludedTag,
+                        commitIncludeSearch,
+	                    removeIncludedTag,
+	                    addExcludedTag,
+                        commitExcludeSearch,
+	                    removeExcludedTag,
+	                    resetIncludedTags,
+	                    resetExcludedTags,
+	                    hideDropdown,
+                        handleIncludePaste,
+                        handleExcludePaste,
                     // Formatters & Others
                     formatCurrency,
                     formatCompact,
                     formatDate,
-	                    timeFromNow,
+                    formatDateTimeLocal,
+                    formatDateTimeUtc,
+		                    timeFromNow,
 	                    formatImpliedOdds,
 	                    copyToClipboard,
 	                    copiedKey,
