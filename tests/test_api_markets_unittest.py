@@ -293,3 +293,91 @@ class TestMarketsFilters(unittest.TestCase):
     def test_tags_endpoint_returns_data(self):
         data = self.app_main.get_tags()
         self.assertGreater(len(data), 0)
+
+    def test_apr_index_exists(self):
+        rows = self._conn.execute("PRAGMA index_list(active_market_outcomes)").fetchall()
+        idx_names = {r["name"] for r in rows if r and r["name"]}
+        self.assertIn("idx_amo_apr", idx_names)
+
+    def test_min_apr_filters_and_sorts(self):
+        total = self._conn.execute(
+            "SELECT COUNT(*) AS n FROM active_market_outcomes WHERE apr IS NOT NULL AND apr > 0"
+        ).fetchone()["n"]
+        if not total:
+            self.skipTest("V DB nejsou k dispozici žádné APR hodnoty.")
+
+        offset = int(total * 0.5)
+        row = self._conn.execute(
+            """
+            SELECT apr FROM active_market_outcomes
+            WHERE apr IS NOT NULL AND apr > 0
+            ORDER BY apr ASC
+            LIMIT 1 OFFSET ?
+            """,
+            (offset,),
+        ).fetchone()
+        if not row or row["apr"] is None:
+            self.skipTest("Nenašla se vhodná APR hodnota pro threshold.")
+
+        threshold = float(row["apr"])
+        rows = self.app_main.get_markets(
+            Response(),
+            included_tags=None,
+            excluded_tags=None,
+            min_apr=threshold,
+            sort_by="apr",
+            sort_dir="desc",
+            limit=200,
+        )
+        self.assertGreater(len(rows), 0)
+
+        prev = float("inf")
+        for r in rows:
+            apr = r.get("apr")
+            self.assertIsNotNone(apr)
+            self.assertGreaterEqual(float(apr), threshold)
+            self.assertLessEqual(float(apr), prev + 1e-12)
+            prev = float(apr)
+
+    def test_apr_formula_matches_snapshot(self):
+        import math
+
+        row = self._conn.execute(
+            """
+            SELECT price, end_date, snapshot_at, apr
+            FROM active_market_outcomes
+            WHERE apr IS NOT NULL AND apr > 0
+              AND price IS NOT NULL AND price > 0 AND price < 1
+              AND end_date IS NOT NULL AND snapshot_at IS NOT NULL
+            LIMIT 1
+            """
+        ).fetchone()
+        if not row:
+            self.skipTest("V DB nejsou vhodné záznamy pro ověření APR.")
+
+        price = float(row["price"])
+        apr = float(row["apr"])
+        self.assertTrue(math.isfinite(apr))
+
+        snap_s = str(row["snapshot_at"]).strip()
+        end_s = str(row["end_date"]).strip()
+        if end_s.endswith("Z"):
+            end_s = end_s[:-1] + "+00:00"
+        snap_dt = datetime.fromisoformat(snap_s)
+        end_dt = datetime.fromisoformat(end_s)
+        if snap_dt.tzinfo is None:
+            snap_dt = snap_dt.replace(tzinfo=timezone.utc)
+        if end_dt.tzinfo is None:
+            end_dt = end_dt.replace(tzinfo=timezone.utc)
+
+        days = (end_dt - snap_dt).total_seconds() / 86400.0
+        if not math.isfinite(days) or days <= 0:
+            self.skipTest("Neplatný interval pro APR výpočet.")
+
+        roi = (1.0 / price) - 1.0
+        expected = roi * (365.0 / days)
+        self.assertTrue(math.isfinite(expected))
+        self.assertGreater(expected, 0.0)
+
+        tol = max(1e-9, expected * 1e-4)
+        self.assertLess(abs(apr - expected), tol)

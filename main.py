@@ -97,6 +97,35 @@ def ensure_indices():
     try:
         # Enable Write-Ahead Logging (allows simultaneous read/write)
         conn.execute("PRAGMA journal_mode=WAL;")
+
+        # Schema migration (idempotent): add + backfill APR for outcome-level rows
+        try:
+            cols = [r["name"] for r in conn.execute("PRAGMA table_info(active_market_outcomes)").fetchall()]
+            if "apr" not in cols:
+                conn.execute("ALTER TABLE active_market_outcomes ADD COLUMN apr REAL;")
+                conn.commit()
+
+            conn.execute(
+                """
+                UPDATE active_market_outcomes
+                SET apr = (
+                    CASE
+                        WHEN price IS NOT NULL
+                             AND price > 0.0
+                             AND price < 1.0
+                             AND end_date IS NOT NULL
+                             AND snapshot_at IS NOT NULL
+                             AND julianday(datetime(end_date)) > julianday(datetime(snapshot_at))
+                        THEN ((1.0 / price) - 1.0) * (365.0 / (julianday(datetime(end_date)) - julianday(datetime(snapshot_at))))
+                        ELSE NULL
+                    END
+                )
+                WHERE apr IS NULL
+                """
+            )
+            conn.commit()
+        except Exception as e:
+            print(f"WARNING: Failed to ensure APR column/index readiness: {e}")
         
         conn.executescript("""
             CREATE INDEX IF NOT EXISTS idx_market_tags_label ON market_tags(tag_label);
@@ -109,6 +138,7 @@ def ensure_indices():
             CREATE INDEX IF NOT EXISTS idx_amo_price ON active_market_outcomes(price);
             CREATE INDEX IF NOT EXISTS idx_amo_spread ON active_market_outcomes(spread);
             CREATE INDEX IF NOT EXISTS idx_amo_liquidity ON active_market_outcomes(liquidity_usd);
+            CREATE INDEX IF NOT EXISTS idx_amo_apr ON active_market_outcomes(apr);
             
             -- Text Search Indices (helps with sorting/exact match)
             CREATE INDEX IF NOT EXISTS idx_amo_question ON active_market_outcomes(question);
@@ -319,21 +349,9 @@ def get_markets(
         params.append(max_spread)
 
     if min_apr is not None:
-        # Win-APR (linear): ((1/price)-1) * (365 / days_to_end) >= min_apr
+        # Win-APR (linear): computed at scrape time (indexed column `apr`)
         # min_apr is a fraction: 1.0 == 100% APR
-        where_clauses.append(
-            """
-            (
-                price IS NOT NULL
-                AND price > 0.0
-                AND end_date IS NOT NULL
-                AND julianday(datetime(end_date)) > julianday('now')
-                AND (
-                    ((1.0 / price) - 1.0) * (365.0 / (julianday(datetime(end_date)) - julianday('now')))
-                ) >= ?
-            )
-            """.strip()
-        )
+        where_clauses.append("(apr IS NOT NULL AND apr >= ?)")
         params.append(float(min_apr))
 
     if search:
@@ -369,7 +387,7 @@ def get_markets(
     where_str = " AND ".join(where_clauses)
     
     # Sorting
-    valid_sorts = ["volume_usd", "liquidity_usd", "end_date", "price", "spread"]
+    valid_sorts = ["volume_usd", "liquidity_usd", "end_date", "price", "spread", "apr"]
     if sort_by not in valid_sorts: sort_by = "volume_usd"
     
     sql = f"""
