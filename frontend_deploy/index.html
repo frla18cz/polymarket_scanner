@@ -73,7 +73,9 @@
                     <button v-for="preset in displayedPresets" :key="preset.id"
                         @click="applyPreset(preset)" 
                         class="border rounded py-2 px-1 text-xs transition flex flex-col items-center gap-1 text-center h-full justify-center"
-                        :class="preset.class">
+                        :class="preset.class"
+                        :title="preset.description || preset.label"
+                        type="button">
                         <i :class="['ph text-xl', preset.icon]"></i>
                         <span class="leading-tight">{{ preset.label }}</span>
                     </button>
@@ -81,10 +83,35 @@
                     <!-- Show More / Less -->
                     <button v-if="presetDefinitions.length > 4" 
                         @click="showAllPresets = !showAllPresets"
-                        class="col-span-2 text-[10px] text-gray-500 hover:text-white mt-1 flex items-center justify-center gap-1 transition uppercase tracking-wider font-bold py-1">
+                        class="col-span-2 text-[10px] text-gray-500 hover:text-white mt-1 flex items-center justify-center gap-1 transition uppercase tracking-wider font-bold py-1"
+                        type="button">
                         <span>{{ showAllPresets ? 'Show Less' : 'Show More' }}</span>
                         <i :class="showAllPresets ? 'ph-caret-up' : 'ph-caret-down'"></i>
                     </button>
+                </div>
+
+                <div v-if="activePreset" class="rounded border border-poly-accent bg-poly-bg/60 p-3">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Last preset</div>
+                            <div class="text-xs font-semibold text-white truncate">{{ activePreset.label }}</div>
+                            <div v-if="activePreset.description" class="text-[11px] text-gray-400 mt-1 leading-snug">
+                                {{ activePreset.description }}
+                            </div>
+                            <div v-if="activePreset.summary && activePreset.summary.length" class="flex flex-wrap gap-1 mt-2">
+                                <span v-for="item in activePreset.summary" :key="item"
+                                    class="px-2 py-0.5 rounded text-[10px] font-medium border border-poly-accent/60 bg-poly-card/40 text-gray-300">
+                                    {{ item }}
+                                </span>
+                            </div>
+                        </div>
+                        <button @click="activePresetId = null"
+                            class="shrink-0 inline-flex items-center justify-center w-7 h-7 rounded border border-poly-accent bg-poly-card hover:bg-poly-accent text-gray-200 transition"
+                            type="button"
+                            aria-label="Dismiss preset info">
+                            <i class="ph ph-x"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Search Markets -->
@@ -576,89 +603,119 @@
                     }
                 };
 
-                const presetDefinitions = [
-                    {
-                        id: 'safe_haven',
-                        label: 'Safe Haven (>95%)',
-                        icon: 'ph-hand-heart',
-                        class: 'bg-poly-green/20 text-poly-green border-poly-green/50 hover:bg-poly-green/30',
-                        apply: () => {
-                            filters.value.min_price = 0.95;
-                            filters.value.max_price = 1.00;
-                            filters.value.min_liquidity = 500;
-                        }
-                    },
-                    {
-                        id: 'yolo',
-                        label: 'YOLO',
-                        icon: 'ph-smiley-x-eyes', 
-                        class: 'bg-poly-red/20 text-poly-red border-poly-red/50 hover:bg-poly-red/30',
-                        apply: () => {
-                            filters.value.max_price = 0.05; 
-                            filters.value.min_volume = 1000;
-                            filters.value.sort_by = 'price';
-                            filters.value.sort_dir = 'asc'; 
-                        }
-                    },
-                    {
-                        id: 'buffett',
-                        label: 'Warren Buffett',
-                        icon: 'ph-briefcase',
-                        class: 'bg-poly-green/20 text-poly-green border-poly-green/50 hover:bg-poly-green/30',
-                        apply: () => {
-                            filters.value.min_price = 0.90; 
-                            filters.value.min_liquidity = 50000;
-                            filters.value.max_spread = 0.02; 
-                        }
-                    },
-                    {
-                        id: 'sniper',
-                        label: 'Sniper / Last Min',
-                        icon: 'ph-crosshair',
-                        class: 'bg-orange-500/20 text-orange-400 border-orange-500/50 hover:bg-orange-500/30',
-                        apply: () => {
-                            filters.value.max_hours_to_expire = 24;
-                            filters.value.include_expired = false;
-                            filters.value.sort_by = 'end_date';
-                            filters.value.sort_dir = 'asc'; 
-                        }
-                    },
-                    {
-                        id: 'coinflip',
-                        label: 'Coinflip Club',
-                        icon: 'ph-coins',
-                        class: 'bg-purple-500/20 text-purple-400 border-purple-500/50 hover:bg-purple-500/30',
-                        apply: () => {
-                            filters.value.min_price = 0.45;
-                            filters.value.max_price = 0.55;
-                        }
-                    },
-                    {
-                        id: 'longshot',
-                        label: 'Long Shot',
-                        icon: 'ph-trend-up',
-                        class: 'bg-pink-500/20 text-pink-400 border-pink-500/50 hover:bg-pink-500/30',
-                        apply: () => {
-                            filters.value.max_price = 0.15;
-                            filters.value.min_liquidity = 500;
-                        }
-                    },
-                    {
-                        id: 'newsmaker',
-                        label: 'Newsmaker',
-                        icon: 'ph-newspaper',
-                        class: 'bg-poly-blue/20 text-poly-blue border-poly-blue/50 hover:bg-poly-blue/30',
-                        apply: () => {
-                            filters.value.min_volume = 100000; 
-                            filters.value.sort_by = 'volume_usd';
-                            filters.value.sort_dir = 'desc';
-                        }
-                    }
-                ];
+	                const presetDefinitions = [
+	                    {
+	                        id: 'safe_haven',
+	                        label: 'Safe Haven (>95%)',
+	                        description: 'High-probability outcomes (95–100%) with decent liquidity.',
+	                        summary: ['Prob 95–100%', 'Liquidity ≥ $500'],
+	                        icon: 'ph-hand-heart',
+	                        class: 'bg-poly-green/20 text-poly-green border-poly-green/50 hover:bg-poly-green/30',
+	                        apply: () => {
+	                            filters.value.min_price = 0.95;
+	                            filters.value.max_price = 1.00;
+	                            filters.value.min_liquidity = 500;
+	                        }
+	                    },
+	                    {
+	                        id: 'yolo',
+	                        label: 'YOLO',
+	                        description: 'Low-probability long shots (≤5%), sorted by cheapest odds.',
+	                        summary: ['Prob ≤ 5%', 'Volume ≥ $1k', 'Sort: price ↑'],
+	                        icon: 'ph-smiley-x-eyes', 
+	                        class: 'bg-poly-red/20 text-poly-red border-poly-red/50 hover:bg-poly-red/30',
+	                        apply: () => {
+	                            filters.value.max_price = 0.05; 
+	                            filters.value.min_volume = 1000;
+	                            filters.value.sort_by = 'price';
+	                            filters.value.sort_dir = 'asc'; 
+	                        }
+	                    },
+	                    {
+	                        id: 'buffett',
+	                        label: 'Warren Buffett',
+	                        description: 'High confidence, tight spreads, and very liquid markets (excluding crypto).',
+	                        summary: ['Prob ≥ 90%', 'Liquidity ≥ $50k', 'Spread ≤ 2%', 'No crypto'],
+	                        icon: 'ph-briefcase',
+	                        class: 'bg-poly-green/20 text-poly-green border-poly-green/50 hover:bg-poly-green/30',
+	                        apply: () => {
+	                            filters.value.min_price = 0.90; 
+	                            filters.value.min_liquidity = 50000;
+	                            filters.value.max_spread = 0.02; 
+	                            filters.value.excludedTags = [
+	                                'Crypto',
+	                                'Crypto Prices',
+	                                'Crypto Policy',
+	                                'Crypto Summit',
+	                                'CryptoPunks',
+	                                'Bitcoin',
+	                                'Ethereum',
+	                                'Solana'
+	                            ];
+	                        }
+	                    },
+	                    {
+	                        id: 'sniper',
+	                        label: 'Sniper / Last Min',
+	                        description: 'Markets ending within 24h, sorted by soonest to expire.',
+	                        summary: ['Ends ≤ 24h', 'Hide expired', 'Sort: end date ↑'],
+	                        icon: 'ph-crosshair',
+	                        class: 'bg-orange-500/20 text-orange-400 border-orange-500/50 hover:bg-orange-500/30',
+	                        apply: () => {
+	                            filters.value.max_hours_to_expire = 24;
+	                            filters.value.include_expired = false;
+	                            filters.value.sort_by = 'end_date';
+	                            filters.value.sort_dir = 'asc'; 
+	                        }
+	                    },
+	                    {
+	                        id: 'coinflip',
+	                        label: 'Coinflip Club',
+	                        description: 'Near 50/50 markets (45–55%).',
+	                        summary: ['Prob 45–55%'],
+	                        icon: 'ph-coins',
+	                        class: 'bg-purple-500/20 text-purple-400 border-purple-500/50 hover:bg-purple-500/30',
+	                        apply: () => {
+	                            filters.value.min_price = 0.45;
+	                            filters.value.max_price = 0.55;
+	                        }
+	                    },
+	                    {
+	                        id: 'longshot',
+	                        label: 'Long Shot',
+	                        description: 'Underdogs up to 15% with some liquidity.',
+	                        summary: ['Prob ≤ 15%', 'Liquidity ≥ $500'],
+	                        icon: 'ph-trend-up',
+	                        class: 'bg-pink-500/20 text-pink-400 border-pink-500/50 hover:bg-pink-500/30',
+	                        apply: () => {
+	                            filters.value.max_price = 0.15;
+	                            filters.value.min_liquidity = 500;
+	                        }
+	                    },
+	                    {
+	                        id: 'newsmaker',
+	                        label: 'Newsmaker',
+	                        description: 'High-volume trending markets.',
+	                        summary: ['Volume ≥ $100k', 'Sort: volume ↓'],
+	                        icon: 'ph-newspaper',
+	                        class: 'bg-poly-blue/20 text-poly-blue border-poly-blue/50 hover:bg-poly-blue/30',
+	                        apply: () => {
+	                            filters.value.min_volume = 100000; 
+	                            filters.value.sort_by = 'volume_usd';
+	                            filters.value.sort_dir = 'desc';
+	                        }
+	                    }
+	                ];
 
-                const displayedPresets = Vue.computed(() => {
-                    return showAllPresets.value ? presetDefinitions : presetDefinitions.slice(0, 4);
-                });
+	                const displayedPresets = Vue.computed(() => {
+	                    return showAllPresets.value ? presetDefinitions : presetDefinitions.slice(0, 4);
+	                });
+
+	                const activePresetId = ref(null);
+	                const activePreset = Vue.computed(() => {
+	                    if (!activePresetId.value) return null;
+	                    return presetDefinitions.find(p => p.id === activePresetId.value) || null;
+	                });
 
                 let debounceTimer = null;
                 let refreshInterval = null;
@@ -746,12 +803,13 @@
                 };
 
                 // Presets
-                const applyPreset = (preset) => {
-                    // Reset defaults
-                    filters.value.min_volume = 5000;
-                    filters.value.min_liquidity = 1000;
-                    filters.value.min_price = 0.00;
-                    filters.value.max_price = 1.00;
+	                const applyPreset = (preset) => {
+	                    activePresetId.value = preset && preset.id ? preset.id : null;
+	                    // Reset defaults
+	                    filters.value.min_volume = 5000;
+	                    filters.value.min_liquidity = 1000;
+	                    filters.value.min_price = 0.00;
+	                    filters.value.max_price = 1.00;
                     filters.value.max_spread = 0.05;
                     filters.value.max_hours_to_expire = 0;
                     filters.value.include_expired = true;
@@ -962,12 +1020,14 @@
                     showExcludeDropdown,
                     availableTagsForInclude,
                     availableTagsForExclude,
-                    // Presets
-                    showAllPresets,
-                    displayedPresets,
-                    presetDefinitions,
-                    // Methods
-                    addIncludedTag,
+	                    // Presets
+	                    showAllPresets,
+	                    displayedPresets,
+	                    presetDefinitions,
+	                    activePresetId,
+	                    activePreset,
+	                    // Methods
+	                    addIncludedTag,
                     removeIncludedTag,
                     addExcludedTag,
                     removeExcludedTag,
