@@ -677,7 +677,7 @@
 
                                     <div class="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
                                         <div class="lg:col-span-2">
-                                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                            <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
                                                 <div class="rounded border border-poly-accent bg-poly-bg/60 p-3">
                                                     <div
                                                         class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
@@ -691,6 +691,13 @@
                                                         Spread</div>
                                                     <div class="mt-1 font-mono text-white text-base font-bold">{{
                                                         (m.spread * 100).toFixed(2) }}¢</div>
+                                                </div>
+                                                <div class="rounded border border-poly-accent bg-poly-bg/60 p-3">
+                                                    <div
+                                                        class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                        APR (Win)</div>
+                                                    <div class="mt-1 font-mono text-white text-base font-bold">{{
+                                                        formatAprPercent(m.apr, m.price, m.end_date) }}</div>
                                                 </div>
                                                 <div class="rounded border border-poly-accent bg-poly-bg/60 p-3">
                                                     <div
@@ -1277,13 +1284,30 @@
                     return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 };
 
+                const formatPercentCompact = (pct) => {
+                    const v = Number(pct);
+                    if (!isFinite(v) || v <= 0) return "-";
+                    const capped = Math.min(v, 999_999_999_999_999); // 999T%
+                    try {
+                        const nf = new Intl.NumberFormat("en-US", {
+                            notation: "compact",
+                            compactDisplay: "short",
+                            maximumFractionDigits: 1,
+                        });
+                        const s = nf.format(capped);
+                        return `${s.replace(/([KMBT])$/, (m) => m.toLowerCase())}%`;
+                    } catch {
+                        if (capped >= 1_000_000_000) return `${(capped / 1_000_000_000).toFixed(1)}b%`;
+                        if (capped >= 1_000_000) return `${(capped / 1_000_000).toFixed(1)}m%`;
+                        if (capped >= 1_000) return `${(capped / 1_000).toFixed(1)}k%`;
+                        return `${capped.toFixed(0)}%`;
+                    }
+                };
+
                 const formatAprFraction = (aprFraction) => {
                     const apr = Number(aprFraction);
                     if (!isFinite(apr) || apr <= 0) return "-";
-                    const pct = apr * 100;
-                    const capped = Math.min(pct, 999999);
-                    if (capped >= 1000) return `${(capped / 1000).toFixed(1)}k%`;
-                    return `${capped.toFixed(0)}%`;
+                    return formatPercentCompact(apr * 100);
                 };
 
                 const formatAprPercent = (aprFraction, price, endDate) => {
