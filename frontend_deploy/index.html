@@ -54,6 +54,11 @@
                     <span class="text-gray-400 text-xs">Active Markets</span>
                     <span class="text-white">16,000+</span>
                 </div>
+                <button v-if="false" @click="openDiagnostics"
+                    class="ml-2 inline-flex items-center gap-2 px-3 py-2 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-xs text-gray-200 transition">
+                    <i class="ph ph-timer"></i>
+                    Diagnostics
+                </button>
             </div>
         </header>
 
@@ -422,6 +427,72 @@
 
             </main>
         </div>
+        <!-- Diagnostics Modal -->
+        <div v-if="showDiagnostics" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/70" @click="closeDiagnostics"></div>
+            <div class="relative w-full max-w-3xl bg-poly-card border border-poly-accent rounded-xl shadow-2xl overflow-hidden">
+                <div class="p-4 border-b border-poly-accent flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="ph ph-timer text-poly-blue text-xl"></i>
+                        <div>
+                            <div class="text-sm font-bold">Diagnostics (Performance)</div>
+                            <div class="text-[11px] text-gray-500" v-if="perfData && perfData.generated_at">Generated: {{ perfData.generated_at }}</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <select v-model="perfMode"
+                            class="bg-poly-bg border border-poly-accent rounded px-2 py-1 text-xs text-gray-200">
+                            <option value="fast">fast</option>
+                            <option value="auto">auto</option>
+                        </select>
+                        <button @click="runDiagnostics" :disabled="perfLoading"
+                            class="inline-flex items-center gap-2 px-3 py-2 rounded bg-poly-blue hover:bg-blue-600 text-xs text-white transition disabled:opacity-50">
+                            <i v-if="perfLoading" class="ph ph-spinner animate-spin"></i>
+                            <span>{{ perfLoading ? 'Running…' : 'Run' }}</span>
+                        </button>
+                        <button @click="closeDiagnostics"
+                            class="inline-flex items-center gap-2 px-3 py-2 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-xs text-gray-200 transition">
+                            <i class="ph ph-x"></i>
+                            Close
+                        </button>
+                    </div>
+                </div>
+
+            <div class="p-4">
+                <div v-if="perfError" class="p-3 rounded border border-poly-red bg-poly-red/10 text-poly-red text-xs mb-3">
+                    {{ perfError }}
+                </div>
+
+                    <div v-if="perfData && perfData.db_path" class="text-[11px] text-gray-500 mb-2">
+                        DB: <span class="font-mono text-gray-300">{{ perfData.db_path }}</span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs">
+                            <thead>
+                                <tr class="text-gray-400 border-b border-poly-accent">
+                                    <th class="text-left py-2 pr-2">Scenario</th>
+                                <th class="text-right py-2 px-2">s</th>
+                                    <th class="text-right py-2 px-2">rows</th>
+                                    <th class="text-left py-2 pl-2">params</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="s in (perfData && perfData.scenarios ? perfData.scenarios : [])" :key="s.name" class="border-b border-poly-accent/30">
+                                    <td class="py-2 pr-2 font-mono text-gray-200">{{ s.name }}</td>
+                                <td class="py-2 px-2 text-right text-white">{{ s.seconds.toFixed(3) }}</td>
+                                    <td class="py-2 px-2 text-right text-gray-300">{{ s.rows }}</td>
+                                    <td class="py-2 pl-2 font-mono text-[10px] text-gray-500 break-all">{{ JSON.stringify(s.params) }}</td>
+                                </tr>
+                                <tr v-if="(perfData && perfData.scenarios ? perfData.scenarios : []).length === 0">
+                                    <td colspan="4" class="py-6 text-center text-gray-500">No data.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -441,6 +512,14 @@
                 const offset = ref(0);
                 const limit = 100; // Load 100 at a time
                 const serverLastUpdated = ref(null);
+
+                // Diagnostics UI
+                const showDiagnostics = ref(false);
+                const perfMode = ref("fast");
+                const perfLoading = ref(false);
+                const perfError = ref("");
+                const perfData = ref(null);
+                const diagnosticsUiEnabled = ref(false);
                 
                 // Autocomplete State
                 const includeSearch = ref("");
@@ -466,6 +545,36 @@
                     sort_by: "volume_usd",
                     sort_dir: "desc"
                 });
+
+                const openDiagnostics = async () => {
+                    showDiagnostics.value = true;
+                    await runDiagnostics();
+                };
+
+                const closeDiagnostics = () => {
+                    showDiagnostics.value = false;
+                };
+
+                const runDiagnostics = async () => {
+                    perfError.value = "";
+                    perfLoading.value = true;
+                    try {
+                        const url = `${API_BASE_URL}/api/diagnostics/perf?mode=${encodeURIComponent(perfMode.value)}`;
+                        const res = await fetch(url, { cache: "no-store" });
+                        if (!res.ok) {
+                            const txt = await res.text();
+                            perfError.value = `Diagnostics endpoint není dostupný (${res.status}). ${txt || ""}`.trim();
+                            perfData.value = null;
+                            return;
+                        }
+                        perfData.value = await res.json();
+                    } catch (e) {
+                        perfError.value = `Diagnostics request selhal: ${e}`;
+                        perfData.value = null;
+                    } finally {
+                        perfLoading.value = false;
+                    }
+                };
 
                 const presetDefinitions = [
                     {
@@ -808,6 +917,20 @@
                 };
 
                 onMounted(() => {
+                    try {
+                        const url = new URL(window.location.href);
+                        // Skrytý odkaz: https://.../#diag=1
+                        const hash = (window.location.hash || "").replace(/^#/, "");
+                        if (hash.startsWith("diag=")) {
+                            const val = decodeURIComponent(hash.slice("diag=".length)).trim();
+                            if (val === "1") {
+                                diagnosticsUiEnabled.value = true;
+                                showDiagnostics.value = true;
+                                runDiagnostics();
+                            }
+                        }
+                    } catch {}
+
                     fetchTags();
                     fetchStatus();
                     fetchMarkets();
@@ -825,6 +948,13 @@
                     filters,
                     expandedId,
                     lastUpdatedTime,
+                    // Diagnostics
+                    showDiagnostics,
+                    perfMode,
+                    perfLoading,
+                    perfError,
+                    perfData,
+                    diagnosticsUiEnabled,
                     // New Autocomplete State
                     includeSearch,
                     excludeSearch,
@@ -854,7 +984,10 @@
                     debouncedFetch,
                     setSort,
                     toggleDetails,
-                    applyPreset
+                    applyPreset,
+                    openDiagnostics,
+                    closeDiagnostics,
+                    runDiagnostics
                 };
             }
         }).mount('#app');

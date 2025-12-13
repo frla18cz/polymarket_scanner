@@ -1,0 +1,11 @@
+# Lokální dev: frontend + /api na jednom hostu.
+# Spuštění: `caddy run --config Caddyfile.local`
+:3000 {
+    @api path /api/*
+    reverse_proxy @api 127.0.0.1:8000
+
+    root * frontend_deploy
+    try_files {path} /index.html
+    file_server
+}
+
