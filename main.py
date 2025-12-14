@@ -7,6 +7,7 @@ from typing import Optional, List, Any
 from fastapi import FastAPI, Query, Response, Request, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import uvicorn
 from pathlib import Path
@@ -218,7 +219,12 @@ def _compute_hours_to_expire_default() -> int:
         conn.close()
 
 # Initialize App
-app = FastAPI()
+app = FastAPI(title="PolyLab")
+
+# Serve static assets for the frontend (e.g. logo under /assets/*)
+ASSETS_DIR = Path(BASE_DIR) / "frontend_deploy" / "assets"
+if ASSETS_DIR.exists():
+    app.mount("/assets", StaticFiles(directory=str(ASSETS_DIR)), name="assets")
 
 # Run startup optimization
 ensure_indices()

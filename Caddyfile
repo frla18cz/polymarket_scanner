@@ -1,4 +1,4 @@
-# Replace 'localhost' with your domain name (e.g., polyscan.xyz) for production
+# Replace 'localhost' with your domain name (e.g., polylab.app) for production
 :80 {
     # Reverse proxy to our FastAPI container
     reverse_proxy web:8000

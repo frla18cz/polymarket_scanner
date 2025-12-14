@@ -69,7 +69,7 @@ Náš cíl není jen zobrazovat, co se děje (to dělá Polymarket web), ale **o
 
 1.  **Public Deployment:**
     *   Nasadit na levný VPS (Hetzner/DigitalOcean) + Cloudflare.
-    *   Doména: `polyscan.xyz` nebo `polymarket-tools.com`.
+    *   Doména: `polylab.app` nebo `polymarket-tools.com`.
 
 2.  **Community Launch:**
     *   Sdílet na Discordu Polymarketu.

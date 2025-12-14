@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Polymarket Explorer</title>
+    <title>PolyLab</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Vue 3 -->
@@ -56,8 +56,8 @@
         <header
             class="bg-poly-card border-b border-poly-accent p-4 flex justify-between items-center shadow-md z-30 shrink-0">
             <div class="flex items-center gap-3">
-                <i class="ph ph-chart-line-up text-poly-blue text-2xl"></i>
-                <h1 class="text-xl font-bold tracking-tight">Poly<span class="text-poly-blue">Scan</span></h1>
+                <img src="assets/polylab-mark.svg" alt="PolyLab" class="w-7 h-7">
+                <h1 class="text-xl font-bold tracking-tight">Poly<span class="text-poly-blue">Lab</span></h1>
                 <span
                     class="text-[10px] md:text-xs text-gray-500 ml-1 md:ml-2 bg-poly-bg px-2 py-1 rounded border border-poly-accent whitespace-nowrap">
                     {{ lastUpdatedTime }}
@@ -922,8 +922,8 @@
                 const showMobileFilters = ref(false);
 
                 // View mode (mobile)
-                const VIEW_MODE_KEY = "polyscan_view_mode";
-                const MOBILE_FILTERS_SEEN_KEY = "polyscan_mobile_filters_seen";
+                const VIEW_MODE_KEY = "polylab_view_mode";
+                const MOBILE_FILTERS_SEEN_KEY = "polylab_mobile_filters_seen";
                 const isNarrowScreen = ref(false);
                 const viewMode = ref(_safeGetLocalStorage(VIEW_MODE_KEY) || "cards"); // 'cards' | 'table'
 

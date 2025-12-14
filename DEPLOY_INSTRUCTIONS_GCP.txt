@@ -31,7 +31,7 @@ sudo usermod -aG docker $USER
 cd polymarket_scanner
 
 # 2. (Volitelné) Nastavení domény pro HTTPS
-# Otevři Caddyfile a nahraď :80 svou doménou (např. polyscan.xyz)
+# Otevři Caddyfile a nahraď :80 svou doménou (např. polylab.app)
 # nano Caddyfile
 # (Ctrl+O ulož, Ctrl+X konec)
 

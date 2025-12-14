@@ -29,7 +29,7 @@ The frontend is a single static HTML file.
     const API_BASE_URL = "";
     ```
     *   Recommended: keep `API_BASE_URL` empty and use a Vercel rewrite/proxy so the frontend can call `/api/*` on its own origin.
-    *   If you cannot use rewrites/proxying, set `API_BASE_URL` to your API origin (e.g. `https://api.polyscan.xyz`) and make sure the backend has correct CORS + HTTPS.
+    *   If you cannot use rewrites/proxying, set `API_BASE_URL` to your API origin (e.g. `https://api.polylab.app`) and make sure the backend has correct CORS + HTTPS.
 
 2.  **Deploy to Vercel:**
     *   **Option A (recommended):** Deploy from the repo root so `vercel.json` rewrites apply (frontend calls `/api/*` on the same origin).
