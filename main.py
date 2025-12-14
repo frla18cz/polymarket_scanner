@@ -224,17 +224,12 @@ app = FastAPI()
 ensure_indices()
 init_metrics_db()
 
-# CORS Configuration
-origins = [
-    "http://localhost:3000",
-    "https://your-vercel-app.vercel.app",  
-    "*" 
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    # We don't use cookies/auth for the API, so keep CORS permissive.
+    # This also avoids the invalid combination of `allow_credentials=True` with `allow_origins=["*"]`.
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -387,7 +382,7 @@ def get_markets(
     where_str = " AND ".join(where_clauses)
     
     # Sorting
-    valid_sorts = ["volume_usd", "liquidity_usd", "end_date", "price", "spread", "apr"]
+    valid_sorts = ["volume_usd", "liquidity_usd", "end_date", "price", "spread", "apr", "question"]
     if sort_by not in valid_sorts: sort_by = "volume_usd"
     
     sql = f"""
@@ -524,6 +519,13 @@ def diagnostics_perf(request: Request, mode: str = "fast"):
 def _frontend_enabled() -> bool:
     return os.environ.get("SERVE_FRONTEND") == "1"
 
+def _frontend_no_cache_headers() -> dict[str, str]:
+    return {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+    }
+
 
 @app.get("/", include_in_schema=False)
 def frontend_root():
@@ -531,7 +533,7 @@ def frontend_root():
         raise HTTPException(status_code=404, detail="Not Found")
     if not FRONTEND_INDEX_PATH.exists():
         raise HTTPException(status_code=500, detail="frontend_deploy/index.html not found")
-    return FileResponse(FRONTEND_INDEX_PATH)
+    return FileResponse(FRONTEND_INDEX_PATH, headers=_frontend_no_cache_headers())
 
 
 @app.get("/{path:path}", include_in_schema=False)
@@ -542,7 +544,7 @@ def frontend_catchall(path: str):
         raise HTTPException(status_code=404, detail="Not Found")
     if not FRONTEND_INDEX_PATH.exists():
         raise HTTPException(status_code=500, detail="frontend_deploy/index.html not found")
-    return FileResponse(FRONTEND_INDEX_PATH)
+    return FileResponse(FRONTEND_INDEX_PATH, headers=_frontend_no_cache_headers())
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

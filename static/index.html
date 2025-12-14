@@ -77,8 +77,17 @@
                 class="flex items-center gap-2 px-4 py-2 rounded border border-poly-accent bg-poly-bg text-gray-300 text-xs font-bold uppercase tracking-wider active:bg-poly-accent transition-colors">
                 <i class="ph ph-faders text-lg"></i> Filters
             </button>
-            <div class="text-xs text-gray-400">
-                {{ markets.length }} markets
+            <div class="flex items-center gap-2">
+                <button @click="toggleViewMode"
+                    class="flex items-center gap-2 px-4 py-2 rounded border border-poly-accent bg-poly-bg text-gray-300 text-xs font-bold uppercase tracking-wider active:bg-poly-accent transition-colors"
+                    type="button"
+                    :aria-label="effectiveViewMode === 'cards' ? 'Switch to table view' : 'Switch to card view'">
+                    <i :class="['ph text-lg', effectiveViewMode === 'cards' ? 'ph-table' : 'ph-cards']"></i>
+                    <span>{{ effectiveViewMode === 'cards' ? 'Table' : 'Cards' }}</span>
+                </button>
+                <div class="text-xs text-gray-400">
+                    {{ markets.length }} markets
+                </div>
             </div>
         </div>
 
@@ -317,9 +326,9 @@
                     <div class="mb-3">
                         <div class="flex justify-between text-xs mb-1">
                             <span class="text-gray-500">Min</span>
-                            <span class="text-poly-blue font-mono">{{ (filters.min_price * 100).toFixed(0) }}%</span>
+                            <span class="text-poly-blue font-mono">{{ minPricePct.toFixed(1) }}%</span>
                         </div>
-                        <input type="range" min="0" max="1" step="0.01" v-model.number="filters.min_price"
+                        <input type="range" min="0" max="100" step="0.1" v-model.number="minPricePct"
                             @change="resetAndFetch"
                             class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
                     </div>
@@ -328,9 +337,9 @@
                     <div>
                         <div class="flex justify-between text-xs mb-1">
                             <span class="text-gray-500">Max</span>
-                            <span class="text-poly-blue font-mono">{{ (filters.max_price * 100).toFixed(0) }}%</span>
+                            <span class="text-poly-blue font-mono">{{ maxPricePct.toFixed(1) }}%</span>
                         </div>
-                        <input type="range" min="0" max="1" step="0.01" v-model.number="filters.max_price"
+                        <input type="range" min="0" max="100" step="0.1" v-model.number="maxPricePct"
                             @change="resetAndFetch"
                             class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
                     </div>
@@ -432,11 +441,11 @@
                 <div class="flex-1 overflow-auto" id="market-list">
                     <!-- overflow-auto handles both X and Y scrolling -->
 
-                    <div class="min-w-[800px]"> <!-- Force minimum width to trigger scroll on small screens -->
+                    <div :class="effectiveViewMode === 'table' ? 'min-w-[800px]' : ''">
 
                         <!-- Table Header (Sticky) -->
-                        <div
-                            class="hidden md:grid grid-cols-12 gap-4 px-6 py-3 border-b border-poly-accent bg-poly-bg text-xs font-bold text-gray-400 uppercase tracking-wider z-10 sticky top-0 shadow-sm">
+                        <div class="grid grid-cols-12 gap-4 px-6 py-3 border-b border-poly-accent bg-poly-bg text-xs font-bold text-gray-400 uppercase tracking-wider z-10 sticky top-0 shadow-sm"
+                            :class="effectiveViewMode === 'table' ? '' : 'hidden md:grid'">
                             <div class="col-span-1 text-center">Icon</div>
                             <div class="col-span-3 cursor-pointer hover:text-white" @click="setSort('question')">Market
                             </div>
@@ -467,7 +476,8 @@
                                 class="border-b border-poly-accent/50">
 
                                 <!-- ================= MOBILE CARD VIEW (Active on sm/xs) ================= -->
-                                <div class="md:hidden p-4 active:bg-poly-card/40 transition-colors cursor-pointer border-b border-poly-accent/30"
+                                <div v-if="effectiveViewMode === 'cards'"
+                                    class="md:hidden p-4 active:bg-poly-card/40 transition-colors cursor-pointer border-b border-poly-accent/30"
                                     @click="toggleDetails(m, idx)"
                                     :class="{ 'bg-poly-card/20': expandedId === m.market_id + m.outcome_name }">
 
@@ -530,6 +540,10 @@
                                                     <span>APR:</span> <span class="text-gray-300 font-mono">{{
                                                         formatAprPercent(m.apr, m.price, m.end_date) }}</span>
                                                 </div>
+                                                <div class="flex justify-between text-gray-400 col-span-2">
+                                                    <span>Exp:</span> <span class="text-gray-300 font-mono">{{
+                                                        timeFromNow(m.end_date) || '-' }}</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -537,27 +551,103 @@
                                     <!-- Mobile Collapse Details -->
                                     <div v-if="expandedId === m.market_id + m.outcome_name"
                                         class="mt-4 pt-4 border-t border-poly-accent/30 animate-in slide-in-from-top-2 duration-200">
-                                        <!-- Actions -->
-                                        <div class="flex gap-2 mb-4">
-                                            <a :href="m.url" target="_blank"
-                                                class="flex-1 bg-poly-blue text-white text-xs font-bold py-2 rounded text-center">
-                                                Trade on Polymarket
+                                        <div class="flex items-center gap-2 mb-3">
+                                            <a :href="m.url" target="_blank" rel="noreferrer"
+                                                class="flex-1 bg-poly-blue text-white text-xs font-bold py-2 rounded text-center"
+                                                @click.stop>
+                                                Open
                                             </a>
-                                            <button @click.stop="toggleDetails(m, idx)"
-                                                class="px-3 py-2 bg-poly-accent text-white rounded text-xs">
-                                                Close
+                                            <button type="button" @click.stop="copyToClipboard(String(m.market_id), `id:${m.market_id}`)"
+                                                class="inline-flex items-center gap-1.5 px-2.5 py-2 rounded border border-poly-accent bg-poly-bg text-gray-200 text-xs">
+                                                <i :class="copiedKey === `id:${m.market_id}` ? 'ph ph-check' : 'ph ph-copy'"></i>
+                                                <span>{{ copiedKey === `id:${m.market_id}` ? 'Copied' : 'ID' }}</span>
+                                            </button>
+                                            <button type="button" @click.stop="copyToClipboard(m.url || '', `url:${m.market_id}:${m.outcome_name}`)"
+                                                :disabled="!m.url"
+                                                class="inline-flex items-center gap-1.5 px-2.5 py-2 rounded border border-poly-accent bg-poly-bg text-gray-200 text-xs disabled:opacity-50">
+                                                <i :class="copiedKey === `url:${m.market_id}:${m.outcome_name}` ? 'ph ph-check' : 'ph ph-link'"></i>
+                                                <span>{{ copiedKey === `url:${m.market_id}:${m.outcome_name}` ? 'Copied' : 'Link' }}</span>
+                                            </button>
+                                            <button type="button" @click.stop="expandedId = null"
+                                                class="inline-flex items-center justify-center w-9 h-9 rounded border border-poly-accent bg-poly-bg text-gray-200"
+                                                aria-label="Close details">
+                                                <i class="ph ph-x"></i>
                                             </button>
                                         </div>
-                                        <div class="text-[10px] text-gray-500 text-center">
-                                            ID: {{ m.market_id }} • Ends {{ formatDate(m.end_date) }}
+
+                                        <div v-if="m.event_slug" class="text-[10px] text-gray-500 font-mono truncate mb-3">
+                                            {{ m.event_slug }}
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div class="rounded border border-poly-accent bg-poly-bg/60 p-2.5">
+                                                <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                    Probability</div>
+                                                <div class="mt-1 font-mono text-white text-sm font-bold">{{
+                                                    (m.price * 100).toFixed(2) }}%</div>
+                                            </div>
+                                            <div class="rounded border border-poly-accent bg-poly-bg/60 p-2.5">
+                                                <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                    Spread</div>
+                                                <div class="mt-1 font-mono text-white text-sm font-bold">{{
+                                                    (m.spread * 100).toFixed(2) }}¢</div>
+                                            </div>
+                                            <div class="rounded border border-poly-accent bg-poly-bg/60 p-2.5">
+                                                <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                    APR (Win)</div>
+                                                <div class="mt-1 font-mono text-white text-sm font-bold">{{
+                                                    formatAprPercent(m.apr, m.price, m.end_date) }}</div>
+                                            </div>
+                                            <div class="rounded border border-poly-accent bg-poly-bg/60 p-2.5">
+                                                <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                    Expires</div>
+                                                <div class="mt-1 text-white text-sm font-bold">{{ timeFromNow(m.end_date) || '-' }}</div>
+                                            </div>
+                                            <div class="rounded border border-poly-accent bg-poly-bg/60 p-2.5">
+                                                <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                    Liquidity</div>
+                                                <div class="mt-1 font-mono text-white text-sm font-bold">{{
+                                                    formatCompact(m.liquidity_usd) }}</div>
+                                            </div>
+                                            <div class="rounded border border-poly-accent bg-poly-bg/60 p-2.5">
+                                                <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                    Volume</div>
+                                                <div class="mt-1 font-mono text-white text-sm font-bold">{{
+                                                    formatCompact(m.volume_usd) }}</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-3 rounded border border-poly-accent bg-poly-bg/40 p-3">
+                                            <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Dates</div>
+                                            <div class="mt-2 grid grid-cols-2 gap-2 text-[11px]">
+                                                <span class="text-gray-500">Start</span>
+                                                <span class="text-white">{{ m.start_date ? m.start_date.replace('T', ' ').slice(0, 16) : '-' }}</span>
+                                                <span class="text-gray-500">End</span>
+                                                <span class="text-white">{{ m.end_date ? m.end_date.replace('T', ' ').slice(0, 16) : '-' }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-3 rounded border border-poly-accent bg-poly-bg/40 p-3">
+                                            <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                Analysis</div>
+                                            <div class="mt-2 grid grid-cols-2 gap-2 text-[11px]">
+                                                <span class="text-gray-500">Implied odds</span>
+                                                <span class="text-white font-mono">{{ formatImpliedOdds(m.price) }}</span>
+                                                <span class="text-gray-500">Category</span>
+                                                <span class="text-white truncate">{{ m.category || '-' }}</span>
+                                                <span class="text-gray-500">Outcome</span>
+                                                <span class="text-white truncate">{{ m.outcome_name || '-' }}</span>
+                                                <span class="text-gray-500">Market ID</span>
+                                                <span class="text-white font-mono select-all truncate">{{ m.market_id }}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Main Row (Desktop) -->
                                 <div :id="`row-${idx}`" @click="toggleDetails(m, idx)"
-                                    class="hidden md:grid grid-cols-12 gap-4 px-6 text-sm items-center hover:bg-poly-card transition-colors cursor-pointer group"
-                                    :class="[compactMode ? 'py-2' : 'py-4', idx === selectedIndex ? 'bg-poly-card/70 ring-1 ring-poly-blue/50' : '']">
+                                    class="grid grid-cols-12 gap-4 px-6 text-sm items-center hover:bg-poly-card transition-colors cursor-pointer group"
+                                    :class="[effectiveViewMode === 'table' ? '' : 'hidden md:grid', compactMode ? 'py-2' : 'py-4', idx === selectedIndex ? 'bg-poly-card/70 ring-1 ring-poly-blue/50' : '']">
 
                                     <!-- Icon -->
                                     <div class="col-span-1 flex justify-center">
@@ -627,7 +717,8 @@
 
                                 <!-- Detail View (Desktop Only) -->
                                 <div v-if="expandedId === m.market_id + m.outcome_name"
-                                    class="hidden md:block bg-poly-card/50 p-4 md:p-5 md:pl-10 text-xs text-gray-300 shadow-inner">
+                                    class="bg-poly-card/50 p-4 md:p-5 md:pl-10 text-xs text-gray-300 shadow-inner"
+                                    :class="effectiveViewMode === 'table' ? 'block' : 'hidden md:block'">
                                     <div class="flex items-start justify-between gap-4">
                                         <div class="min-w-0">
                                             <div class="flex items-center gap-2">
@@ -783,29 +874,14 @@
             </main>
         </div>
     </div>
-    <!-- Load More Button -->
-    <div class="p-4 text-center">
-        <button @click="loadMore" :disabled="loading"
-            class="bg-poly-accent hover:bg-poly-blue text-white px-6 py-2 rounded text-sm transition disabled:opacity-50 flex items-center gap-2 mx-auto">
-            <i v-if="loading" class="ph ph-spinner animate-spin"></i>
-            <span v-if="!loading">Load More Markets</span>
-            <span v-else>Loading...</span>
-        </button>
-    </div>
-    </div>
-    </div>
-
-    </main>
-    </div>
-    </div>
 
     <script>
         const { createApp, ref, onMounted, watch, onBeforeUnmount } = Vue;
 
         // Configuration
-        // When running on Vercel, this should point to your VPS IP/Domain.
-        // For local development, it can be localhost.
-        const API_BASE_URL = "http://localhos:8000";
+        // Default: use same-origin `/api/*` (works for LAN/mobile too).
+        // If you host the frontend separately without a reverse-proxy/rewrite, set this to your API base URL.
+        const API_BASE_URL = "";
 
         createApp({
             setup() {
@@ -817,7 +893,25 @@
                 const compactMode = ref(false);
                 const offset = ref(0);
                 const limit = 100; // Load 100 at a time
-                const serverLastUpdated = ref(        // Autocomplete State
+                const serverLastUpdated = ref(null);
+
+                const _safeGetLocalStorage = (key) => {
+                    try {
+                        return localStorage.getItem(key);
+                    } catch (_) {
+                        return null;
+                    }
+                };
+
+                const _safeSetLocalStorage = (key, value) => {
+                    try {
+                        localStorage.setItem(key, value);
+                    } catch (_) {
+                        // ignore
+                    }
+                };
+
+                // Autocomplete State
                 const includeSearch = ref("");
                 const excludeSearch = ref("");
                 const showIncludeDropdown = ref(false);
@@ -827,10 +921,40 @@
                 const showAllPresets = ref(false);
                 const showMobileFilters = ref(false);
 
-        lt Filters (User Request: 5c spread, 5k vol, 1k liq, 0-100 prob)
+                // View mode (mobile)
+                const VIEW_MODE_KEY = "polyscan_view_mode";
+                const MOBILE_FILTERS_SEEN_KEY = "polyscan_mobile_filters_seen";
+                const isNarrowScreen = ref(false);
+                const viewMode = ref(_safeGetLocalStorage(VIEW_MODE_KEY) || "cards"); // 'cards' | 'table'
+
+                const updateScreenFlags = () => {
+                    isNarrowScreen.value = window.innerWidth < 768;
+                };
+
+                const effectiveViewMode = Vue.computed(() => (isNarrowScreen.value ? viewMode.value : "table"));
+
+                watch(viewMode, (v) => {
+                    _safeSetLocalStorage(VIEW_MODE_KEY, String(v || "cards"));
+                });
+
+                const toggleViewMode = () => {
+                    viewMode.value = effectiveViewMode.value === "cards" ? "table" : "cards";
+                    expandedId.value = null;
+                };
+
+                const maybeAutoOpenMobileFilters = () => {
+                    if (!isNarrowScreen.value) return;
+                    const seen = _safeGetLocalStorage(MOBILE_FILTERS_SEEN_KEY);
+                    if (seen !== "1") {
+                        showMobileFilters.value = true;
+                        _safeSetLocalStorage(MOBILE_FILTERS_SEEN_KEY, "1");
+                    }
+                };
+
+                // Default Filters (User Request: 5c spread, 5k vol, 1k liq, 0-100 prob)
                 const filters = ref({
                     includedTags: [],
-                    excldedTags: [],
+                    excludedTags: [],
                     min_volume: 5000,
                     min_liquidity: 1000,
                     min_price: 0.00,
@@ -955,6 +1079,36 @@
                     return `${v.toFixed(0)}%`;
                 });
 
+                const minPricePct = Vue.computed({
+                    get: () => {
+                        const v = Number(filters.value.min_price);
+                        if (!isFinite(v)) return 0;
+                        return Math.round(Math.max(0, Math.min(1, v)) * 1000) / 10; // 0.1% steps
+                    },
+                    set: (pct) => {
+                        const v = Number(pct);
+                        if (!isFinite(v)) return;
+                        const next = Math.max(0, Math.min(100, v)) / 100;
+                        filters.value.min_price = next;
+                        if (filters.value.max_price < next) filters.value.max_price = next;
+                    }
+                });
+
+                const maxPricePct = Vue.computed({
+                    get: () => {
+                        const v = Number(filters.value.max_price);
+                        if (!isFinite(v)) return 100;
+                        return Math.round(Math.max(0, Math.min(1, v)) * 1000) / 10; // 0.1% steps
+                    },
+                    set: (pct) => {
+                        const v = Number(pct);
+                        if (!isFinite(v)) return;
+                        const next = Math.max(0, Math.min(100, v)) / 100;
+                        filters.value.max_price = next;
+                        if (filters.value.min_price > next) filters.value.min_price = next;
+                    }
+                });
+
                 const presetDefinitions = [
                     {
                         id: 'safe_haven',
@@ -966,7 +1120,8 @@
                         apply: () => {
                             filters.value.min_price = 0.95;
                             filters.value.max_price = 1.00;
-                            filters.value.min_liquidity = 500;
+                            filters.value.min_liquidity = 5000;
+                            filters.value.min_volume = 5000;
                         }
                     },
                     {
@@ -975,14 +1130,14 @@
                         description: 'Low-probability long shots (≤5%), sorted by cheapest odds.',
                         summary: ['Prob ≤ 5%', 'Volume ≥ $1k', 'Sort: price ↑'],
                         icon: 'ph-smiley-x-eyes',
-                        cass: 'bg-poly-red/20 text-poly-red border-poly-red/50 hover:bg-poly-red/30',
+                        class: 'bg-poly-red/20 text-poly-red border-poly-red/50 hover:bg-poly-red/30',
                         apply: () => {
                             filters.value.max_price = 0.05;
-                           filters.value.min_volume = 1000;
+                            filters.value.min_volume = 1000;
                             filters.value.sort_by = 'price';
                             filters.value.sort_dir = 'asc';
                         }
-                   },
+                    },
                     {
                         id: 'buffett',
                         label: 'Warren Buffett',
@@ -992,9 +1147,9 @@
                         class: 'bg-poly-green/20 text-poly-green border-poly-green/50 hover:bg-poly-green/30',
                         apply: () => {
                             filters.value.min_price = 0.90;
-                            ilters.value.min_liquidity = 50000;
+                            filters.value.min_liquidity = 50000;
                             filters.value.max_spread = 0.02;
-                            flters.value.excludedTags = [
+                            filters.value.excludedTags = [
                                 'Crypto',
                                 'Crypto Prices',
                                 'Crypto Policy',
@@ -1019,7 +1174,7 @@
                             filters.value.sort_by = 'end_date';
                             filters.value.sort_dir = 'asc';
                         }
-                   },
+                    },
                     {
                         id: 'coinflip',
                         label: 'Coinflip Club',
@@ -1053,7 +1208,7 @@
                         class: 'bg-poly-blue/20 text-poly-blue border-poly-blue/50 hover:bg-poly-blue/30',
                         apply: () => {
                             filters.value.min_volume = 100000;
-                            filers.value.sort_by = 'volume_usd';
+                            filters.value.sort_by = 'volume_usd';
                             filters.value.sort_dir = 'desc';
                         }
                     }
@@ -1080,7 +1235,8 @@
                     const activeTags = new Set([...filters.value.includedTags, ...filters.value.excludedTags]);
                     let list = tags.value.filter(t => !activeTags.has(t.tag_label));
 
-                    if (searchQu           const s = searchQuery.toLowerCase();
+                    if (searchQuery) {
+                        const s = searchQuery.toLowerCase();
                         list = list.filter(t => t.tag_label.toLowerCase().includes(s));
                     }
                     return list.slice(0, 50); // Limit dropdown size
@@ -1259,7 +1415,8 @@
                     setExpiryHours(0);
                     filters.value.include_expired = true;
                     filters.value.includedTags = [];
-                    filters.value.excludedTags = [];                    filters.value.sort_by = "volume_usd";
+                    filters.value.excludedTags = [];
+                    filters.value.sort_by = "volume_usd";
 
                     if (preset && preset.apply) {
                         preset.apply();
@@ -1305,12 +1462,14 @@
                     const apr = Number(aprFraction);
                     if (!isFinite(apr) || apr <= 0) return "-";
                     return formatPercentCompact(apr * 100);
-                    const formatAprPercent = (aprFraction, price, endDate) => {
+                };
+
+                const formatAprPercent = (aprFraction, price, endDate) => {
                     const fromApi = Number(aprFraction);
                     if (isFinite(fromApi) && fromApi > 0) return formatAprFraction(fromApi);
 
                     const p = Number(price);
-                    if (!isFinite(p) || purn "-";
+                    if (!isFinite(p) || p <= 0 || p >= 1) return "-";
                     const end = new Date(endDate);
                     const now = new Date();
                     if (!(end instanceof Date) || isNaN(end.getTime())) return "-";
@@ -1355,7 +1514,7 @@
                         copiedKey.value = key;
                         if (copiedTimer) clearTimeout(copiedTimer);
                         copiedTimer = setTimeout(() => {
-                            copied;
+                            copiedKey.value = null;
                         }, 1200);
                         return true;
                     } catch (e) {
@@ -1385,10 +1544,11 @@
                         if (data.last_updated) {
                             serverLastUpdated.value = data.last_updated;
                         }
-              console.error(e); }
+                    } catch (e) { console.error(e); }
                 };
 
-                const fetchMarkets = async (appe             if (!append) {
+                const fetchMarkets = async (append = false) => {
+                    if (!append) {
                         console.log("fetchMarkets: Starting new fetch. Setting loading=true, offset=0");
                         offset.value = 0;
                         if (abortController) {
@@ -1412,21 +1572,26 @@
                         // Basic fields
                         params.append("min_volume", filters.value.min_volume);
                         params.append("min_liquidity", filters.value.min_liquidity);
-             ("min_price", filters.value.min_price);
+                        params.append("min_price", filters.value.min_price);
                         params.append("max_price", filters.value.max_price);
                         params.append("max_spread", filters.value.max_spread);
                         if (filters.value.min_apr_percent > 0) {
                             params.append("min_apr", String(filters.value.min_apr_percent / 100));
                         }
-                        params.append("include_expired", filters.value.in                if (filters.value.search) params.append("search", filters.value.search);
+                        params.append("include_expired", filters.value.include_expired);
+                        if (filters.value.search) params.append("search", filters.value.search);
                         params.append("sort_by", filters.value.sort_by);
-                        params.append("sort_dir", filters.value.sort        // Tag Logic (Comma Separated for Proxy Safety)
+                        params.append("sort_dir", filters.value.sort_dir);
+
+                        // Tag Logic (Comma Separated for Proxy Safety)
                         if (filters.value.includedTags.length > 0) {
                             params.append("included_tags", filters.value.includedTags.join(","));
                         }
                         if (filters.value.excludedTags.length > 0) {
                             params.append("excluded_tags", filters.value.excludedTags.join(","));
-                           // Hours
+                        }
+
+                        // Hours
                         if (filters.value.max_hours_to_expire > 0) {
                             params.append("max_hours_to_expire", filters.value.max_hours_to_expire);
                         }
@@ -1435,12 +1600,12 @@
                         params.append("limit", limit);
                         params.append("offset", offset.value);
 
-                 hMarkets: Fetching with params", params.toString());
-                        const resSE_URL}/api/markets?${params}`, { signal: abortController.signal });
+                        console.log("fetchMarkets: Fetching with params", params.toString());
+                        const res = await fetch(`${API_BASE_URL}/api/markets?${params}`, { signal: abortController.signal });
                         const newMarkets = await res.json();
 
                         if (append) {
-                            marets.value = [...markets.value, ...newMarkets];
+                            markets.value = [...markets.value, ...newMarkets];
                         } else {
                             markets.value = newMarkets;
                             expandedId.value = null;
@@ -1459,7 +1624,7 @@
                     } finally {
                         if (abortController && !abortController.signal.aborted) {
                             console.log("fetchMarkets: Fetch complete. Setting loading=false.");
-            loading.value = false;
+                            loading.value = false;
                             abortController = null;
                         }
                     }
@@ -1519,9 +1684,14 @@
 
                 onBeforeUnmount(() => {
                     window.removeEventListener("keydown", onKeyDown);
+                    window.removeEventListener("resize", updateScreenFlags);
+                    if (refreshInterval) clearInterval(refreshInterval);
                 });
 
                 onMounted(() => {
+                    updateScreenFlags();
+                    window.addEventListener("resize", updateScreenFlags);
+                    maybeAutoOpenMobileFilters();
                     buildExpiryOptions();
                     updateExpiryFromSlider(false);
                     window.addEventListener("keydown", onKeyDown);
@@ -1540,13 +1710,30 @@
                     tags,
                     loading,
                     showMobileFilters,
+                    effectiveViewMode,
                     filters,
                     expiryOptions,
-                    expiry                            exp                                upda                                                                                                          expande                        selectedIn                        compact                        lastUpdatedT                     // New Autocomplete                          includeSearch,                    excludeSearch,
-                     ncludeDropdown,
-                         cludeDropdown,
-                        ableTagsForInclude,                    availableTagsForExc                         // Preset                    owAllPresets,
-                          resets,
+                    expiryDisplay,
+                    expiryMaxLabel,
+                    updateExpiryFromSlider,
+                    applyExpiryPreset,
+                    aprLabel,
+                    minPricePct,
+                    maxPricePct,
+                    expandedId,
+                    selectedIndex,
+                    compactMode,
+                    lastUpdatedTime,
+                    // New Autocomplete State
+                    includeSearch,
+                    excludeSearch,
+                    showIncludeDropdown,
+                    showExcludeDropdown,
+                    availableTagsForInclude,
+                    availableTagsForExclude,
+                    // Presets
+                    showAllPresets,
+                    displayedPresets,
                     presetDefinitions,
                     activePresetId,
                     activePreset,
@@ -1562,7 +1749,7 @@
                     hideDropdown,
                     handleIncludePaste,
                     handleExcludePaste,
-                    // Formas &
+                    // Formatters & Others
                     formatCurrency,
                     formatCompact,
                     formatDate,
@@ -1576,6 +1763,7 @@
                     debouncedFetch,
                     setSort,
                     toggleDetails,
+                    toggleViewMode,
                     applyPreset
                 };
             }
