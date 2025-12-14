@@ -314,7 +314,25 @@ def get_markets(
 
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+
+    # Some DB snapshots may not have an `apr` column (older schema). When missing,
+    # compute APR on the fly so sorting/filtering doesn't break.
+    amo_cols = {r["name"] for r in cursor.execute("PRAGMA table_info(active_market_outcomes)").fetchall()}
+    has_apr_col = "apr" in amo_cols
+    apr_expr = (
+        "CASE "
+        "WHEN price IS NOT NULL "
+        " AND price > 0.0 "
+        " AND price < 1.0 "
+        " AND end_date IS NOT NULL "
+        " AND snapshot_at IS NOT NULL "
+        " AND julianday(datetime(end_date)) > julianday(datetime(snapshot_at)) "
+        "THEN ((1.0 / price) - 1.0) * (365.0 / (julianday(datetime(end_date)) - julianday(datetime(snapshot_at)))) "
+        "ELSE NULL "
+        "END"
+    )
+    apr_sql = "apr" if has_apr_col else f"({apr_expr})"
+
     # Disable caching
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     response.headers["Pragma"] = "no-cache"
@@ -344,9 +362,9 @@ def get_markets(
         params.append(max_spread)
 
     if min_apr is not None:
-        # Win-APR (linear): computed at scrape time (indexed column `apr`)
+        # Win-APR (linear). Prefer indexed column `apr`, but fall back to formula for older DBs.
         # min_apr is a fraction: 1.0 == 100% APR
-        where_clauses.append("(apr IS NOT NULL AND apr >= ?)")
+        where_clauses.append(f"({apr_sql} IS NOT NULL AND {apr_sql} >= ?)")
         params.append(float(min_apr))
 
     if search:
@@ -383,12 +401,21 @@ def get_markets(
     
     # Sorting
     valid_sorts = ["volume_usd", "liquidity_usd", "end_date", "price", "spread", "apr", "question"]
-    if sort_by not in valid_sorts: sort_by = "volume_usd"
-    
+    if sort_by not in valid_sorts:
+        sort_by = "volume_usd"
+
+    sort_sql = sort_by
+    if sort_by == "apr":
+        sort_sql = apr_sql
+    elif sort_by == "question":
+        sort_sql = "question COLLATE NOCASE"
+
+    select_sql = "SELECT *" if has_apr_col else f"SELECT *, {apr_sql} AS apr"
+
     sql = f"""
-        SELECT * FROM active_market_outcomes
+        {select_sql} FROM active_market_outcomes
         WHERE {where_str}
-        ORDER BY {sort_by} {'ASC' if sort_dir == 'asc' else 'DESC'}
+        ORDER BY {sort_sql} {'ASC' if sort_dir == 'asc' else 'DESC'}
         LIMIT {limit} OFFSET {offset}
     """
     
