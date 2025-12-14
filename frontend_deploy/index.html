@@ -323,27 +323,27 @@
                         (Probability)</label>
 
                     <!-- Min Price -->
-                    <div class="mb-3">
-                        <div class="flex justify-between text-xs mb-1">
-                            <span class="text-gray-500">Min</span>
-                            <span class="text-poly-blue font-mono">{{ minPricePct.toFixed(1) }}%</span>
-                        </div>
-                        <input type="range" min="0" max="100" step="0.1" v-model.number="minPricePct"
-                            @change="resetAndFetch"
-                            class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
-                    </div>
+	                    <div class="mb-3">
+	                        <div class="flex justify-between text-xs mb-1">
+	                            <span class="text-gray-500">Min</span>
+	                            <span class="text-poly-blue font-mono">{{ formatPct(minPricePct) }}%</span>
+	                        </div>
+	                        <input type="range" min="0" max="100" step="0.1" v-model.number="minPricePct"
+	                            @change="resetAndFetch"
+	                            class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
+	                    </div>
 
                     <!-- Max Price -->
-                    <div>
-                        <div class="flex justify-between text-xs mb-1">
-                            <span class="text-gray-500">Max</span>
-                            <span class="text-poly-blue font-mono">{{ maxPricePct.toFixed(1) }}%</span>
-                        </div>
-                        <input type="range" min="0" max="100" step="0.1" v-model.number="maxPricePct"
-                            @change="resetAndFetch"
-                            class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
-                    </div>
-                </div>
+	                    <div>
+	                        <div class="flex justify-between text-xs mb-1">
+	                            <span class="text-gray-500">Max</span>
+	                            <span class="text-poly-blue font-mono">{{ formatPct(maxPricePct) }}%</span>
+	                        </div>
+	                        <input type="range" min="0" max="100" step="0.1" v-model.number="maxPricePct"
+	                            @change="resetAndFetch"
+	                            class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
+	                    </div>
+	                </div>
 
                 <hr class="border-poly-accent/30 my-2">
 
@@ -1079,35 +1079,46 @@
                     return `${v.toFixed(0)}%`;
                 });
 
-                const minPricePct = Vue.computed({
-                    get: () => {
-                        const v = Number(filters.value.min_price);
-                        if (!isFinite(v)) return 0;
-                        return Math.round(Math.max(0, Math.min(1, v)) * 1000) / 10; // 0.1% steps
-                    },
-                    set: (pct) => {
-                        const v = Number(pct);
-                        if (!isFinite(v)) return;
-                        const next = Math.max(0, Math.min(100, v)) / 100;
-                        filters.value.min_price = next;
-                        if (filters.value.max_price < next) filters.value.max_price = next;
-                    }
-                });
+	                const snapPct = (pct) => {
+	                    const v = Number(pct);
+	                    if (!isFinite(v)) return 0;
+	                    const clamped = Math.max(0, Math.min(100, v));
+	                    if (clamped <= 1 || clamped >= 99) return Math.round(clamped * 10) / 10; // 0.1% near edges
+	                    return Math.round(clamped); // 1% in the middle
+	                };
 
-                const maxPricePct = Vue.computed({
-                    get: () => {
-                        const v = Number(filters.value.max_price);
-                        if (!isFinite(v)) return 100;
-                        return Math.round(Math.max(0, Math.min(1, v)) * 1000) / 10; // 0.1% steps
-                    },
-                    set: (pct) => {
-                        const v = Number(pct);
-                        if (!isFinite(v)) return;
-                        const next = Math.max(0, Math.min(100, v)) / 100;
-                        filters.value.max_price = next;
-                        if (filters.value.min_price > next) filters.value.min_price = next;
-                    }
-                });
+	                const formatPct = (pct) => {
+	                    const v = snapPct(pct);
+	                    return (v <= 1 || v >= 99) ? v.toFixed(1) : v.toFixed(0);
+	                };
+
+	                const minPricePct = Vue.computed({
+	                    get: () => {
+	                        const v = Number(filters.value.min_price);
+	                        if (!isFinite(v)) return 0;
+	                        return snapPct(Math.max(0, Math.min(1, v)) * 100);
+	                    },
+	                    set: (pct) => {
+	                        const snapped = snapPct(pct);
+	                        const next = snapped / 100;
+	                        filters.value.min_price = next;
+	                        if (filters.value.max_price < next) filters.value.max_price = next;
+	                    }
+	                });
+
+	                const maxPricePct = Vue.computed({
+	                    get: () => {
+	                        const v = Number(filters.value.max_price);
+	                        if (!isFinite(v)) return 100;
+	                        return snapPct(Math.max(0, Math.min(1, v)) * 100);
+	                    },
+	                    set: (pct) => {
+	                        const snapped = snapPct(pct);
+	                        const next = snapped / 100;
+	                        filters.value.max_price = next;
+	                        if (filters.value.min_price > next) filters.value.min_price = next;
+	                    }
+	                });
 
                 const presetDefinitions = [
                     {
@@ -1715,13 +1726,14 @@
                     expiryDisplay,
                     expiryMaxLabel,
                     updateExpiryFromSlider,
-                    applyExpiryPreset,
-                    aprLabel,
-                    minPricePct,
-                    maxPricePct,
-                    expandedId,
-                    selectedIndex,
-                    compactMode,
+	                    applyExpiryPreset,
+	                    aprLabel,
+	                    minPricePct,
+	                    maxPricePct,
+	                    formatPct,
+	                    expandedId,
+	                    selectedIndex,
+	                    compactMode,
                     lastUpdatedTime,
                     // New Autocomplete State
                     includeSearch,
