@@ -4,27 +4,19 @@ This guide explains how to deploy the application with the Frontend hosted on **
 
 ## 1. Backend Deployment (Google Cloud VPS)
 
-The backend handles the data, scraping, and API. It no longer serves the HTML.
+The backend handles the data, scraping, and API (and may optionally serve the UI if you open it directly on the VPS IP).
 
 1.  **SSH into your VPS.**
-2.  **Pull this branch:**
+2.  **Pull the latest `main`:**
     ```bash
-    git checkout feature/vercel-split
-    git pull origin feature/vercel-split
+    git checkout main
+    git pull origin main
     ```
-3.  **Update settings:**
-    *   In `main.py`, update the `origins` list in the CORS configuration if you have a custom domain for Vercel.
-    ```python
-    origins = [
-        "https://your-project.vercel.app", 
-        "https://polymarket-scanner.vercel.app"
-    ]
-    ```
-4.  **Deploy:**
+3.  **Deploy (Docker):**
     ```bash
-    docker-compose up -d --build
+    docker compose up -d --build
     ```
-    Your API will be available at `http://YOUR_VPS_IP/api/...`.
+    Your API will be available at `http://YOUR_VPS_IP/api/...` (or `https://YOUR_DOMAIN/api/...` if you later add HTTPS).
 
 ## 2. Frontend Deployment (Vercel)
 
@@ -42,6 +34,14 @@ The frontend is a single static HTML file.
 2.  **Deploy to Vercel:**
     *   **Option A (recommended):** Deploy from the repo root so `vercel.json` rewrites apply (frontend calls `/api/*` on the same origin).
     *   **Option B (static-only):** Deploy only `static/index.html` (or a minimal repo containing it). In that case you typically need to set `API_BASE_URL` and handle CORS/HTTPS, unless you also add rewrites to that project.
+3.  **Point Vercel to your API:**
+    *   Update `vercel.json` so `/api/*` rewrites to your VPS (IP or domain), for example:
+    ```json
+    {
+      "source": "/api/:path*",
+      "destination": "http://YOUR_VPS_IP/api/:path*"
+    }
+    ```
 
 ## 3. Verify
 
