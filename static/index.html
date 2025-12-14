@@ -74,8 +74,8 @@
         <!-- Mobile Filter Toggle Bar (Visible only on mobile) -->
         <div class="md:hidden bg-poly-card border-b border-poly-accent p-3 flex justify-between items-center shrink-0">
             <button @click="showMobileFilters = true"
-                class="flex items-center gap-2 px-3 py-1.5 rounded border border-poly-accent bg-poly-bg text-gray-300 text-xs font-bold uppercase tracking-wider">
-                <i class="ph ph-faders"></i> Filters
+                class="flex items-center gap-2 px-4 py-2 rounded border border-poly-accent bg-poly-bg text-gray-300 text-xs font-bold uppercase tracking-wider active:bg-poly-accent transition-colors">
+                <i class="ph ph-faders text-lg"></i> Filters
             </button>
             <div class="text-xs text-gray-400">
                 {{ markets.length }} markets
@@ -96,8 +96,9 @@
                 <!-- Mobile specific header inside sidebar -->
                 <div class="flex justify-between items-center md:hidden mb-2">
                     <h3 class="text-white font-bold text-lg">Filters</h3>
-                    <button @click="showMobileFilters = false" class="p-2 text-gray-400 hover:text-white">
-                        <i class="ph ph-x text-xl"></i>
+                    <button @click="showMobileFilters = false"
+                        class="p-3 -mr-2 text-gray-400 hover:text-white active:bg-poly-accent/50 rounded-full transition-colors">
+                        <i class="ph ph-x text-2xl"></i>
                     </button>
                 </div>
 
@@ -804,7 +805,7 @@
         // Configuration
         // When running on Vercel, this should point to your VPS IP/Domain.
         // For local development, it can be localhost.
-        const API_BASE_URL = "http://localhost:8000";
+        const API_BASE_URL = "http://localhos:8000";
 
         createApp({
             setup() {
@@ -816,9 +817,7 @@
                 const compactMode = ref(false);
                 const offset = ref(0);
                 const limit = 100; // Load 100 at a time
-                const serverLastUpdated = ref(null);
-
-                // Autocomplete State
+                const serverLastUpdated = ref(        // Autocomplete State
                 const includeSearch = ref("");
                 const excludeSearch = ref("");
                 const showIncludeDropdown = ref(false);
@@ -828,10 +827,10 @@
                 const showAllPresets = ref(false);
                 const showMobileFilters = ref(false);
 
-                // Default Filters (User Request: 5c spread, 5k vol, 1k liq, 0-100 prob)
+        lt Filters (User Request: 5c spread, 5k vol, 1k liq, 0-100 prob)
                 const filters = ref({
                     includedTags: [],
-                    excludedTags: [],
+                    excldedTags: [],
                     min_volume: 5000,
                     min_liquidity: 1000,
                     min_price: 0.00,
@@ -976,14 +975,14 @@
                         description: 'Low-probability long shots (≤5%), sorted by cheapest odds.',
                         summary: ['Prob ≤ 5%', 'Volume ≥ $1k', 'Sort: price ↑'],
                         icon: 'ph-smiley-x-eyes',
-                        class: 'bg-poly-red/20 text-poly-red border-poly-red/50 hover:bg-poly-red/30',
+                        cass: 'bg-poly-red/20 text-poly-red border-poly-red/50 hover:bg-poly-red/30',
                         apply: () => {
                             filters.value.max_price = 0.05;
-                            filters.value.min_volume = 1000;
+                           filters.value.min_volume = 1000;
                             filters.value.sort_by = 'price';
                             filters.value.sort_dir = 'asc';
                         }
-                    },
+                   },
                     {
                         id: 'buffett',
                         label: 'Warren Buffett',
@@ -993,9 +992,9 @@
                         class: 'bg-poly-green/20 text-poly-green border-poly-green/50 hover:bg-poly-green/30',
                         apply: () => {
                             filters.value.min_price = 0.90;
-                            filters.value.min_liquidity = 50000;
+                            ilters.value.min_liquidity = 50000;
                             filters.value.max_spread = 0.02;
-                            filters.value.excludedTags = [
+                            flters.value.excludedTags = [
                                 'Crypto',
                                 'Crypto Prices',
                                 'Crypto Policy',
@@ -1020,7 +1019,7 @@
                             filters.value.sort_by = 'end_date';
                             filters.value.sort_dir = 'asc';
                         }
-                    },
+                   },
                     {
                         id: 'coinflip',
                         label: 'Coinflip Club',
@@ -1054,7 +1053,7 @@
                         class: 'bg-poly-blue/20 text-poly-blue border-poly-blue/50 hover:bg-poly-blue/30',
                         apply: () => {
                             filters.value.min_volume = 100000;
-                            filters.value.sort_by = 'volume_usd';
+                            filers.value.sort_by = 'volume_usd';
                             filters.value.sort_dir = 'desc';
                         }
                     }
@@ -1081,8 +1080,7 @@
                     const activeTags = new Set([...filters.value.includedTags, ...filters.value.excludedTags]);
                     let list = tags.value.filter(t => !activeTags.has(t.tag_label));
 
-                    if (searchQuery) {
-                        const s = searchQuery.toLowerCase();
+                    if (searchQu           const s = searchQuery.toLowerCase();
                         list = list.filter(t => t.tag_label.toLowerCase().includes(s));
                     }
                     return list.slice(0, 50); // Limit dropdown size
@@ -1261,8 +1259,7 @@
                     setExpiryHours(0);
                     filters.value.include_expired = true;
                     filters.value.includedTags = [];
-                    filters.value.excludedTags = [];
-                    filters.value.sort_by = "volume_usd";
+                    filters.value.excludedTags = [];                    filters.value.sort_by = "volume_usd";
 
                     if (preset && preset.apply) {
                         preset.apply();
@@ -1308,14 +1305,12 @@
                     const apr = Number(aprFraction);
                     if (!isFinite(apr) || apr <= 0) return "-";
                     return formatPercentCompact(apr * 100);
-                };
-
-                const formatAprPercent = (aprFraction, price, endDate) => {
+                    const formatAprPercent = (aprFraction, price, endDate) => {
                     const fromApi = Number(aprFraction);
                     if (isFinite(fromApi) && fromApi > 0) return formatAprFraction(fromApi);
 
                     const p = Number(price);
-                    if (!isFinite(p) || p <= 0 || p >= 1) return "-";
+                    if (!isFinite(p) || purn "-";
                     const end = new Date(endDate);
                     const now = new Date();
                     if (!(end instanceof Date) || isNaN(end.getTime())) return "-";
@@ -1360,7 +1355,7 @@
                         copiedKey.value = key;
                         if (copiedTimer) clearTimeout(copiedTimer);
                         copiedTimer = setTimeout(() => {
-                            copiedKey.value = null;
+                            copied;
                         }, 1200);
                         return true;
                     } catch (e) {
@@ -1390,11 +1385,10 @@
                         if (data.last_updated) {
                             serverLastUpdated.value = data.last_updated;
                         }
-                    } catch (e) { console.error(e); }
+              console.error(e); }
                 };
 
-                const fetchMarkets = async (append = false) => {
-                    if (!append) {
+                const fetchMarkets = async (appe             if (!append) {
                         console.log("fetchMarkets: Starting new fetch. Setting loading=true, offset=0");
                         offset.value = 0;
                         if (abortController) {
@@ -1418,26 +1412,21 @@
                         // Basic fields
                         params.append("min_volume", filters.value.min_volume);
                         params.append("min_liquidity", filters.value.min_liquidity);
-                        params.append("min_price", filters.value.min_price);
+             ("min_price", filters.value.min_price);
                         params.append("max_price", filters.value.max_price);
                         params.append("max_spread", filters.value.max_spread);
                         if (filters.value.min_apr_percent > 0) {
                             params.append("min_apr", String(filters.value.min_apr_percent / 100));
                         }
-                        params.append("include_expired", filters.value.include_expired);
-                        if (filters.value.search) params.append("search", filters.value.search);
+                        params.append("include_expired", filters.value.in                if (filters.value.search) params.append("search", filters.value.search);
                         params.append("sort_by", filters.value.sort_by);
-                        params.append("sort_dir", filters.value.sort_dir);
-
-                        // Tag Logic (Comma Separated for Proxy Safety)
+                        params.append("sort_dir", filters.value.sort        // Tag Logic (Comma Separated for Proxy Safety)
                         if (filters.value.includedTags.length > 0) {
                             params.append("included_tags", filters.value.includedTags.join(","));
                         }
                         if (filters.value.excludedTags.length > 0) {
                             params.append("excluded_tags", filters.value.excludedTags.join(","));
-                        }
-
-                        // Hours
+                           // Hours
                         if (filters.value.max_hours_to_expire > 0) {
                             params.append("max_hours_to_expire", filters.value.max_hours_to_expire);
                         }
@@ -1446,12 +1435,12 @@
                         params.append("limit", limit);
                         params.append("offset", offset.value);
 
-                        console.log("fetchMarkets: Fetching with params", params.toString());
-                        const res = await fetch(`${API_BASE_URL}/api/markets?${params}`, { signal: abortController.signal });
+                 hMarkets: Fetching with params", params.toString());
+                        const resSE_URL}/api/markets?${params}`, { signal: abortController.signal });
                         const newMarkets = await res.json();
 
                         if (append) {
-                            markets.value = [...markets.value, ...newMarkets];
+                            marets.value = [...markets.value, ...newMarkets];
                         } else {
                             markets.value = newMarkets;
                             expandedId.value = null;
@@ -1470,7 +1459,7 @@
                     } finally {
                         if (abortController && !abortController.signal.aborted) {
                             console.log("fetchMarkets: Fetch complete. Setting loading=false.");
-                            loading.value = false;
+            loading.value = false;
                             abortController = null;
                         }
                     }
@@ -1553,25 +1542,11 @@
                     showMobileFilters,
                     filters,
                     expiryOptions,
-                    expiryDisplay,
-                    expiryMaxLabel,
-                    updateExpiryFromSlider,
-                    applyExpiryPreset,
-                    aprLabel,
-                    expandedId,
-                    selectedIndex,
-                    compactMode,
-                    lastUpdatedTime,
-                    // New Autocomplete State
-                    includeSearch,
-                    excludeSearch,
-                    showIncludeDropdown,
-                    showExcludeDropdown,
-                    availableTagsForInclude,
-                    availableTagsForExclude,
-                    // Presets
-                    showAllPresets,
-                    displayedPresets,
+                    expiry                            exp                                upda                                                                                                          expande                        selectedIn                        compact                        lastUpdatedT                     // New Autocomplete                          includeSearch,                    excludeSearch,
+                     ncludeDropdown,
+                         cludeDropdown,
+                        ableTagsForInclude,                    availableTagsForExc                         // Preset                    owAllPresets,
+                          resets,
                     presetDefinitions,
                     activePresetId,
                     activePreset,
@@ -1587,7 +1562,7 @@
                     hideDropdown,
                     handleIncludePaste,
                     handleExcludePaste,
-                    // Formatters & Others
+                    // Formas &
                     formatCurrency,
                     formatCompact,
                     formatDate,
