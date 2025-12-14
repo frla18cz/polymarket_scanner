@@ -30,3 +30,7 @@ local_db*
 .gemini-clipboard/
 *.log
 data/markets.db
+data/metrics.db
+data/metrics.db-*
+.run/
+ui_server.pid

@@ -97,6 +97,35 @@ def ensure_indices():
     try:
         # Enable Write-Ahead Logging (allows simultaneous read/write)
         conn.execute("PRAGMA journal_mode=WAL;")
+
+        # Schema migration (idempotent): add + backfill APR for outcome-level rows
+        try:
+            cols = [r["name"] for r in conn.execute("PRAGMA table_info(active_market_outcomes)").fetchall()]
+            if "apr" not in cols:
+                conn.execute("ALTER TABLE active_market_outcomes ADD COLUMN apr REAL;")
+                conn.commit()
+
+            conn.execute(
+                """
+                UPDATE active_market_outcomes
+                SET apr = (
+                    CASE
+                        WHEN price IS NOT NULL
+                             AND price > 0.0
+                             AND price < 1.0
+                             AND end_date IS NOT NULL
+                             AND snapshot_at IS NOT NULL
+                             AND julianday(datetime(end_date)) > julianday(datetime(snapshot_at))
+                        THEN ((1.0 / price) - 1.0) * (365.0 / (julianday(datetime(end_date)) - julianday(datetime(snapshot_at))))
+                        ELSE NULL
+                    END
+                )
+                WHERE apr IS NULL
+                """
+            )
+            conn.commit()
+        except Exception as e:
+            print(f"WARNING: Failed to ensure APR column/index readiness: {e}")
         
         conn.executescript("""
             CREATE INDEX IF NOT EXISTS idx_market_tags_label ON market_tags(tag_label);
@@ -109,6 +138,7 @@ def ensure_indices():
             CREATE INDEX IF NOT EXISTS idx_amo_price ON active_market_outcomes(price);
             CREATE INDEX IF NOT EXISTS idx_amo_spread ON active_market_outcomes(spread);
             CREATE INDEX IF NOT EXISTS idx_amo_liquidity ON active_market_outcomes(liquidity_usd);
+            CREATE INDEX IF NOT EXISTS idx_amo_apr ON active_market_outcomes(apr);
             
             -- Text Search Indices (helps with sorting/exact match)
             CREATE INDEX IF NOT EXISTS idx_amo_question ON active_market_outcomes(question);
@@ -194,17 +224,12 @@ app = FastAPI()
 ensure_indices()
 init_metrics_db()
 
-# CORS Configuration
-origins = [
-    "http://localhost:3000",
-    "https://your-vercel-app.vercel.app",  
-    "*" 
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    # We don't use cookies/auth for the API, so keep CORS permissive.
+    # This also avoids the invalid combination of `allow_credentials=True` with `allow_origins=["*"]`.
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -272,6 +297,7 @@ def get_markets(
     min_price: Optional[float] = 0.0,
     max_price: Optional[float] = 1.0,
     max_spread: Optional[float] = None,
+    min_apr: Optional[float] = None,
     max_hours_to_expire: Optional[int] = None,
     include_expired: bool = True,
     search: Optional[str] = None
@@ -317,6 +343,12 @@ def get_markets(
         where_clauses.append("spread <= ?")
         params.append(max_spread)
 
+    if min_apr is not None:
+        # Win-APR (linear): computed at scrape time (indexed column `apr`)
+        # min_apr is a fraction: 1.0 == 100% APR
+        where_clauses.append("(apr IS NOT NULL AND apr >= ?)")
+        params.append(float(min_apr))
+
     if search:
         where_clauses.append("(question LIKE ? OR outcome_name LIKE ?)")
         params.append(f"%{search}%")
@@ -335,10 +367,11 @@ def get_markets(
 
     # Tag Logic
     if included_tags:
-        placeholders = ",".join("?" * len(included_tags))
-        # Optimized: Use IN (SELECT...) instead of correlated EXISTS. SQLite handles this better with indices.
+        uniq_included = list(dict.fromkeys(included_tags))
+        placeholders = ",".join("?" * len(uniq_included))
+        # ANY: at least one of selected tags
         where_clauses.append(f"market_id IN (SELECT market_id FROM market_tags WHERE tag_label IN ({placeholders}))")
-        params.extend(included_tags)
+        params.extend(uniq_included)
 
     if excluded_tags:
         placeholders = ",".join("?" * len(excluded_tags))
@@ -349,7 +382,7 @@ def get_markets(
     where_str = " AND ".join(where_clauses)
     
     # Sorting
-    valid_sorts = ["volume_usd", "liquidity_usd", "end_date", "price", "spread"]
+    valid_sorts = ["volume_usd", "liquidity_usd", "end_date", "price", "spread", "apr", "question"]
     if sort_by not in valid_sorts: sort_by = "volume_usd"
     
     sql = f"""
@@ -486,6 +519,13 @@ def diagnostics_perf(request: Request, mode: str = "fast"):
 def _frontend_enabled() -> bool:
     return os.environ.get("SERVE_FRONTEND") == "1"
 
+def _frontend_no_cache_headers() -> dict[str, str]:
+    return {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+    }
+
 
 @app.get("/", include_in_schema=False)
 def frontend_root():
@@ -493,7 +533,7 @@ def frontend_root():
         raise HTTPException(status_code=404, detail="Not Found")
     if not FRONTEND_INDEX_PATH.exists():
         raise HTTPException(status_code=500, detail="frontend_deploy/index.html not found")
-    return FileResponse(FRONTEND_INDEX_PATH)
+    return FileResponse(FRONTEND_INDEX_PATH, headers=_frontend_no_cache_headers())
 
 
 @app.get("/{path:path}", include_in_schema=False)
@@ -504,7 +544,7 @@ def frontend_catchall(path: str):
         raise HTTPException(status_code=404, detail="Not Found")
     if not FRONTEND_INDEX_PATH.exists():
         raise HTTPException(status_code=500, detail="frontend_deploy/index.html not found")
-    return FileResponse(FRONTEND_INDEX_PATH)
+    return FileResponse(FRONTEND_INDEX_PATH, headers=_frontend_no_cache_headers())
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

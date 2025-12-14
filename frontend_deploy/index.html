@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,7 @@
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
+
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -31,21 +32,34 @@
         }
     </script>
     <style>
-        body { background-color: #0f111a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .table-row-hover:hover { background-color: #1a1d2d; }
+        body {
+            background-color: #0f111a;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .table-row-hover:hover {
+            background-color: #1a1d2d;
+        }
     </style>
 </head>
+
 <body class="h-screen overflow-hidden flex flex-col">
 
     <div id="app" class="flex flex-col h-full relative">
-        
+
         <!-- Header -->
-        <header class="bg-poly-card border-b border-poly-accent p-4 flex justify-between items-center shadow-md z-30 shrink-0">
+        <header
+            class="bg-poly-card border-b border-poly-accent p-4 flex justify-between items-center shadow-md z-30 shrink-0">
             <div class="flex items-center gap-3">
                 <i class="ph ph-chart-line-up text-poly-blue text-2xl"></i>
-                <h1 class="text-xl font-bold tracking-tight">Poly<span class="text-poly-blue">Scan v2</span></h1>
-                <span class="text-[10px] md:text-xs text-gray-500 ml-1 md:ml-2 bg-poly-bg px-2 py-1 rounded border border-poly-accent whitespace-nowrap">
+                <h1 class="text-xl font-bold tracking-tight">Poly<span class="text-poly-blue">Scan</span></h1>
+                <span
+                    class="text-[10px] md:text-xs text-gray-500 ml-1 md:ml-2 bg-poly-bg px-2 py-1 rounded border border-poly-accent whitespace-nowrap">
                     {{ lastUpdatedTime }}
                 </span>
             </div>
@@ -54,37 +68,89 @@
                     <span class="text-gray-400 text-xs">Active Markets</span>
                     <span class="text-white">16,000+</span>
                 </div>
-                <button v-if="false" @click="openDiagnostics"
-                    class="ml-2 inline-flex items-center gap-2 px-3 py-2 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-xs text-gray-200 transition">
-                    <i class="ph ph-timer"></i>
-                    Diagnostics
-                </button>
             </div>
         </header>
 
+        <!-- Mobile Filter Toggle Bar (Visible only on mobile) -->
+        <div class="md:hidden bg-poly-card border-b border-poly-accent p-3 flex justify-between items-center shrink-0">
+            <button @click="showMobileFilters = true"
+                class="flex items-center gap-2 px-4 py-2 rounded border border-poly-accent bg-poly-bg text-gray-300 text-xs font-bold uppercase tracking-wider active:bg-poly-accent transition-colors">
+                <i class="ph ph-faders text-lg"></i> Filters
+            </button>
+            <div class="flex items-center gap-2">
+                <button @click="toggleViewMode"
+                    class="flex items-center gap-2 px-4 py-2 rounded border border-poly-accent bg-poly-bg text-gray-300 text-xs font-bold uppercase tracking-wider active:bg-poly-accent transition-colors"
+                    type="button"
+                    :aria-label="effectiveViewMode === 'cards' ? 'Switch to table view' : 'Switch to card view'">
+                    <i :class="['ph text-lg', effectiveViewMode === 'cards' ? 'ph-table' : 'ph-cards']"></i>
+                    <span>{{ effectiveViewMode === 'cards' ? 'Table' : 'Cards' }}</span>
+                </button>
+                <div class="text-xs text-gray-400">
+                    {{ markets.length }} markets
+                </div>
+            </div>
+        </div>
+
         <!-- Main Content (Sidebar + Grid) -->
-        <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
-            
-            <!-- Sidebar Filters -->
-            <aside class="w-full md:w-64 bg-poly-card border-b md:border-b-0 md:border-r border-poly-accent p-4 flex flex-col gap-6 overflow-y-auto shrink-0 max-h-[40vh] md:max-h-full">
-                
+        <div class="flex flex-col md:flex-row flex-1 overflow-hidden relative">
+
+            <!-- Sidebar Filters (Desktop: Normal, Mobile: Fixed Overlay) -->
+            <div v-if="showMobileFilters" class="fixed inset-0 bg-black/80 z-40 md:hidden backdrop-blur-sm"
+                @click="showMobileFilters = false"></div>
+
+            <aside class="w-64 bg-poly-card border-r border-poly-accent p-4 flex flex-col gap-6 overflow-y-auto shrink-0 z-50 transition-transform duration-300 transform
+                        fixed md:relative top-0 bottom-0 left-0 h-full shadow-2xl md:shadow-none bg-poly-card"
+                :class="showMobileFilters ? 'translate-x-0' : '-translate-x-full md:translate-x-0'">
+
+                <!-- Mobile specific header inside sidebar -->
+                <div class="flex justify-between items-center md:hidden mb-2">
+                    <h3 class="text-white font-bold text-lg">Filters</h3>
+                    <button @click="showMobileFilters = false"
+                        class="p-3 -mr-2 text-gray-400 hover:text-white active:bg-poly-accent/50 rounded-full transition-colors">
+                        <i class="ph ph-x text-2xl"></i>
+                    </button>
+                </div>
+
                 <!-- Presets -->
                 <div class="grid grid-cols-2 gap-2">
-                    <button v-for="preset in displayedPresets" :key="preset.id"
-                        @click="applyPreset(preset)" 
+                    <button v-for="preset in displayedPresets" :key="preset.id" @click="applyPreset(preset)"
                         class="border rounded py-2 px-1 text-xs transition flex flex-col items-center gap-1 text-center h-full justify-center"
-                        :class="preset.class">
+                        :class="preset.class" :title="preset.description || preset.label" type="button">
                         <i :class="['ph text-xl', preset.icon]"></i>
                         <span class="leading-tight">{{ preset.label }}</span>
                     </button>
-                    
+
                     <!-- Show More / Less -->
-                    <button v-if="presetDefinitions.length > 4" 
-                        @click="showAllPresets = !showAllPresets"
-                        class="col-span-2 text-[10px] text-gray-500 hover:text-white mt-1 flex items-center justify-center gap-1 transition uppercase tracking-wider font-bold py-1">
+                    <button v-if="presetDefinitions.length > 4" @click="showAllPresets = !showAllPresets"
+                        class="col-span-2 text-[10px] text-gray-500 hover:text-white mt-1 flex items-center justify-center gap-1 transition uppercase tracking-wider font-bold py-1"
+                        type="button">
                         <span>{{ showAllPresets ? 'Show Less' : 'Show More' }}</span>
                         <i :class="showAllPresets ? 'ph-caret-up' : 'ph-caret-down'"></i>
                     </button>
+                </div>
+
+                <div v-if="activePreset" class="rounded border border-poly-accent bg-poly-bg/60 p-3">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Last preset</div>
+                            <div class="text-xs font-semibold text-white truncate">{{ activePreset.label }}</div>
+                            <div v-if="activePreset.description" class="text-[11px] text-gray-400 mt-1 leading-snug">
+                                {{ activePreset.description }}
+                            </div>
+                            <div v-if="activePreset.summary && activePreset.summary.length"
+                                class="flex flex-wrap gap-1 mt-2">
+                                <span v-for="item in activePreset.summary" :key="item"
+                                    class="px-2 py-0.5 rounded text-[10px] font-medium border border-poly-accent/60 bg-poly-card/40 text-gray-300">
+                                    {{ item }}
+                                </span>
+                            </div>
+                        </div>
+                        <button @click="activePresetId = null"
+                            class="shrink-0 inline-flex items-center justify-center w-7 h-7 rounded border border-poly-accent bg-poly-card hover:bg-poly-accent text-gray-200 transition"
+                            type="button" aria-label="Dismiss preset info">
+                            <i class="ph ph-x"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Search Markets -->
@@ -92,8 +158,8 @@
                     <label class="text-xs text-gray-400 uppercase font-bold mb-2 block">Search Markets</label>
                     <div class="relative">
                         <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-gray-500"></i>
-                        <input type="text" v-model="filters.search" @input="debouncedFetch" 
-                            class="w-full bg-poly-bg border border-poly-accent rounded pl-9 pr-3 py-2 text-sm focus:border-poly-blue outline-none transition" 
+                        <input type="text" v-model="filters.search" @input="debouncedFetch"
+                            class="w-full bg-poly-bg border border-poly-accent rounded pl-9 pr-3 py-2 text-sm focus:border-poly-blue outline-none transition"
                             placeholder="Trump, BTC, etc...">
                     </div>
                 </div>
@@ -102,13 +168,13 @@
 
                 <!-- Categories (Smart Autocomplete) -->
                 <div class="flex flex-col gap-6">
-                    
+
                     <!-- INCLUDED Categories -->
                     <div class="relative">
                         <div class="flex justify-between items-center mb-1">
                             <label class="text-xs text-poly-green font-bold uppercase">Include Categories</label>
                         </div>
-                        
+
                         <!-- Selected Pills (Including ALL) -->
                         <div class="flex flex-wrap gap-1.5 mb-2">
                             <!-- ALL Button -->
@@ -121,27 +187,31 @@
                             </button>
 
                             <!-- Specific Tags -->
-                            <span v-for="tag in filters.includedTags" :key="'inc-'+tag" 
+                            <span v-for="tag in filters.includedTags" :key="'inc-'+tag"
                                 class="px-2 py-0.5 rounded text-[10px] font-medium border border-poly-green bg-poly-green/10 text-poly-green flex items-center gap-1">
                                 {{ tag }}
-                                <button @click="removeIncludedTag(tag)" class="hover:text-white"><i class="ph ph-x"></i></button>
+                                <button @click="removeIncludedTag(tag)" class="hover:text-white"><i
+                                        class="ph ph-x"></i></button>
                             </span>
                         </div>
 
                         <!-- Input & Dropdown -->
                         <div class="relative group">
-                            <i class="ph ph-plus absolute left-3 top-2 text-gray-500 group-focus-within:text-poly-green"></i>
-                            <input type="text" v-model="includeSearch" 
-                                @focus="showIncludeDropdown = true" 
-                                @blur="hideDropdown('include')"
-                                class="w-full bg-poly-bg border border-poly-accent rounded pl-9 pr-3 py-1.5 text-xs focus:border-poly-green outline-none transition placeholder-gray-600" 
-                                placeholder="Add category to include...">
-                            
+                            <i
+                                class="ph ph-plus absolute left-3 top-2 text-gray-500 group-focus-within:text-poly-green"></i>
+                            <input type="text" v-model="includeSearch" @focus="showIncludeDropdown = true"
+                                @blur="hideDropdown('include')" @keydown.enter.prevent="commitIncludeSearch"
+                                @paste="handleIncludePaste"
+                                class="w-full bg-poly-bg border border-poly-accent rounded pl-9 pr-3 py-1.5 text-xs focus:border-poly-green outline-none transition placeholder-gray-600"
+                                placeholder="Add categories (comma/newline)...">
+
                             <!-- Dropdown -->
-                            <div v-if="showIncludeDropdown" class="absolute left-0 right-0 top-full mt-1 bg-poly-card border border-poly-accent rounded shadow-xl z-50 max-h-60 overflow-y-auto">
-                                <div v-if="availableTagsForInclude.length === 0" class="p-2 text-gray-500 text-xs text-center">No matching tags found.</div>
-                                <button v-for="tag in availableTagsForInclude" :key="tag.tag_label" 
-                                    @mousedown.prevent="addIncludedTag(tag.tag_label)"
+                            <div v-if="showIncludeDropdown"
+                                class="absolute left-0 right-0 top-full mt-1 bg-poly-card border border-poly-accent rounded shadow-xl z-50 max-h-60 overflow-y-auto">
+                                <div v-if="availableTagsForInclude.length === 0"
+                                    class="p-2 text-gray-500 text-xs text-center">No matching tags found.</div>
+                                <button v-for="tag in availableTagsForInclude" :key="tag.tag_label"
+                                    @mousedown.prevent="addIncludedTag(tag.tag_label, true)"
                                     class="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-poly-accent hover:text-white flex justify-between items-center border-b border-poly-accent/30 last:border-0">
                                     <span>{{ tag.tag_label }}</span>
                                     <span class="text-[9px] text-gray-600">{{ tag.count }}</span>
@@ -154,32 +224,38 @@
                     <div class="relative">
                         <div class="flex justify-between items-center mb-1">
                             <label class="text-xs text-poly-red font-bold uppercase">Exclude Categories</label>
-                            <span v-if="filters.excludedTags.length > 0" class="text-[10px] text-gray-500 cursor-pointer hover:text-white" @click="resetExcludedTags">Clear</span>
+                            <span v-if="filters.excludedTags.length > 0"
+                                class="text-[10px] text-gray-500 cursor-pointer hover:text-white"
+                                @click="resetExcludedTags">Clear</span>
                         </div>
 
                         <!-- Selected Pills -->
                         <div class="flex flex-wrap gap-1.5 mb-2" v-if="filters.excludedTags.length > 0">
-                            <span v-for="tag in filters.excludedTags" :key="'exc-'+tag" 
+                            <span v-for="tag in filters.excludedTags" :key="'exc-'+tag"
                                 class="px-2 py-0.5 rounded text-[10px] font-medium border border-poly-red bg-poly-red/10 text-poly-red flex items-center gap-1">
                                 {{ tag }}
-                                <button @click="removeExcludedTag(tag)" class="hover:text-white"><i class="ph ph-x"></i></button>
+                                <button @click="removeExcludedTag(tag)" class="hover:text-white"><i
+                                        class="ph ph-x"></i></button>
                             </span>
                         </div>
 
                         <!-- Input & Dropdown -->
                         <div class="relative group">
-                            <i class="ph ph-minus absolute left-3 top-2 text-gray-500 group-focus-within:text-poly-red"></i>
-                            <input type="text" v-model="excludeSearch" 
-                                @focus="showExcludeDropdown = true" 
-                                @blur="hideDropdown('exclude')"
-                                class="w-full bg-poly-bg border border-poly-accent rounded pl-9 pr-3 py-1.5 text-xs focus:border-poly-red outline-none transition placeholder-gray-600" 
-                                placeholder="Add category to exclude...">
-                            
+                            <i
+                                class="ph ph-minus absolute left-3 top-2 text-gray-500 group-focus-within:text-poly-red"></i>
+                            <input type="text" v-model="excludeSearch" @focus="showExcludeDropdown = true"
+                                @blur="hideDropdown('exclude')" @keydown.enter.prevent="commitExcludeSearch"
+                                @paste="handleExcludePaste"
+                                class="w-full bg-poly-bg border border-poly-accent rounded pl-9 pr-3 py-1.5 text-xs focus:border-poly-red outline-none transition placeholder-gray-600"
+                                placeholder="Add categories (comma/newline)...">
+
                             <!-- Dropdown -->
-                            <div v-if="showExcludeDropdown" class="absolute left-0 right-0 top-full mt-1 bg-poly-card border border-poly-accent rounded shadow-xl z-50 max-h-60 overflow-y-auto">
-                                <div v-if="availableTagsForExclude.length === 0" class="p-2 text-gray-500 text-xs text-center">No matching tags found.</div>
-                                <button v-for="tag in availableTagsForExclude" :key="tag.tag_label" 
-                                    @mousedown.prevent="addExcludedTag(tag.tag_label)"
+                            <div v-if="showExcludeDropdown"
+                                class="absolute left-0 right-0 top-full mt-1 bg-poly-card border border-poly-accent rounded shadow-xl z-50 max-h-60 overflow-y-auto">
+                                <div v-if="availableTagsForExclude.length === 0"
+                                    class="p-2 text-gray-500 text-xs text-center">No matching tags found.</div>
+                                <button v-for="tag in availableTagsForExclude" :key="tag.tag_label"
+                                    @mousedown.prevent="addExcludedTag(tag.tag_label, true)"
                                     class="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-poly-accent hover:text-white flex justify-between items-center border-b border-poly-accent/30 last:border-0">
                                     <span>{{ tag.tag_label }}</span>
                                     <span class="text-[9px] text-gray-600">{{ tag.count }}</span>
@@ -195,21 +271,47 @@
                 <!-- Expiration -->
                 <div>
                     <label class="text-xs text-gray-400 uppercase font-bold mb-2 block flex justify-between">
-                        <span>Expires Within</span>
-                        <span class="text-poly-blue">{{ filters.max_hours_to_expire > 0 ? filters.max_hours_to_expire + 'h' : 'Anytime' }}</span>
+                        <span title="Filters markets with end_date <= now + cutoff">Expires Within</span>
+                        <span class="text-poly-blue">{{ expiryDisplay }}</span>
                     </label>
-                    <input type="range" min="0" max="168" step="1" v-model.number="filters.max_hours_to_expire" @change="resetAndFetch" 
+                    <input type="range" min="0" :max="Math.max(0, expiryOptions.length - 1)" step="1"
+                        v-model.number="filters.expiry_index" @input="updateExpiryFromSlider(false)"
+                        @change="updateExpiryFromSlider(true)"
                         class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
                     <div class="flex justify-between text-[10px] text-gray-500 mt-1 mb-2">
                         <span>Now</span>
-                        <span>1 Week</span>
+                        <span>{{ expiryMaxLabel }}</span>
                     </div>
-                    
+
+                    <div class="flex flex-wrap gap-1.5 mb-2">
+                        <button type="button" @click="applyExpiryPreset('24h')"
+                            class="px-2 py-0.5 rounded text-[10px] font-bold border border-poly-accent bg-poly-bg hover:bg-poly-accent text-gray-200 transition">
+                            24h
+                        </button>
+                        <button type="button" @click="applyExpiryPreset('7d')"
+                            class="px-2 py-0.5 rounded text-[10px] font-bold border border-poly-accent bg-poly-bg hover:bg-poly-accent text-gray-200 transition">
+                            7d
+                        </button>
+                        <button type="button" @click="applyExpiryPreset('30d')"
+                            class="px-2 py-0.5 rounded text-[10px] font-bold border border-poly-accent bg-poly-bg hover:bg-poly-accent text-gray-200 transition">
+                            30d
+                        </button>
+                        <button type="button" @click="applyExpiryPreset('end')"
+                            class="px-2 py-0.5 rounded text-[10px] font-bold border border-poly-accent bg-poly-bg hover:bg-poly-accent text-gray-200 transition">
+                            End next year
+                        </button>
+                        <button type="button" @click="applyExpiryPreset('any')"
+                            class="px-2 py-0.5 rounded text-[10px] font-bold border border-poly-accent bg-poly-bg hover:bg-poly-accent text-gray-200 transition">
+                            Anytime
+                        </button>
+                    </div>
+
                     <!-- Include Expired Toggle -->
                     <label class="flex items-center gap-2 text-xs cursor-pointer select-none">
-                        <input type="checkbox" v-model="filters.include_expired" @change="resetAndFetch" 
+                        <input type="checkbox" v-model="filters.include_expired" @change="resetAndFetch"
                             class="w-4 h-4 rounded bg-poly-bg border-poly-accent text-poly-blue focus:ring-0">
-                        <span :class="filters.include_expired ? 'text-white' : 'text-gray-500'">Include Past Due (Expired)</span>
+                        <span :class="filters.include_expired ? 'text-white' : 'text-gray-500'">Include Past Due
+                            (Expired)</span>
                     </label>
                 </div>
 
@@ -217,15 +319,17 @@
 
                 <!-- Price Range -->
                 <div>
-                    <label class="text-xs text-gray-400 uppercase font-bold mb-2 block">Price Range (Probability)</label>
-                    
+                    <label class="text-xs text-gray-400 uppercase font-bold mb-2 block">Outcome Price Range
+                        (Probability)</label>
+
                     <!-- Min Price -->
                     <div class="mb-3">
                         <div class="flex justify-between text-xs mb-1">
                             <span class="text-gray-500">Min</span>
-                            <span class="text-poly-blue font-mono">{{ (filters.min_price * 100).toFixed(0) }}%</span>
+                            <span class="text-poly-blue font-mono">{{ minPricePct.toFixed(1) }}%</span>
                         </div>
-                        <input type="range" min="0" max="1" step="0.01" v-model.number="filters.min_price" @change="resetAndFetch"
+                        <input type="range" min="0" max="100" step="0.1" v-model.number="minPricePct"
+                            @change="resetAndFetch"
                             class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
                     </div>
 
@@ -233,9 +337,10 @@
                     <div>
                         <div class="flex justify-between text-xs mb-1">
                             <span class="text-gray-500">Max</span>
-                            <span class="text-poly-blue font-mono">{{ (filters.max_price * 100).toFixed(0) }}%</span>
+                            <span class="text-poly-blue font-mono">{{ maxPricePct.toFixed(1) }}%</span>
                         </div>
-                        <input type="range" min="0" max="1" step="0.01" v-model.number="filters.max_price" @change="resetAndFetch"
+                        <input type="range" min="0" max="100" step="0.1" v-model.number="maxPricePct"
+                            @change="resetAndFetch"
                             class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
                     </div>
                 </div>
@@ -248,11 +353,29 @@
                         <span>Max Spread</span>
                         <span class="text-poly-blue">{{ (filters.max_spread * 100).toFixed(1) }}¢</span>
                     </label>
-                    <input type="range" min="0" max="0.2" step="0.001" v-model.number="filters.max_spread" @change="resetAndFetch" 
+                    <input type="range" min="0" max="0.2" step="0.001" v-model.number="filters.max_spread"
+                        @change="resetAndFetch"
                         class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
                     <div class="flex justify-between text-[10px] text-gray-500 mt-1">
                         <span>0¢</span>
                         <span>20¢</span>
+                    </div>
+                </div>
+
+                <hr class="border-poly-accent/30 my-2">
+
+                <!-- Min APR (Win) -->
+                <div>
+                    <label class="text-xs text-gray-400 uppercase font-bold mb-2 block flex justify-between">
+                        <span>Min APR (Win)</span>
+                        <span class="text-poly-blue">{{ aprLabel }}</span>
+                    </label>
+                    <input type="range" min="0" max="2000" step="10" v-model.number="filters.min_apr_percent"
+                        @change="resetAndFetch"
+                        class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
+                    <div class="flex justify-between text-[10px] text-gray-500 mt-1">
+                        <span>Any</span>
+                        <span>2000%</span>
                     </div>
                 </div>
 
@@ -264,7 +387,8 @@
                         <span>Min Volume</span>
                         <span class="text-poly-blue">{{ formatCurrency(filters.min_volume) }}</span>
                     </label>
-                    <input type="range" min="0" max="1000000" step="1000" v-model.number="filters.min_volume" @change="resetAndFetch" 
+                    <input type="range" min="0" max="1000000" step="1000" v-model.number="filters.min_volume"
+                        @change="resetAndFetch"
                         class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
                 </div>
 
@@ -274,8 +398,18 @@
                         <span>Min Liquidity</span>
                         <span class="text-poly-blue">{{ formatCurrency(filters.min_liquidity) }}</span>
                     </label>
-                    <input type="range" min="0" max="100000" step="100" v-model.number="filters.min_liquidity" @change="resetAndFetch" 
+                    <input type="range" min="0" max="100000" step="100" v-model.number="filters.min_liquidity"
+                        @change="resetAndFetch"
                         class="w-full h-1 bg-poly-accent rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <div class="mt-4">
+                    <label class="flex items-center justify-between gap-2 text-xs cursor-pointer select-none">
+                        <span class="text-gray-400 uppercase font-bold">Compact Rows</span>
+                        <input type="checkbox" v-model="compactMode"
+                            class="w-4 h-4 rounded bg-poly-bg border-poly-accent text-poly-blue focus:ring-0">
+                    </label>
+                    <div class="text-[10px] text-gray-600 mt-1 text-center">Keys: j/k (or ↑/↓), Enter, Esc</div>
                 </div>
 
                 <div class="mt-auto pt-4 border-t border-poly-accent text-xs text-center text-gray-500">
@@ -286,10 +420,12 @@
 
             <!-- Data Grid -->
             <main class="flex-1 overflow-hidden flex flex-col bg-poly-bg w-full relative">
-                
+
                 <!-- Loading Overlay (Only for fresh fetches, not pagination) -->
-                <div v-show="loading && offset === 0" class="absolute inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity duration-200">
-                    <div class="bg-poly-card border border-poly-accent p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-6 animate-pulse">
+                <div v-show="loading && offset === 0"
+                    class="absolute inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity duration-200">
+                    <div
+                        class="bg-poly-card border border-poly-accent p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-6 animate-pulse">
                         <div class="relative">
                             <i class="ph ph-spinner animate-spin text-5xl text-poly-blue"></i>
                             <div class="absolute inset-0 bg-poly-blue/30 blur-2xl rounded-full"></div>
@@ -302,50 +438,238 @@
                 </div>
 
                 <!-- Table Container with Horizontal Scroll -->
-                <div class="flex-1 overflow-auto" id="market-list"> <!-- overflow-auto handles both X and Y scrolling -->
-                    
-                    <div class="min-w-[800px]"> <!-- Force minimum width to trigger scroll on small screens -->
-                        
+                <div class="flex-1 overflow-auto" id="market-list">
+                    <!-- overflow-auto handles both X and Y scrolling -->
+
+                    <div :class="effectiveViewMode === 'table' ? 'min-w-[800px]' : ''">
+
                         <!-- Table Header (Sticky) -->
-                        <div class="grid grid-cols-12 gap-4 px-6 py-3 border-b border-poly-accent bg-poly-bg text-xs font-bold text-gray-400 uppercase tracking-wider z-10 sticky top-0 shadow-sm">
+                        <div class="grid grid-cols-12 gap-4 px-6 py-3 border-b border-poly-accent bg-poly-bg text-xs font-bold text-gray-400 uppercase tracking-wider z-10 sticky top-0 shadow-sm"
+                            :class="effectiveViewMode === 'table' ? '' : 'hidden md:grid'">
                             <div class="col-span-1 text-center">Icon</div>
-                            <div class="col-span-4 cursor-pointer hover:text-white" @click="setSort('question')">Market</div>
-                            <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('price')">Price</div>
-                            <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('spread')">Spread</div>
-                            <div class="col-span-2 text-right cursor-pointer hover:text-white" @click="setSort('volume_usd')">Volume</div>
-                            <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('liquidity_usd')">Liq</div>
-                            <div class="col-span-2 text-right cursor-pointer hover:text-white" @click="setSort('end_date')">Expires</div>
+                            <div class="col-span-3 cursor-pointer hover:text-white" @click="setSort('question')">Market
+                            </div>
+                            <div class="col-span-1 text-right cursor-pointer hover:text-white"
+                                @click="setSort('price')">Price</div>
+                            <div class="col-span-1 text-right cursor-pointer hover:text-white"
+                                @click="setSort('spread')">Spread</div>
+                            <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('apr')">
+                                APR</div>
+                            <div class="col-span-2 text-right cursor-pointer hover:text-white"
+                                @click="setSort('volume_usd')">Volume</div>
+                            <div class="col-span-1 text-right cursor-pointer hover:text-white"
+                                @click="setSort('liquidity_usd')">Liq</div>
+                            <div class="col-span-2 text-right cursor-pointer hover:text-white"
+                                @click="setSort('end_date')">Expires</div>
                         </div>
 
                         <!-- Empty State -->
-                        <div v-if="markets.length === 0 && !loading" class="flex flex-col justify-center items-center py-20 text-gray-500">
+                        <div v-if="markets.length === 0 && !loading"
+                            class="flex flex-col justify-center items-center py-20 text-gray-500">
                             <i class="ph ph-ghost text-4xl mb-2"></i>
                             <p>No markets found matching filters.</p>
                         </div>
 
                         <!-- List -->
                         <div v-else class="pb-4">
-                            <div v-for="m in markets" :key="m.market_id + m.outcome_name" class="border-b border-poly-accent/50">
-                                
-                                <!-- Main Row -->
-                                <div @click="toggleDetails(m)" 
-                                     class="grid grid-cols-12 gap-4 px-6 py-4 text-sm items-center hover:bg-poly-card transition-colors cursor-pointer group">
-                                    
+                            <div v-for="(m, idx) in markets" :key="m.market_id + m.outcome_name"
+                                class="border-b border-poly-accent/50">
+
+                                <!-- ================= MOBILE CARD VIEW (Active on sm/xs) ================= -->
+                                <div v-if="effectiveViewMode === 'cards'"
+                                    class="md:hidden p-4 active:bg-poly-card/40 transition-colors cursor-pointer border-b border-poly-accent/30"
+                                    @click="toggleDetails(m, idx)"
+                                    :class="{ 'bg-poly-card/20': expandedId === m.market_id + m.outcome_name }">
+
+                                    <div class="flex items-start gap-3">
+                                        <!-- Image -->
+                                        <div class="shrink-0 mt-1">
+                                            <img v-if="m.icon_url" :src="m.icon_url"
+                                                class="w-10 h-10 rounded-full object-cover border border-poly-accent"
+                                                alt="">
+                                            <div v-else
+                                                class="w-10 h-10 rounded-full bg-poly-accent flex items-center justify-center text-gray-500">
+                                                <i class="ph ph-image"></i>
+                                            </div>
+                                        </div>
+
+                                        <!-- Content -->
+                                        <div class="min-w-0 flex-1">
+                                            <!-- Top Line: Question -->
+                                            <div
+                                                class="text-sm font-medium text-white leading-tight line-clamp-2 mb-1.5">
+                                                {{ m.question }}
+                                            </div>
+
+                                            <!-- Outcome & Price Row -->
+                                            <div class="flex items-center justify-between mb-2">
+                                                <div class="flex items-center gap-2">
+                                                    <span
+                                                        class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border"
+                                                        :class="m.outcome_name === 'No'
+                                                            ? 'border-poly-red/30 bg-poly-red/10 text-poly-red'
+                                                            : 'border-poly-green/30 bg-poly-green/10 text-poly-green'">
+                                                        {{ m.outcome_name }}
+                                                    </span>
+                                                    <span v-if="m.category"
+                                                        class="text-[10px] text-gray-500 truncate max-w-[80px]">
+                                                        {{ m.category }}
+                                                    </span>
+                                                </div>
+                                                <span class="font-mono text-lg font-bold"
+                                                    :class="m.outcome_name === 'No' ? 'text-poly-red' : 'text-poly-green'">
+                                                    {{ (m.price * 100).toFixed(1) }}¢
+                                                </span>
+                                            </div>
+
+                                            <!-- Stats Grid -->
+                                            <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
+                                                <div class="flex justify-between text-gray-400">
+                                                    <span>Vol:</span> <span class="text-gray-300 font-mono">{{
+                                                        formatCurrency(m.volume_usd) }}</span>
+                                                </div>
+                                                <div class="flex justify-between text-gray-400">
+                                                    <span>Spread:</span> <span class="text-gray-300 font-mono">{{
+                                                        (m.spread * 100).toFixed(1) }}¢</span>
+                                                </div>
+                                                <div class="flex justify-between text-gray-400">
+                                                    <span>Liq:</span> <span class="text-gray-300 font-mono">{{
+                                                        formatCompact(m.liquidity_usd) }}</span>
+                                                </div>
+                                                <div class="flex justify-between text-gray-400">
+                                                    <span>APR:</span> <span class="text-gray-300 font-mono">{{
+                                                        formatAprPercent(m.apr, m.price, m.end_date) }}</span>
+                                                </div>
+                                                <div class="flex justify-between text-gray-400 col-span-2">
+                                                    <span>Exp:</span> <span class="text-gray-300 font-mono">{{
+                                                        timeFromNow(m.end_date) || '-' }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Mobile Collapse Details -->
+                                    <div v-if="expandedId === m.market_id + m.outcome_name"
+                                        class="mt-4 pt-4 border-t border-poly-accent/30 animate-in slide-in-from-top-2 duration-200">
+                                        <div class="flex items-center gap-2 mb-3">
+                                            <a :href="m.url" target="_blank" rel="noreferrer"
+                                                class="flex-1 bg-poly-blue text-white text-xs font-bold py-2 rounded text-center"
+                                                @click.stop>
+                                                Open
+                                            </a>
+                                            <button type="button" @click.stop="copyToClipboard(String(m.market_id), `id:${m.market_id}`)"
+                                                class="inline-flex items-center gap-1.5 px-2.5 py-2 rounded border border-poly-accent bg-poly-bg text-gray-200 text-xs">
+                                                <i :class="copiedKey === `id:${m.market_id}` ? 'ph ph-check' : 'ph ph-copy'"></i>
+                                                <span>{{ copiedKey === `id:${m.market_id}` ? 'Copied' : 'ID' }}</span>
+                                            </button>
+                                            <button type="button" @click.stop="copyToClipboard(m.url || '', `url:${m.market_id}:${m.outcome_name}`)"
+                                                :disabled="!m.url"
+                                                class="inline-flex items-center gap-1.5 px-2.5 py-2 rounded border border-poly-accent bg-poly-bg text-gray-200 text-xs disabled:opacity-50">
+                                                <i :class="copiedKey === `url:${m.market_id}:${m.outcome_name}` ? 'ph ph-check' : 'ph ph-link'"></i>
+                                                <span>{{ copiedKey === `url:${m.market_id}:${m.outcome_name}` ? 'Copied' : 'Link' }}</span>
+                                            </button>
+                                            <button type="button" @click.stop="expandedId = null"
+                                                class="inline-flex items-center justify-center w-9 h-9 rounded border border-poly-accent bg-poly-bg text-gray-200"
+                                                aria-label="Close details">
+                                                <i class="ph ph-x"></i>
+                                            </button>
+                                        </div>
+
+                                        <div v-if="m.event_slug" class="text-[10px] text-gray-500 font-mono truncate mb-3">
+                                            {{ m.event_slug }}
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div class="rounded border border-poly-accent bg-poly-bg/60 p-2.5">
+                                                <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                    Probability</div>
+                                                <div class="mt-1 font-mono text-white text-sm font-bold">{{
+                                                    (m.price * 100).toFixed(2) }}%</div>
+                                            </div>
+                                            <div class="rounded border border-poly-accent bg-poly-bg/60 p-2.5">
+                                                <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                    Spread</div>
+                                                <div class="mt-1 font-mono text-white text-sm font-bold">{{
+                                                    (m.spread * 100).toFixed(2) }}¢</div>
+                                            </div>
+                                            <div class="rounded border border-poly-accent bg-poly-bg/60 p-2.5">
+                                                <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                    APR (Win)</div>
+                                                <div class="mt-1 font-mono text-white text-sm font-bold">{{
+                                                    formatAprPercent(m.apr, m.price, m.end_date) }}</div>
+                                            </div>
+                                            <div class="rounded border border-poly-accent bg-poly-bg/60 p-2.5">
+                                                <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                    Expires</div>
+                                                <div class="mt-1 text-white text-sm font-bold">{{ timeFromNow(m.end_date) || '-' }}</div>
+                                            </div>
+                                            <div class="rounded border border-poly-accent bg-poly-bg/60 p-2.5">
+                                                <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                    Liquidity</div>
+                                                <div class="mt-1 font-mono text-white text-sm font-bold">{{
+                                                    formatCompact(m.liquidity_usd) }}</div>
+                                            </div>
+                                            <div class="rounded border border-poly-accent bg-poly-bg/60 p-2.5">
+                                                <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                    Volume</div>
+                                                <div class="mt-1 font-mono text-white text-sm font-bold">{{
+                                                    formatCompact(m.volume_usd) }}</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-3 rounded border border-poly-accent bg-poly-bg/40 p-3">
+                                            <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Dates</div>
+                                            <div class="mt-2 grid grid-cols-2 gap-2 text-[11px]">
+                                                <span class="text-gray-500">Start</span>
+                                                <span class="text-white">{{ m.start_date ? m.start_date.replace('T', ' ').slice(0, 16) : '-' }}</span>
+                                                <span class="text-gray-500">End</span>
+                                                <span class="text-white">{{ m.end_date ? m.end_date.replace('T', ' ').slice(0, 16) : '-' }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-3 rounded border border-poly-accent bg-poly-bg/40 p-3">
+                                            <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                Analysis</div>
+                                            <div class="mt-2 grid grid-cols-2 gap-2 text-[11px]">
+                                                <span class="text-gray-500">Implied odds</span>
+                                                <span class="text-white font-mono">{{ formatImpliedOdds(m.price) }}</span>
+                                                <span class="text-gray-500">Category</span>
+                                                <span class="text-white truncate">{{ m.category || '-' }}</span>
+                                                <span class="text-gray-500">Outcome</span>
+                                                <span class="text-white truncate">{{ m.outcome_name || '-' }}</span>
+                                                <span class="text-gray-500">Market ID</span>
+                                                <span class="text-white font-mono select-all truncate">{{ m.market_id }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Main Row (Desktop) -->
+                                <div :id="`row-${idx}`" @click="toggleDetails(m, idx)"
+                                    class="grid grid-cols-12 gap-4 px-6 text-sm items-center hover:bg-poly-card transition-colors cursor-pointer group"
+                                    :class="[effectiveViewMode === 'table' ? '' : 'hidden md:grid', compactMode ? 'py-2' : 'py-4', idx === selectedIndex ? 'bg-poly-card/70 ring-1 ring-poly-blue/50' : '']">
+
                                     <!-- Icon -->
                                     <div class="col-span-1 flex justify-center">
-                                        <img v-if="m.icon_url" :src="m.icon_url" class="w-10 h-10 rounded-full object-cover border border-poly-accent shadow-sm" alt="">
-                                        <div v-else class="w-10 h-10 rounded-full bg-poly-accent flex items-center justify-center text-gray-500">
+                                        <img v-if="m.icon_url" :src="m.icon_url"
+                                            class="w-10 h-10 rounded-full object-cover border border-poly-accent shadow-sm"
+                                            alt="">
+                                        <div v-else
+                                            class="w-10 h-10 rounded-full bg-poly-accent flex items-center justify-center text-gray-500">
                                             <i class="ph ph-image"></i>
                                         </div>
                                     </div>
 
                                     <!-- Question & Outcome -->
-                                    <div class="col-span-4 pr-2">
+                                    <div class="col-span-3 pr-2">
                                         <div class="mb-1">
                                             <div class="flex items-center gap-2 mb-1">
-                                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-poly-accent text-gray-300 font-mono whitespace-nowrap truncate max-w-[150px]" v-if="m.category">{{ m.category }}</span>
+                                                <span
+                                                    class="text-[10px] px-1.5 py-0.5 rounded bg-poly-accent text-gray-300 font-mono whitespace-nowrap truncate max-w-[150px]"
+                                                    v-if="m.category">{{ m.category }}</span>
                                             </div>
-                                            <span class="text-white font-medium block leading-tight group-hover:text-poly-blue transition-colors line-clamp-2">
+                                            <span
+                                                class="text-white font-medium block leading-tight group-hover:text-poly-blue transition-colors line-clamp-2">
                                                 {{ m.question }}
                                             </span>
                                         </div>
@@ -354,7 +678,9 @@
                                     <!-- Price -->
                                     <div class="col-span-1 text-right">
                                         <div class="flex flex-col items-end">
-                                            <span class="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5 truncate max-w-full">{{ m.outcome_name }}</span>
+                                            <span
+                                                class="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5 truncate max-w-full">{{
+                                                m.outcome_name }}</span>
                                             <span class="font-mono font-bold text-base"
                                                 :class="m.outcome_name === 'No' ? 'text-poly-red' : 'text-poly-green'">
                                                 {{ (m.price * 100).toFixed(1) }}¢
@@ -365,6 +691,11 @@
                                     <!-- Spread -->
                                     <div class="col-span-1 text-right text-gray-400 text-xs">
                                         {{ (m.spread * 100).toFixed(1) }}¢
+                                    </div>
+
+                                    <!-- APR -->
+                                    <div class="col-span-1 text-right text-gray-300 text-xs font-mono">
+                                        {{ formatAprPercent(m.apr, m.price, m.end_date) }}
                                     </div>
 
                                     <!-- Volume -->
@@ -384,37 +715,152 @@
                                     </div>
                                 </div>
 
-                                <!-- Detail View (Full width within scroll container) -->
-                                <div v-if="expandedId === m.market_id + m.outcome_name" class="bg-poly-card/50 p-4 pl-10 text-xs text-gray-300 grid grid-cols-2 gap-4 shadow-inner">
-                                    <div>
-                                        <h4 class="text-gray-500 font-bold uppercase mb-2">Market Details</h4>
-                                        <div class="grid grid-cols-2 gap-2">
-                                            <span class="text-gray-500">Market ID:</span> <span class="font-mono text-white select-all truncate">{{ m.market_id }}</span>
-                                            <span class="text-gray-500">Start Date:</span> <span class="text-white">{{ m.start_date ? m.start_date.replace('T', ' ').slice(0, 16) : '-' }}</span>
-                                            <span class="text-gray-500">End Date:</span> <span class="text-white">{{ m.end_date ? m.end_date.replace('T', ' ').slice(0, 16) : '-' }}</span>
-                                            <span class="text-gray-500">Volume:</span> <span class="font-mono text-white">{{ m.volume_usd.toLocaleString() }} USD</span>
+                                <!-- Detail View (Desktop Only) -->
+                                <div v-if="expandedId === m.market_id + m.outcome_name"
+                                    class="bg-poly-card/50 p-4 md:p-5 md:pl-10 text-xs text-gray-300 shadow-inner"
+                                    :class="effectiveViewMode === 'table' ? 'block' : 'hidden md:block'">
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-2">
+                                                <h4 class="text-gray-500 font-bold uppercase tracking-wider">Market
+                                                    Details</h4>
+                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold border" :class="m.outcome_name === 'No'
+                                                        ? 'border-poly-red/50 bg-poly-red/10 text-poly-red'
+                                                        : 'border-poly-green/50 bg-poly-green/10 text-poly-green'">
+                                                    {{ m.outcome_name }}
+                                                </span>
+                                            </div>
+                                            <div class="text-[11px] text-gray-500 mt-1 font-mono truncate"
+                                                v-if="m.event_slug">
+                                                {{ m.event_slug }}
+                                            </div>
                                         </div>
-                                        <div class="mt-4">
-                                            <a :href="m.url" target="_blank" class="inline-flex items-center gap-2 bg-poly-blue hover:bg-blue-600 text-white px-3 py-1.5 rounded transition">
-                                                Open on Polymarket <i class="ph ph-arrow-square-out"></i>
+
+                                        <div class="flex items-center gap-2 shrink-0">
+                                            <a :href="m.url" target="_blank" rel="noreferrer"
+                                                class="inline-flex items-center gap-2 bg-poly-blue hover:bg-blue-600 text-white px-3 py-1.5 rounded transition"
+                                                @click.stop>
+                                                Open <i class="ph ph-arrow-square-out"></i>
                                             </a>
+                                            <button type="button"
+                                                @click.stop="copyToClipboard(String(m.market_id), `id:${m.market_id}`)"
+                                                class="inline-flex items-center gap-2 px-3 py-1.5 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-gray-200 transition">
+                                                <i
+                                                    :class="copiedKey === `id:${m.market_id}` ? 'ph ph-check' : 'ph ph-copy'"></i>
+                                                <span>{{ copiedKey === `id:${m.market_id}` ? 'Copied' : 'Copy ID'
+                                                    }}</span>
+                                            </button>
+                                            <button type="button"
+                                                @click.stop="copyToClipboard(m.url || '', `url:${m.market_id}:${m.outcome_name}`)"
+                                                :disabled="!m.url"
+                                                class="inline-flex items-center gap-2 px-3 py-1.5 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-gray-200 transition disabled:opacity-50">
+                                                <i
+                                                    :class="copiedKey === `url:${m.market_id}:${m.outcome_name}` ? 'ph ph-check' : 'ph ph-link'"></i>
+                                                <span>{{ copiedKey === `url:${m.market_id}:${m.outcome_name}` ? 'Copied'
+                                                    : 'Copy Link' }}</span>
+                                            </button>
+                                            <button type="button" @click.stop="expandedId = null"
+                                                class="inline-flex items-center justify-center w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-gray-200 transition"
+                                                aria-label="Close details">
+                                                <i class="ph ph-x"></i>
+                                            </button>
                                         </div>
                                     </div>
-                                    <div>
-                                        <h4 class="text-gray-500 font-bold uppercase mb-2">Analysis</h4>
-                                        <div class="grid grid-cols-2 gap-2">
-                                            <span class="text-gray-500">Event Slug:</span> <span class="font-mono text-white select-all truncate">{{ m.event_slug }}</span>
-                                            <span class="text-gray-500">Probability:</span> <span class="text-white font-bold">{{ (m.price * 100).toFixed(2) }}%</span>
-                                            <span class="text-gray-500">Implied Odds:</span> <span class="text-white font-mono">1 : {{ (1 / (m.price || 0.0001)).toFixed(2) }}</span>
+
+                                    <div class="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+                                        <div class="lg:col-span-2">
+                                            <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
+                                                <div class="rounded border border-poly-accent bg-poly-bg/60 p-3">
+                                                    <div
+                                                        class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                        Outcome Probability</div>
+                                                    <div class="mt-1 font-mono text-white text-base font-bold">{{
+                                                        (m.price * 100).toFixed(2) }}%</div>
+                                                </div>
+                                                <div class="rounded border border-poly-accent bg-poly-bg/60 p-3">
+                                                    <div
+                                                        class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                        Spread</div>
+                                                    <div class="mt-1 font-mono text-white text-base font-bold">{{
+                                                        (m.spread * 100).toFixed(2) }}¢</div>
+                                                </div>
+                                                <div class="rounded border border-poly-accent bg-poly-bg/60 p-3">
+                                                    <div
+                                                        class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                        APR (Win)</div>
+                                                    <div class="mt-1 font-mono text-white text-base font-bold">{{
+                                                        formatAprPercent(m.apr, m.price, m.end_date) }}</div>
+                                                </div>
+                                                <div class="rounded border border-poly-accent bg-poly-bg/60 p-3">
+                                                    <div
+                                                        class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                        Liquidity</div>
+                                                    <div class="mt-1 font-mono text-white text-base font-bold">{{
+                                                        formatCompact(m.liquidity_usd) }}</div>
+                                                </div>
+                                                <div class="rounded border border-poly-accent bg-poly-bg/60 p-3">
+                                                    <div
+                                                        class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                        Volume</div>
+                                                    <div class="mt-1 font-mono text-white text-base font-bold">{{
+                                                        formatCompact(m.volume_usd) }}</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                <div class="rounded border border-poly-accent bg-poly-bg/40 p-3">
+                                                    <div
+                                                        class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                        Dates</div>
+                                                    <div class="mt-2 grid grid-cols-2 gap-2">
+                                                        <span class="text-gray-500">Start</span>
+                                                        <span class="text-white">{{ m.start_date ?
+                                                            m.start_date.replace('T', ' ').slice(0, 16) : '-' }}</span>
+                                                        <span class="text-gray-500">End</span>
+                                                        <span class="text-white">{{ m.end_date ? m.end_date.replace('T',
+                                                            ' ').slice(0, 16) : '-' }}</span>
+                                                    </div>
+                                                </div>
+                                                <div class="rounded border border-poly-accent bg-poly-bg/40 p-3">
+                                                    <div
+                                                        class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                        Market</div>
+                                                    <div class="mt-2 grid grid-cols-2 gap-2">
+                                                        <span class="text-gray-500">Market ID</span>
+                                                        <span class="font-mono text-white select-all truncate">{{
+                                                            m.market_id }}</span>
+                                                        <span class="text-gray-500">Expires</span>
+                                                        <span class="text-white">{{ timeFromNow(m.end_date) || '-'
+                                                            }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="rounded border border-poly-accent bg-poly-bg/40 p-3">
+                                            <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                Analysis</div>
+                                            <div class="mt-2 grid grid-cols-2 gap-2">
+                                                <span class="text-gray-500">Implied odds</span>
+                                                <span class="text-white font-mono">{{ formatImpliedOdds(m.price)
+                                                    }}</span>
+                                                <span class="text-gray-500">Category</span>
+                                                <span class="text-white truncate">{{ m.category || '-' }}</span>
+                                                <span class="text-gray-500">Outcome</span>
+                                                <span class="text-white truncate">{{ m.outcome_name || '-' }}</span>
+                                                <span class="text-gray-500">Price</span>
+                                                <span class="text-white font-mono">{{ (m.price * 100).toFixed(2)
+                                                    }}¢</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
                             </div>
-                            
+
                             <!-- Load More Button -->
                             <div class="p-4 text-center">
-                                <button @click="loadMore" :disabled="loading" 
+                                <button @click="loadMore" :disabled="loading"
                                     class="bg-poly-accent hover:bg-poly-blue text-white px-6 py-2 rounded text-sm transition disabled:opacity-50 flex items-center gap-2 mx-auto">
                                     <i v-if="loading" class="ph ph-spinner animate-spin"></i>
                                     <span v-if="!loading">Load More Markets</span>
@@ -427,81 +873,15 @@
 
             </main>
         </div>
-        <!-- Diagnostics Modal -->
-        <div v-if="showDiagnostics" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div class="absolute inset-0 bg-black/70" @click="closeDiagnostics"></div>
-            <div class="relative w-full max-w-3xl bg-poly-card border border-poly-accent rounded-xl shadow-2xl overflow-hidden">
-                <div class="p-4 border-b border-poly-accent flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <i class="ph ph-timer text-poly-blue text-xl"></i>
-                        <div>
-                            <div class="text-sm font-bold">Diagnostics (Performance)</div>
-                            <div class="text-[11px] text-gray-500" v-if="perfData && perfData.generated_at">Generated: {{ perfData.generated_at }}</div>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <select v-model="perfMode"
-                            class="bg-poly-bg border border-poly-accent rounded px-2 py-1 text-xs text-gray-200">
-                            <option value="fast">fast</option>
-                            <option value="auto">auto</option>
-                        </select>
-                        <button @click="runDiagnostics" :disabled="perfLoading"
-                            class="inline-flex items-center gap-2 px-3 py-2 rounded bg-poly-blue hover:bg-blue-600 text-xs text-white transition disabled:opacity-50">
-                            <i v-if="perfLoading" class="ph ph-spinner animate-spin"></i>
-                            <span>{{ perfLoading ? 'Running…' : 'Run' }}</span>
-                        </button>
-                        <button @click="closeDiagnostics"
-                            class="inline-flex items-center gap-2 px-3 py-2 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-xs text-gray-200 transition">
-                            <i class="ph ph-x"></i>
-                            Close
-                        </button>
-                    </div>
-                </div>
-
-            <div class="p-4">
-                <div v-if="perfError" class="p-3 rounded border border-poly-red bg-poly-red/10 text-poly-red text-xs mb-3">
-                    {{ perfError }}
-                </div>
-
-                    <div v-if="perfData && perfData.db_path" class="text-[11px] text-gray-500 mb-2">
-                        DB: <span class="font-mono text-gray-300">{{ perfData.db_path }}</span>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-xs">
-                            <thead>
-                                <tr class="text-gray-400 border-b border-poly-accent">
-                                    <th class="text-left py-2 pr-2">Scenario</th>
-                                <th class="text-right py-2 px-2">s</th>
-                                    <th class="text-right py-2 px-2">rows</th>
-                                    <th class="text-left py-2 pl-2">params</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="s in (perfData && perfData.scenarios ? perfData.scenarios : [])" :key="s.name" class="border-b border-poly-accent/30">
-                                    <td class="py-2 pr-2 font-mono text-gray-200">{{ s.name }}</td>
-                                <td class="py-2 px-2 text-right text-white">{{ s.seconds.toFixed(3) }}</td>
-                                    <td class="py-2 px-2 text-right text-gray-300">{{ s.rows }}</td>
-                                    <td class="py-2 pl-2 font-mono text-[10px] text-gray-500 break-all">{{ JSON.stringify(s.params) }}</td>
-                                </tr>
-                                <tr v-if="(perfData && perfData.scenarios ? perfData.scenarios : []).length === 0">
-                                    <td colspan="4" class="py-6 text-center text-gray-500">No data.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script>
-        const { createApp, ref, onMounted, watch } = Vue;
+        const { createApp, ref, onMounted, watch, onBeforeUnmount } = Vue;
 
         // Configuration
-        // When running on Vercel, this should point to your VPS IP/Domain.
-        // For local development, it can be localhost.
-        const API_BASE_URL = ""; 
+        // Default: use same-origin `/api/*` (works for LAN/mobile too).
+        // If you host the frontend separately without a reverse-proxy/rewrite, set this to your API base URL.
+        const API_BASE_URL = "";
 
         createApp({
             setup() {
@@ -509,18 +889,28 @@
                 const tags = ref([]); // All available tags from API
                 const loading = ref(false);
                 const expandedId = ref(null);
+                const selectedIndex = ref(0);
+                const compactMode = ref(false);
                 const offset = ref(0);
                 const limit = 100; // Load 100 at a time
                 const serverLastUpdated = ref(null);
 
-                // Diagnostics UI
-                const showDiagnostics = ref(false);
-                const perfMode = ref("fast");
-                const perfLoading = ref(false);
-                const perfError = ref("");
-                const perfData = ref(null);
-                const diagnosticsUiEnabled = ref(false);
-                
+                const _safeGetLocalStorage = (key) => {
+                    try {
+                        return localStorage.getItem(key);
+                    } catch (_) {
+                        return null;
+                    }
+                };
+
+                const _safeSetLocalStorage = (key, value) => {
+                    try {
+                        localStorage.setItem(key, value);
+                    } catch (_) {
+                        // ignore
+                    }
+                };
+
                 // Autocomplete State
                 const includeSearch = ref("");
                 const excludeSearch = ref("");
@@ -529,57 +919,202 @@
 
                 // Presets State
                 const showAllPresets = ref(false);
-                
+                const showMobileFilters = ref(false);
+
+                // View mode (mobile)
+                const VIEW_MODE_KEY = "polyscan_view_mode";
+                const MOBILE_FILTERS_SEEN_KEY = "polyscan_mobile_filters_seen";
+                const isNarrowScreen = ref(false);
+                const viewMode = ref(_safeGetLocalStorage(VIEW_MODE_KEY) || "cards"); // 'cards' | 'table'
+
+                const updateScreenFlags = () => {
+                    isNarrowScreen.value = window.innerWidth < 768;
+                };
+
+                const effectiveViewMode = Vue.computed(() => (isNarrowScreen.value ? viewMode.value : "table"));
+
+                watch(viewMode, (v) => {
+                    _safeSetLocalStorage(VIEW_MODE_KEY, String(v || "cards"));
+                });
+
+                const toggleViewMode = () => {
+                    viewMode.value = effectiveViewMode.value === "cards" ? "table" : "cards";
+                    expandedId.value = null;
+                };
+
+                const maybeAutoOpenMobileFilters = () => {
+                    if (!isNarrowScreen.value) return;
+                    const seen = _safeGetLocalStorage(MOBILE_FILTERS_SEEN_KEY);
+                    if (seen !== "1") {
+                        showMobileFilters.value = true;
+                        _safeSetLocalStorage(MOBILE_FILTERS_SEEN_KEY, "1");
+                    }
+                };
+
                 // Default Filters (User Request: 5c spread, 5k vol, 1k liq, 0-100 prob)
                 const filters = ref({
-                    includedTags: [], 
+                    includedTags: [],
                     excludedTags: [],
                     min_volume: 5000,
                     min_liquidity: 1000,
                     min_price: 0.00,
                     max_price: 1.00,
                     max_spread: 0.05,
+                    min_apr_percent: 0,
                     max_hours_to_expire: 0,
+                    expiry_index: 0,
                     include_expired: true,
                     search: "",
                     sort_by: "volume_usd",
                     sort_dir: "desc"
                 });
 
-                const openDiagnostics = async () => {
-                    showDiagnostics.value = true;
-                    await runDiagnostics();
+                // Expiration slider: hours → days → weeks → months (cap at end of next year)
+                const expiryOptions = ref([]);
+
+                const buildExpiryOptions = () => {
+                    const now = new Date();
+                    const endNextYear = new Date(now.getFullYear() + 1, 11, 31, 23, 59, 59, 999);
+                    const options = [{ label: "Anytime", cutoff: null }];
+
+                    const addUnique = (label, cutoff) => {
+                        if (!(cutoff instanceof Date) || isNaN(cutoff.getTime())) return;
+                        if (cutoff <= now) return;
+                        if (cutoff > endNextYear) return;
+                        const key = cutoff.getTime();
+                        const last = options[options.length - 1];
+                        if (last && last.cutoff && last.cutoff.getTime && last.cutoff.getTime() === key) return;
+                        options.push({ label, cutoff });
+                    };
+
+                    const addHours = (h) => addUnique(`${h}h`, new Date(now.getTime() + h * 3600_000));
+                    const addDays = (d) => addUnique(`${d}d`, new Date(now.getTime() + d * 86400_000));
+                    const addWeeks = (w) => addUnique(`${w}w`, new Date(now.getTime() + w * 7 * 86400_000));
+                    const addMonths = (m) => {
+                        const dt = new Date(now.getTime());
+                        dt.setMonth(dt.getMonth() + m);
+                        addUnique(`${m}mo`, dt);
+                    };
+
+                    for (let h = 1; h <= 72; h += 1) addHours(h);
+                    for (let d = 4; d <= 14; d += 1) addDays(d);
+                    for (let w = 3; w <= 12; w += 1) addWeeks(w);
+
+                    const maxMonths =
+                        (endNextYear.getFullYear() - now.getFullYear()) * 12 +
+                        (endNextYear.getMonth() - now.getMonth()) +
+                        1;
+                    for (let m = 3; m <= Math.max(3, maxMonths); m += 1) addMonths(m);
+
+                    options.push({ label: `End ${endNextYear.getFullYear()}`, cutoff: endNextYear });
+                    expiryOptions.value = options;
                 };
 
-                const closeDiagnostics = () => {
-                    showDiagnostics.value = false;
-                };
+                const expiryDisplay = Vue.computed(() => {
+                    const opt = expiryOptions.value[filters.value.expiry_index];
+                    return opt ? opt.label : "Anytime";
+                });
 
-                const runDiagnostics = async () => {
-                    perfError.value = "";
-                    perfLoading.value = true;
-                    try {
-                        const url = `${API_BASE_URL}/api/diagnostics/perf?mode=${encodeURIComponent(perfMode.value)}`;
-                        const res = await fetch(url, { cache: "no-store" });
-                        if (!res.ok) {
-                            const txt = await res.text();
-                            perfError.value = `Diagnostics endpoint není dostupný (${res.status}). ${txt || ""}`.trim();
-                            perfData.value = null;
-                            return;
-                        }
-                        perfData.value = await res.json();
-                    } catch (e) {
-                        perfError.value = `Diagnostics request selhal: ${e}`;
-                        perfData.value = null;
-                    } finally {
-                        perfLoading.value = false;
+                const expiryMaxLabel = Vue.computed(() => {
+                    const last = expiryOptions.value[expiryOptions.value.length - 1];
+                    return last ? last.label : `End ${new Date().getFullYear() + 1}`;
+                });
+
+                const updateExpiryFromSlider = (shouldFetch) => {
+                    if (!expiryOptions.value.length) buildExpiryOptions();
+                    const opt = expiryOptions.value[filters.value.expiry_index];
+                    if (!opt || !opt.cutoff) {
+                        filters.value.max_hours_to_expire = 0;
+                    } else {
+                        const now = new Date();
+                        const hours = Math.max(1, Math.ceil((opt.cutoff.getTime() - now.getTime()) / 3600_000));
+                        filters.value.max_hours_to_expire = hours;
                     }
+                    if (shouldFetch) resetAndFetch();
                 };
+
+                const setExpiryHours = (hours) => {
+                    if (!expiryOptions.value.length) buildExpiryOptions();
+                    const h = Number(hours || 0);
+                    if (!isFinite(h) || h <= 0) {
+                        filters.value.expiry_index = 0;
+                        filters.value.max_hours_to_expire = 0;
+                        updateExpiryFromSlider(false);
+                        return;
+                    }
+                    const now = new Date();
+                    const target = new Date(now.getTime() + h * 3600_000);
+                    let chosen = 0;
+                    for (let i = 1; i < expiryOptions.value.length; i += 1) {
+                        const c = expiryOptions.value[i].cutoff;
+                        if (c && c >= target) {
+                            chosen = i;
+                            break;
+                        }
+                    }
+                    if (chosen === 0) chosen = expiryOptions.value.length - 1;
+                    filters.value.expiry_index = chosen;
+                    updateExpiryFromSlider(false);
+                };
+
+                const applyExpiryPreset = (preset) => {
+                    if (!expiryOptions.value.length) buildExpiryOptions();
+                    const key = String(preset || "");
+                    if (key === "24h") setExpiryHours(24);
+                    else if (key === "7d") setExpiryHours(24 * 7);
+                    else if (key === "30d") setExpiryHours(24 * 30);
+                    else if (key === "end") {
+                        filters.value.expiry_index = Math.max(0, expiryOptions.value.length - 1);
+                        updateExpiryFromSlider(false);
+                    } else {
+                        setExpiryHours(0);
+                    }
+                    resetAndFetch();
+                };
+
+                const aprLabel = Vue.computed(() => {
+                    const v = Number(filters.value.min_apr_percent || 0);
+                    if (!isFinite(v) || v <= 0) return "Any";
+                    if (v >= 1000) return `${(v / 1000).toFixed(1)}k%`;
+                    return `${v.toFixed(0)}%`;
+                });
+
+                const minPricePct = Vue.computed({
+                    get: () => {
+                        const v = Number(filters.value.min_price);
+                        if (!isFinite(v)) return 0;
+                        return Math.round(Math.max(0, Math.min(1, v)) * 1000) / 10; // 0.1% steps
+                    },
+                    set: (pct) => {
+                        const v = Number(pct);
+                        if (!isFinite(v)) return;
+                        const next = Math.max(0, Math.min(100, v)) / 100;
+                        filters.value.min_price = next;
+                        if (filters.value.max_price < next) filters.value.max_price = next;
+                    }
+                });
+
+                const maxPricePct = Vue.computed({
+                    get: () => {
+                        const v = Number(filters.value.max_price);
+                        if (!isFinite(v)) return 100;
+                        return Math.round(Math.max(0, Math.min(1, v)) * 1000) / 10; // 0.1% steps
+                    },
+                    set: (pct) => {
+                        const v = Number(pct);
+                        if (!isFinite(v)) return;
+                        const next = Math.max(0, Math.min(100, v)) / 100;
+                        filters.value.max_price = next;
+                        if (filters.value.min_price > next) filters.value.min_price = next;
+                    }
+                });
 
                 const presetDefinitions = [
                     {
                         id: 'safe_haven',
                         label: 'Safe Haven (>95%)',
+                        description: 'High-probability outcomes (95–100%) with decent liquidity.',
+                        summary: ['Prob 95–100%', 'Liquidity ≥ $500'],
                         icon: 'ph-hand-heart',
                         class: 'bg-poly-green/20 text-poly-green border-poly-green/50 hover:bg-poly-green/30',
                         apply: () => {
@@ -591,41 +1126,59 @@
                     {
                         id: 'yolo',
                         label: 'YOLO',
-                        icon: 'ph-smiley-x-eyes', 
+                        description: 'Low-probability long shots (≤5%), sorted by cheapest odds.',
+                        summary: ['Prob ≤ 5%', 'Volume ≥ $1k', 'Sort: price ↑'],
+                        icon: 'ph-smiley-x-eyes',
                         class: 'bg-poly-red/20 text-poly-red border-poly-red/50 hover:bg-poly-red/30',
                         apply: () => {
-                            filters.value.max_price = 0.05; 
+                            filters.value.max_price = 0.05;
                             filters.value.min_volume = 1000;
                             filters.value.sort_by = 'price';
-                            filters.value.sort_dir = 'asc'; 
+                            filters.value.sort_dir = 'asc';
                         }
                     },
                     {
                         id: 'buffett',
                         label: 'Warren Buffett',
+                        description: 'High confidence, tight spreads, and very liquid markets (excluding crypto).',
+                        summary: ['Prob ≥ 90%', 'Liquidity ≥ $50k', 'Spread ≤ 2%', 'No crypto'],
                         icon: 'ph-briefcase',
                         class: 'bg-poly-green/20 text-poly-green border-poly-green/50 hover:bg-poly-green/30',
                         apply: () => {
-                            filters.value.min_price = 0.90; 
+                            filters.value.min_price = 0.90;
                             filters.value.min_liquidity = 50000;
-                            filters.value.max_spread = 0.02; 
+                            filters.value.max_spread = 0.02;
+                            filters.value.excludedTags = [
+                                'Crypto',
+                                'Crypto Prices',
+                                'Crypto Policy',
+                                'Crypto Summit',
+                                'CryptoPunks',
+                                'Bitcoin',
+                                'Ethereum',
+                                'Solana'
+                            ];
                         }
                     },
                     {
                         id: 'sniper',
                         label: 'Sniper / Last Min',
+                        description: 'Markets ending within 24h, sorted by soonest to expire.',
+                        summary: ['Ends ≤ 24h', 'Hide expired', 'Sort: end date ↑'],
                         icon: 'ph-crosshair',
                         class: 'bg-orange-500/20 text-orange-400 border-orange-500/50 hover:bg-orange-500/30',
                         apply: () => {
-                            filters.value.max_hours_to_expire = 24;
+                            setExpiryHours(24);
                             filters.value.include_expired = false;
                             filters.value.sort_by = 'end_date';
-                            filters.value.sort_dir = 'asc'; 
+                            filters.value.sort_dir = 'asc';
                         }
                     },
                     {
                         id: 'coinflip',
                         label: 'Coinflip Club',
+                        description: 'Near 50/50 markets (45–55%).',
+                        summary: ['Prob 45–55%'],
                         icon: 'ph-coins',
                         class: 'bg-purple-500/20 text-purple-400 border-purple-500/50 hover:bg-purple-500/30',
                         apply: () => {
@@ -636,6 +1189,8 @@
                     {
                         id: 'longshot',
                         label: 'Long Shot',
+                        description: 'Underdogs up to 15% with some liquidity.',
+                        summary: ['Prob ≤ 15%', 'Liquidity ≥ $500'],
                         icon: 'ph-trend-up',
                         class: 'bg-pink-500/20 text-pink-400 border-pink-500/50 hover:bg-pink-500/30',
                         apply: () => {
@@ -646,10 +1201,12 @@
                     {
                         id: 'newsmaker',
                         label: 'Newsmaker',
+                        description: 'High-volume trending markets.',
+                        summary: ['Volume ≥ $100k', 'Sort: volume ↓'],
                         icon: 'ph-newspaper',
                         class: 'bg-poly-blue/20 text-poly-blue border-poly-blue/50 hover:bg-poly-blue/30',
                         apply: () => {
-                            filters.value.min_volume = 100000; 
+                            filters.value.min_volume = 100000;
                             filters.value.sort_by = 'volume_usd';
                             filters.value.sort_dir = 'desc';
                         }
@@ -658,6 +1215,12 @@
 
                 const displayedPresets = Vue.computed(() => {
                     return showAllPresets.value ? presetDefinitions : presetDefinitions.slice(0, 4);
+                });
+
+                const activePresetId = ref(null);
+                const activePreset = Vue.computed(() => {
+                    if (!activePresetId.value) return null;
+                    return presetDefinitions.find(p => p.id === activePresetId.value) || null;
                 });
 
                 let debounceTimer = null;
@@ -670,7 +1233,7 @@
                 const getAvailableTags = (searchQuery) => {
                     const activeTags = new Set([...filters.value.includedTags, ...filters.value.excludedTags]);
                     let list = tags.value.filter(t => !activeTags.has(t.tag_label));
-                    
+
                     if (searchQuery) {
                         const s = searchQuery.toLowerCase();
                         list = list.filter(t => t.tag_label.toLowerCase().includes(s));
@@ -681,28 +1244,68 @@
                 const availableTagsForInclude = Vue.computed(() => getAvailableTags(includeSearch.value));
                 const availableTagsForExclude = Vue.computed(() => getAvailableTags(excludeSearch.value));
 
-                const addIncludedTag = (tagLabel) => {
-                    if (!filters.value.includedTags.includes(tagLabel)) {
-                        filters.value.includedTags.push(tagLabel);
-                        includeSearch.value = ""; // Clear input
-                        showIncludeDropdown.value = false;
-                        resetAndFetch();
+                const tagLabelLookup = Vue.computed(() => {
+                    const map = new Map();
+                    for (const t of tags.value || []) {
+                        if (!t || !t.tag_label) continue;
+                        map.set(String(t.tag_label).toLowerCase(), String(t.tag_label));
+                    }
+                    return map;
+                });
+
+                const parseTagTokens = (text) => {
+                    return String(text || "")
+                        .split(/[\n,;]+/g)
+                        .map(s => s.trim())
+                        .filter(Boolean);
+                };
+
+                const resolveTagLabel = (token) => {
+                    const normalized = String(token || "").trim().toLowerCase();
+                    if (!normalized) return null;
+                    return tagLabelLookup.value.get(normalized) || null;
+                };
+
+                const addIncludedTags = (tagLabels, { keepOpen = false, clearSearch = false } = {}) => {
+                    const before = filters.value.includedTags.length;
+                    for (const label of tagLabels) {
+                        if (!label) continue;
+                        if (filters.value.excludedTags.includes(label)) {
+                            filters.value.excludedTags = filters.value.excludedTags.filter(t => t !== label);
+                        }
+                        if (!filters.value.includedTags.includes(label)) filters.value.includedTags.push(label);
+                    }
+                    if (filters.value.includedTags.length !== before) {
+                        if (clearSearch) includeSearch.value = "";
+                        showIncludeDropdown.value = keepOpen;
+                        debouncedFetch();
                     }
                 };
+
+                const addExcludedTags = (tagLabels, { keepOpen = false, clearSearch = false } = {}) => {
+                    const before = filters.value.excludedTags.length;
+                    for (const label of tagLabels) {
+                        if (!label) continue;
+                        if (filters.value.includedTags.includes(label)) {
+                            filters.value.includedTags = filters.value.includedTags.filter(t => t !== label);
+                        }
+                        if (!filters.value.excludedTags.includes(label)) filters.value.excludedTags.push(label);
+                    }
+                    if (filters.value.excludedTags.length !== before) {
+                        if (clearSearch) excludeSearch.value = "";
+                        showExcludeDropdown.value = keepOpen;
+                        debouncedFetch();
+                    }
+                };
+
+                const addIncludedTag = (tagLabel, keepOpen = false) => addIncludedTags([tagLabel], { keepOpen });
 
                 const removeIncludedTag = (tagLabel) => {
                     filters.value.includedTags = filters.value.includedTags.filter(t => t !== tagLabel);
                     resetAndFetch();
                 };
 
-                const addExcludedTag = (tagLabel) => {
-                    if (!filters.value.excludedTags.includes(tagLabel)) {
-                        filters.value.excludedTags.push(tagLabel);
-                        excludeSearch.value = ""; // Clear input
-                        showExcludeDropdown.value = false;
-                        resetAndFetch();
-                    }
-                };
+                const addExcludedTag = (tagLabel, keepOpen = false) => addExcludedTags([tagLabel], { keepOpen });
 
                 const removeExcludedTag = (tagLabel) => {
                     filters.value.excludedTags = filters.value.excludedTags.filter(t => t !== tagLabel);
@@ -727,6 +1330,58 @@
                     }, 200);
                 };
 
+                const commitIncludeSearch = () => {
+                    const tokens = parseTagTokens(includeSearch.value);
+                    if (tokens.length === 0) {
+                        if (availableTagsForInclude.value.length > 0) {
+                            addIncludedTag(availableTagsForInclude.value[0].tag_label, false);
+                            includeSearch.value = "";
+                        }
+                        return;
+                    }
+                    if (tokens.length === 1) {
+                        const exact = resolveTagLabel(tokens[0]);
+                        const fallback = availableTagsForInclude.value.length > 0 ? availableTagsForInclude.value[0].tag_label : null;
+                        addIncludedTags([exact || fallback].filter(Boolean), { keepOpen: false, clearSearch: true });
+                        return;
+                    }
+                    addIncludedTags(tokens.map(resolveTagLabel).filter(Boolean), { keepOpen: false, clearSearch: true });
+                };
+
+                const commitExcludeSearch = () => {
+                    const tokens = parseTagTokens(excludeSearch.value);
+                    if (tokens.length === 0) {
+                        if (availableTagsForExclude.value.length > 0) {
+                            addExcludedTag(availableTagsForExclude.value[0].tag_label, false);
+                            excludeSearch.value = "";
+                        }
+                        return;
+                    }
+                    if (tokens.length === 1) {
+                        const exact = resolveTagLabel(tokens[0]);
+                        const fallback = availableTagsForExclude.value.length > 0 ? availableTagsForExclude.value[0].tag_label : null;
+                        addExcludedTags([exact || fallback].filter(Boolean), { keepOpen: false, clearSearch: true });
+                        return;
+                    }
+                    addExcludedTags(tokens.map(resolveTagLabel).filter(Boolean), { keepOpen: false, clearSearch: true });
+                };
+
+                const handleIncludePaste = (e) => {
+                    const text = (e.clipboardData || window.clipboardData)?.getData?.("text") || "";
+                    if (!text || !/[,\n;]/.test(text)) return;
+                    e.preventDefault();
+                    const tokens = parseTagTokens(text);
+                    addIncludedTags(tokens.map(resolveTagLabel).filter(Boolean), { keepOpen: true, clearSearch: true });
+                };
+
+                const handleExcludePaste = (e) => {
+                    const text = (e.clipboardData || window.clipboardData)?.getData?.("text") || "";
+                    if (!text || !/[,\n;]/.test(text)) return;
+                    e.preventDefault();
+                    const tokens = parseTagTokens(text);
+                    addExcludedTags(tokens.map(resolveTagLabel).filter(Boolean), { keepOpen: true, clearSearch: true });
+                };
+
                 const lastUpdatedTime = Vue.computed(() => {
                     if (!serverLastUpdated.value) return "Loading...";
                     // Handle ISO strings that might already have timezone info
@@ -740,22 +1395,25 @@
                 });
 
                 // Toggle Details
-                const toggleDetails = (market) => {
+                const toggleDetails = (market, idx = null) => {
                     const id = market.market_id + market.outcome_name;
+                    if (typeof idx === "number") selectedIndex.value = idx;
                     expandedId.value = expandedId.value === id ? null : id;
                 };
 
                 // Presets
                 const applyPreset = (preset) => {
+                    activePresetId.value = preset && preset.id ? preset.id : null;
                     // Reset defaults
                     filters.value.min_volume = 5000;
                     filters.value.min_liquidity = 1000;
                     filters.value.min_price = 0.00;
                     filters.value.max_price = 1.00;
                     filters.value.max_spread = 0.05;
-                    filters.value.max_hours_to_expire = 0;
+                    filters.value.min_apr_percent = 0;
+                    setExpiryHours(0);
                     filters.value.include_expired = true;
-                    filters.value.includedTags = []; 
+                    filters.value.includedTags = [];
                     filters.value.excludedTags = [];
                     filters.value.sort_by = "volume_usd";
 
@@ -778,17 +1436,96 @@
                     if (!dateStr) return "-";
                     return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 };
-                
+
+                const formatPercentCompact = (pct) => {
+                    const v = Number(pct);
+                    if (!isFinite(v) || v <= 0) return "-";
+                    const capped = Math.min(v, 999_999_999_999_999); // 999T%
+                    try {
+                        const nf = new Intl.NumberFormat("en-US", {
+                            notation: "compact",
+                            compactDisplay: "short",
+                            maximumFractionDigits: 1,
+                        });
+                        const s = nf.format(capped);
+                        return `${s.replace(/([KMBT])$/, (m) => m.toLowerCase())}%`;
+                    } catch {
+                        if (capped >= 1_000_000_000) return `${(capped / 1_000_000_000).toFixed(1)}b%`;
+                        if (capped >= 1_000_000) return `${(capped / 1_000_000).toFixed(1)}m%`;
+                        if (capped >= 1_000) return `${(capped / 1_000).toFixed(1)}k%`;
+                        return `${capped.toFixed(0)}%`;
+                    }
+                };
+
+                const formatAprFraction = (aprFraction) => {
+                    const apr = Number(aprFraction);
+                    if (!isFinite(apr) || apr <= 0) return "-";
+                    return formatPercentCompact(apr * 100);
+                };
+
+                const formatAprPercent = (aprFraction, price, endDate) => {
+                    const fromApi = Number(aprFraction);
+                    if (isFinite(fromApi) && fromApi > 0) return formatAprFraction(fromApi);
+
+                    const p = Number(price);
+                    if (!isFinite(p) || p <= 0 || p >= 1) return "-";
+                    const end = new Date(endDate);
+                    const now = new Date();
+                    if (!(end instanceof Date) || isNaN(end.getTime())) return "-";
+                    const days = (end.getTime() - now.getTime()) / 86400000;
+                    if (!isFinite(days) || days <= 0) return "-";
+                    const roi = (1 / p) - 1;
+                    const apr = roi * (365 / days);
+                    return formatAprFraction(apr);
+                };
+
                 const timeFromNow = (dateStr) => {
                     if (!dateStr) return "";
                     const diff = new Date(dateStr) - new Date();
                     const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
                     const hours = Math.ceil(diff / (1000 * 60 * 60));
-                    
+
                     if (hours < 0) return "Expired";
                     if (hours < 24) return `${hours}h left`;
                     if (days === 0) return "Today";
                     return `in ${days} days`;
+                };
+
+                const copiedKey = ref(null);
+                let copiedTimer = null;
+
+                const copyToClipboard = async (text, key) => {
+                    if (!text) return false;
+                    try {
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            await navigator.clipboard.writeText(text);
+                        } else {
+                            const el = document.createElement("textarea");
+                            el.value = text;
+                            el.setAttribute("readonly", "");
+                            el.style.position = "absolute";
+                            el.style.left = "-9999px";
+                            document.body.appendChild(el);
+                            el.select();
+                            document.execCommand("copy");
+                            document.body.removeChild(el);
+                        }
+                        copiedKey.value = key;
+                        if (copiedTimer) clearTimeout(copiedTimer);
+                        copiedTimer = setTimeout(() => {
+                            copiedKey.value = null;
+                        }, 1200);
+                        return true;
+                    } catch (e) {
+                        console.error("copy failed", e);
+                        return false;
+                    }
+                };
+
+                const formatImpliedOdds = (price) => {
+                    const p = Number(price);
+                    if (!isFinite(p) || p <= 0) return "∞";
+                    return `1 : ${(1 / p).toFixed(2)}`;
                 };
 
                 // API Calls
@@ -798,7 +1535,7 @@
                         tags.value = await res.json();
                     } catch (e) { console.error(e); }
                 };
-                
+
                 const fetchStatus = async () => {
                     try {
                         const res = await fetch(`${API_BASE_URL}/api/status?_t=${Date.now()}`);
@@ -824,10 +1561,10 @@
 
                     loading.value = true;
                     abortController = new AbortController();
-                    
+
                     try {
                         const params = new URLSearchParams();
-                        
+
                         // Cache buster
                         params.append("_t", Date.now());
 
@@ -837,11 +1574,14 @@
                         params.append("min_price", filters.value.min_price);
                         params.append("max_price", filters.value.max_price);
                         params.append("max_spread", filters.value.max_spread);
+                        if (filters.value.min_apr_percent > 0) {
+                            params.append("min_apr", String(filters.value.min_apr_percent / 100));
+                        }
                         params.append("include_expired", filters.value.include_expired);
                         if (filters.value.search) params.append("search", filters.value.search);
                         params.append("sort_by", filters.value.sort_by);
                         params.append("sort_dir", filters.value.sort_dir);
-                        
+
                         // Tag Logic (Comma Separated for Proxy Safety)
                         if (filters.value.includedTags.length > 0) {
                             params.append("included_tags", filters.value.includedTags.join(","));
@@ -849,12 +1589,12 @@
                         if (filters.value.excludedTags.length > 0) {
                             params.append("excluded_tags", filters.value.excludedTags.join(","));
                         }
-                        
+
                         // Hours
                         if (filters.value.max_hours_to_expire > 0) {
                             params.append("max_hours_to_expire", filters.value.max_hours_to_expire);
                         }
-                        
+
                         // Pagination
                         params.append("limit", limit);
                         params.append("offset", offset.value);
@@ -862,20 +1602,22 @@
                         console.log("fetchMarkets: Fetching with params", params.toString());
                         const res = await fetch(`${API_BASE_URL}/api/markets?${params}`, { signal: abortController.signal });
                         const newMarkets = await res.json();
-                        
+
                         if (append) {
                             markets.value = [...markets.value, ...newMarkets];
                         } else {
                             markets.value = newMarkets;
+                            expandedId.value = null;
+                            selectedIndex.value = (newMarkets && newMarkets.length > 0) ? 0 : -1;
                         }
-                        
+
                         // Also update status
                         fetchStatus();
-                        
+
                     } catch (e) {
                         if (e.name === 'AbortError') {
                             console.log("fetchMarkets: Request aborted.");
-                            return; 
+                            return;
                         }
                         console.error("fetchMarkets: Error during fetch", e);
                     } finally {
@@ -895,7 +1637,7 @@
                         // Optional: close menu or keep open? keep open might be better while filtering
                     }
                 };
-                
+
                 const loadMore = () => {
                     offset.value += limit;
                     fetchMarkets(true);
@@ -916,21 +1658,42 @@
                     resetAndFetch();
                 };
 
-                onMounted(() => {
-                    try {
-                        const url = new URL(window.location.href);
-                        // Skrytý odkaz: https://.../#diag=1
-                        const hash = (window.location.hash || "").replace(/^#/, "");
-                        if (hash.startsWith("diag=")) {
-                            const val = decodeURIComponent(hash.slice("diag=".length)).trim();
-                            if (val === "1") {
-                                diagnosticsUiEnabled.value = true;
-                                showDiagnostics.value = true;
-                                runDiagnostics();
-                            }
-                        }
-                    } catch {}
+                const onKeyDown = (e) => {
+                    const tag = (e.target && e.target.tagName ? String(e.target.tagName).toLowerCase() : "");
+                    if (tag === "input" || tag === "textarea" || (e.target && e.target.isContentEditable)) return;
+                    if (!markets.value || markets.value.length === 0) return;
 
+                    if (e.key === "j" || e.key === "ArrowDown") {
+                        e.preventDefault();
+                        selectedIndex.value = Math.min(markets.value.length - 1, (selectedIndex.value < 0 ? 0 : selectedIndex.value + 1));
+                        document.getElementById(`row-${selectedIndex.value}`)?.scrollIntoView?.({ block: "nearest" });
+                    } else if (e.key === "k" || e.key === "ArrowUp") {
+                        e.preventDefault();
+                        selectedIndex.value = Math.max(0, (selectedIndex.value < 0 ? 0 : selectedIndex.value - 1));
+                        document.getElementById(`row-${selectedIndex.value}`)?.scrollIntoView?.({ block: "nearest" });
+                    } else if (e.key === "Enter") {
+                        const idx = selectedIndex.value < 0 ? 0 : selectedIndex.value;
+                        const m = markets.value[idx];
+                        if (!m) return;
+                        toggleDetails(m, idx);
+                    } else if (e.key === "Escape") {
+                        expandedId.value = null;
+                    }
+                };
+
+                onBeforeUnmount(() => {
+                    window.removeEventListener("keydown", onKeyDown);
+                    window.removeEventListener("resize", updateScreenFlags);
+                    if (refreshInterval) clearInterval(refreshInterval);
+                });
+
+                onMounted(() => {
+                    updateScreenFlags();
+                    window.addEventListener("resize", updateScreenFlags);
+                    maybeAutoOpenMobileFilters();
+                    buildExpiryOptions();
+                    updateExpiryFromSlider(false);
+                    window.addEventListener("keydown", onKeyDown);
                     fetchTags();
                     fetchStatus();
                     fetchMarkets();
@@ -945,16 +1708,21 @@
                     markets,
                     tags,
                     loading,
+                    showMobileFilters,
+                    effectiveViewMode,
                     filters,
+                    expiryOptions,
+                    expiryDisplay,
+                    expiryMaxLabel,
+                    updateExpiryFromSlider,
+                    applyExpiryPreset,
+                    aprLabel,
+                    minPricePct,
+                    maxPricePct,
                     expandedId,
+                    selectedIndex,
+                    compactMode,
                     lastUpdatedTime,
-                    // Diagnostics
-                    showDiagnostics,
-                    perfMode,
-                    perfLoading,
-                    perfError,
-                    perfData,
-                    diagnosticsUiEnabled,
                     // New Autocomplete State
                     includeSearch,
                     excludeSearch,
@@ -966,31 +1734,40 @@
                     showAllPresets,
                     displayedPresets,
                     presetDefinitions,
+                    activePresetId,
+                    activePreset,
                     // Methods
                     addIncludedTag,
+                    commitIncludeSearch,
                     removeIncludedTag,
                     addExcludedTag,
+                    commitExcludeSearch,
                     removeExcludedTag,
                     resetIncludedTags,
                     resetExcludedTags,
                     hideDropdown,
+                    handleIncludePaste,
+                    handleExcludePaste,
                     // Formatters & Others
                     formatCurrency,
                     formatCompact,
                     formatDate,
+                    formatAprPercent,
                     timeFromNow,
+                    formatImpliedOdds,
+                    copyToClipboard,
+                    copiedKey,
                     resetAndFetch,
                     loadMore,
                     debouncedFetch,
                     setSort,
                     toggleDetails,
-                    applyPreset,
-                    openDiagnostics,
-                    closeDiagnostics,
-                    runDiagnostics
+                    toggleViewMode,
+                    applyPreset
                 };
             }
         }).mount('#app');
     </script>
 </body>
+
 </html>

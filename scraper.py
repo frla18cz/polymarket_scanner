@@ -39,6 +39,7 @@ def setup_db():
             url TEXT,
             outcome_name TEXT,
             price REAL,
+            apr REAL,
             spread REAL,
             volume_usd REAL,
             liquidity_usd REAL,
@@ -155,20 +156,61 @@ def run_scrape():
             if i < len(prices):
                 try: price = float(prices[i])
                 except: pass
+
+            apr = None
+            try:
+                end_s = (m.get("endDate") or "").strip()
+                if end_s.endswith("Z"):
+                    end_s = end_s[:-1] + "+00:00"
+                end_dt = datetime.datetime.fromisoformat(end_s) if end_s else None
+                snap_dt = datetime.datetime.fromisoformat(snapshot_at)
+                if (
+                    end_dt is not None
+                    and end_dt.tzinfo is not None
+                    and snap_dt.tzinfo is not None
+                    and price is not None
+                    and price > 0.0
+                    and price < 1.0
+                ):
+                    days = (end_dt - snap_dt).total_seconds() / 86400.0
+                    if days > 0.0:
+                        roi = (1.0 / float(price)) - 1.0
+                        apr_val = roi * (365.0 / days)
+                        if apr_val > 0.0 and apr_val != float("inf"):
+                            apr = float(apr_val)
+            except Exception:
+                apr = None
             
             cursor.execute('''
                 INSERT INTO active_market_outcomes (
                     snapshot_at, market_id, event_slug, question, url, outcome_name, 
-                    price, spread, volume_usd, liquidity_usd, start_date, end_date, 
+                    price, apr, spread, volume_usd, liquidity_usd, start_date, end_date, 
                     category, icon_url
-                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             ''', (
                 snapshot_at, m_id, event_slug, question, url, str(outcome_name),
-                price, float(m.get("spread") or 0), float(m.get("volume") or 0), float(m.get("liquidity") or 0),
+                price, apr, float(m.get("spread") or 0), float(m.get("volume") or 0), float(m.get("liquidity") or 0),
                 m.get("startDate"), m.get("endDate"), primary_category, icon_url
             ))
             count_outcomes += 1
             
+    conn.commit()
+
+    # Re-create indices after refresh (tables are dropped each run)
+    conn.executescript("""
+        CREATE INDEX IF NOT EXISTS idx_market_tags_label ON market_tags(tag_label);
+        CREATE INDEX IF NOT EXISTS idx_market_tags_market_id ON market_tags(market_id);
+        CREATE INDEX IF NOT EXISTS idx_amo_market_id ON active_market_outcomes(market_id);
+        CREATE INDEX IF NOT EXISTS idx_amo_volume ON active_market_outcomes(volume_usd DESC);
+        CREATE INDEX IF NOT EXISTS idx_amo_end_date ON active_market_outcomes(end_date);
+        CREATE INDEX IF NOT EXISTS idx_amo_price ON active_market_outcomes(price);
+        CREATE INDEX IF NOT EXISTS idx_amo_spread ON active_market_outcomes(spread);
+        CREATE INDEX IF NOT EXISTS idx_amo_liquidity ON active_market_outcomes(liquidity_usd);
+        CREATE INDEX IF NOT EXISTS idx_amo_apr ON active_market_outcomes(apr);
+        CREATE INDEX IF NOT EXISTS idx_amo_question ON active_market_outcomes(question);
+        CREATE INDEX IF NOT EXISTS idx_amo_outcome ON active_market_outcomes(outcome_name);
+        ANALYZE;
+    """)
     conn.commit()
     conn.close()
     

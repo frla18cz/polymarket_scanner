@@ -7,9 +7,12 @@ from pathlib import Path
 
 def _default_main_db_path() -> Path:
     here = Path(__file__).resolve()
-    # .worktrees/codex-feature-tests/tests -> .worktrees/codex-feature-tests -> .worktrees -> repo root
-    repo_root = here.parents[3]
-    return repo_root / "data" / "markets.db"
+    for parent in here.parents:
+        candidate = parent / "data" / "markets.db"
+        if candidate.exists():
+            return candidate
+    # Fallback (legacy layout)
+    return here.parents[3] / "data" / "markets.db"
 
 
 def get_main_db_path() -> Path:
@@ -46,4 +49,3 @@ def snapshot_main_db() -> DbSnapshot:
         src.close()
 
     return DbSnapshot(path=dst_path, _tmp=tmp)
-

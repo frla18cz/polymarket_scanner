@@ -31,17 +31,17 @@ The backend handles the data, scraping, and API. It no longer serves the HTML.
 The frontend is a single static HTML file.
 
 1.  **Prepare the file:**
-    *   Open `static/index.html`.
+    *   The canonical source is `frontend_deploy/index.html` (and `static/index.html` must stay identical).
     *   Find the configuration at the top of the script:
     ```javascript
-    const API_BASE_URL = "http://YOUR_VPS_IP"; // Change this!
+    const API_BASE_URL = "";
     ```
-    *   Replace `http://localhost:8000` with your actual VPS IP address or domain (e.g., `http://34.123.45.67` or `https://api.polyscan.xyz`).
-    *   *Note:* If your VPS does not have SSL (HTTPS), you might run into "Mixed Content" issues if Vercel serves over HTTPS. It is highly recommended to set up HTTPS on the VPS (Caddy handles this automatically if you point a domain to it).
+    *   Recommended: keep `API_BASE_URL` empty and use a Vercel rewrite/proxy so the frontend can call `/api/*` on its own origin.
+    *   If you cannot use rewrites/proxying, set `API_BASE_URL` to your API origin (e.g. `https://api.polyscan.xyz`) and make sure the backend has correct CORS + HTTPS.
 
 2.  **Deploy to Vercel:**
-    *   **Option A (CLI):** Run `vercel deploy` inside the `static/` folder.
-    *   **Option B (Git):** Create a new generic Git repo containing just `index.html` (or point Vercel to the `static` folder of this repo) and connect it to Vercel.
+    *   **Option A (recommended):** Deploy from the repo root so `vercel.json` rewrites apply (frontend calls `/api/*` on the same origin).
+    *   **Option B (static-only):** Deploy only `static/index.html` (or a minimal repo containing it). In that case you typically need to set `API_BASE_URL` and handle CORS/HTTPS, unless you also add rewrites to that project.
 
 ## 3. Verify
 
