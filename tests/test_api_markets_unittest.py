@@ -275,6 +275,120 @@ class TestMarketsFilters(unittest.TestCase):
             self.assertGreaterEqual(parsed, now - timedelta(minutes=5))
             self.assertLessEqual(parsed, max_dt + timedelta(minutes=5))
 
+    def test_min_hours_to_expire_filter(self):
+        candidates = [1, 6, 12, 24, 48, 24 * 7]
+        chosen = None
+        for h in candidates:
+            soon = self._conn.execute(
+                """
+                SELECT COUNT(*) AS n FROM active_market_outcomes
+                WHERE end_date IS NOT NULL
+                  AND datetime(end_date) > datetime('now')
+                  AND datetime(end_date) < datetime('now', ?)
+                """,
+                (f"+{int(h)} hours",),
+            ).fetchone()["n"]
+            later = self._conn.execute(
+                """
+                SELECT COUNT(*) AS n FROM active_market_outcomes
+                WHERE end_date IS NOT NULL
+                  AND datetime(end_date) >= datetime('now', ?)
+                """,
+                (f"+{int(h)} hours",),
+            ).fetchone()["n"]
+            if soon and later:
+                chosen = int(h)
+                break
+
+        if not chosen:
+            self.skipTest("V DB nejsou vhodné end_date intervaly pro test min_hours_to_expire.")
+
+        rows = self.app_main.get_markets(
+            Response(),
+            included_tags=None,
+            excluded_tags=None,
+            min_hours_to_expire=chosen,
+            include_expired=False,
+            limit=200,
+        )
+        self.assertGreater(len(rows), 0)
+
+        from datetime import timedelta
+
+        now = datetime.now(timezone.utc)
+        min_dt = now + timedelta(hours=chosen)
+
+        def _parse(dt_str: str):
+            s = (dt_str or "").strip()
+            if not s:
+                return None
+            if s.endswith("Z"):
+                s = s[:-1] + "+00:00"
+            try:
+                return datetime.fromisoformat(s)
+            except Exception:
+                return None
+
+        for row in rows:
+            parsed = _parse(row.get("end_date"))
+            if parsed is None:
+                continue
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=timezone.utc)
+            self.assertGreaterEqual(parsed, min_dt - timedelta(minutes=5))
+
+    def test_expiry_window_filter_24h_to_7d(self):
+        min_h = 24
+        max_h = 24 * 7
+        count = self._conn.execute(
+            """
+            SELECT COUNT(*) AS n FROM active_market_outcomes
+            WHERE end_date IS NOT NULL
+              AND datetime(end_date) >= datetime('now', ?)
+              AND datetime(end_date) <= datetime('now', ?)
+            """,
+            (f"+{min_h} hours", f"+{max_h} hours"),
+        ).fetchone()["n"]
+        if not count:
+            self.skipTest("V DB nejsou záznamy v okně 24h–7d.")
+
+        rows = self.app_main.get_markets(
+            Response(),
+            included_tags=None,
+            excluded_tags=None,
+            min_hours_to_expire=min_h,
+            max_hours_to_expire=max_h,
+            include_expired=False,
+            limit=200,
+        )
+        self.assertGreater(len(rows), 0)
+
+        from datetime import timedelta
+
+        now = datetime.now(timezone.utc)
+        min_dt = now + timedelta(hours=min_h)
+        max_dt = now + timedelta(hours=max_h)
+
+        def _parse(dt_str: str):
+            s = (dt_str or "").strip()
+            if not s:
+                return None
+            if s.endswith("Z"):
+                s = s[:-1] + "+00:00"
+            try:
+                return datetime.fromisoformat(s)
+            except Exception:
+                return None
+
+        for row in rows:
+            parsed = _parse(row.get("end_date"))
+            if parsed is None:
+                continue
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=timezone.utc)
+            self.assertGreaterEqual(parsed, min_dt - timedelta(minutes=5))
+            self.assertLessEqual(parsed, max_dt + timedelta(minutes=5))
+
     def test_search_term_filters(self):
         term = self.search_term
         rows = self.app_main.get_markets(
