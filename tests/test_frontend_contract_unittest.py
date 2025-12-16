@@ -33,6 +33,7 @@ class TestFrontendContract(unittest.TestCase):
             "max_price",
             "max_spread",
             "min_apr_percent",
+            "min_hours_to_expire",
             "max_hours_to_expire",
             "expiry_index",
             "include_expired",
@@ -57,6 +58,7 @@ class TestFrontendContract(unittest.TestCase):
             'params.append("included_tags"',
             'params.append("excluded_tags"',
             'params.append("max_hours_to_expire"',
+            'params.append("min_hours_to_expire"',
             'params.append("limit"',
             'params.append("offset"',
         ]
@@ -92,6 +94,7 @@ class TestFrontendContract(unittest.TestCase):
             "applyExpiryPreset('24h')",
             "applyExpiryPreset('7d')",
             "applyExpiryPreset('30d')",
+            "applyExpiryPreset('end_this')",
             "applyExpiryPreset('end')",
             "applyExpiryPreset('any')",
         ]:

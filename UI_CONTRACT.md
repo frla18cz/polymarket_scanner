@@ -32,6 +32,10 @@ All filters must work the same on desktop and mobile because they share the same
 - **Expires within**
   - UI: `filters.max_hours_to_expire: number` (0 = anytime)
   - API: `max_hours_to_expire=<int hours>` (omit when 0)
+- **Not sooner than (min time to expire)**
+  - UI: `filters.min_hours_to_expire: number` (0 = any)
+  - API: `min_hours_to_expire=<int hours>` (omit when 0)
+  - Semantics: `end_date >= now + min_hours_to_expire`
 - **Include expired**
   - UI: `filters.include_expired: boolean`
   - API: `include_expired=true|false`
@@ -96,7 +100,8 @@ The sidebar must include:
 - **Search Markets**
 - **Include Categories** (with an `ALL` reset action)
 - **Exclude Categories** (with a `Clear` action)
-- **Expires Within** slider + quick buttons: `24h`, `7d`, `30d`, `End next year`, `Anytime`
+- **Expires Within** slider + quick buttons: `24h`, `7d`, `30d`, `End this year`, `End next year`, `Anytime`
+- **Not Sooner Than** quick buttons: `Any`, `24h`, `48h`, `7d`
 - **Include Past Due (Expired)** toggle
 - **Outcome Price Range (Probability)** (min + max sliders)
 - **Max Spread**

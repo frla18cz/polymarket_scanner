@@ -304,6 +304,7 @@ def get_markets(
     max_price: Optional[float] = 1.0,
     max_spread: Optional[float] = None,
     min_apr: Optional[float] = None,
+    min_hours_to_expire: Optional[int] = None,
     max_hours_to_expire: Optional[int] = None,
     include_expired: bool = True,
     search: Optional[str] = None
@@ -378,16 +379,34 @@ def get_markets(
         params.append(f"%{search}%")
         params.append(f"%{search}%")
 
+    if min_hours_to_expire is not None and int(min_hours_to_expire) <= 0:
+        min_hours_to_expire = None
+    if max_hours_to_expire is not None and int(max_hours_to_expire) <= 0:
+        max_hours_to_expire = None
+
+    if (
+        min_hours_to_expire is not None
+        and max_hours_to_expire is not None
+        and int(min_hours_to_expire) > int(max_hours_to_expire)
+    ):
+        min_hours_to_expire, max_hours_to_expire = max_hours_to_expire, min_hours_to_expire
+
+    if min_hours_to_expire is not None:
+        min_dt = datetime.utcnow() + timedelta(hours=int(min_hours_to_expire))
+        min_str = min_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+        where_clauses.append("datetime(end_date) >= datetime(?)")
+        params.append(min_str)
+
     if max_hours_to_expire is not None:
-        cutoff_dt = datetime.utcnow() + timedelta(hours=max_hours_to_expire)
+        cutoff_dt = datetime.utcnow() + timedelta(hours=int(max_hours_to_expire))
         cutoff_str = cutoff_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
         where_clauses.append("datetime(end_date) <= datetime(?)")
         params.append(cutoff_str)
-        
-        if not include_expired:
-            now_str = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-            where_clauses.append("datetime(end_date) >= datetime(?)")
-            params.append(now_str)
+
+    if (min_hours_to_expire is not None or max_hours_to_expire is not None) and not include_expired:
+        now_str = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        where_clauses.append("datetime(end_date) >= datetime(?)")
+        params.append(now_str)
 
     # Tag Logic
     if included_tags:
