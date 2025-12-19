@@ -4,11 +4,13 @@ import sys
 import time
 import datetime
 import ast
+import logging
 from typing import Dict, Any
 
 # Import local client
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from gamma_client import MarketFetcher
+logger = logging.getLogger("polylab.scraper")
 
 # Paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -64,7 +66,7 @@ def setup_db():
 
 def run_scrape():
     start_total = time.time()
-    print(f"[{datetime.datetime.now()}] Starting Scrape...")
+    logger.info("Starting scrape...")
     
     fetcher = MarketFetcher()
     
@@ -85,12 +87,12 @@ def run_scrape():
             
         events_map[e_id] = {"slug": slug, "tags": tags, "icon": icon}
         
-    print(f"Events: {len(raw_events)} (took {time.time()-t0:.2f}s)")
+    logger.info("Events: %d (took %.2fs)", len(raw_events), (time.time() - t0))
     
     # 2. Fetch Markets
     t0 = time.time()
     raw_markets = fetcher.fetch_all_markets()
-    print(f"Markets: {len(raw_markets)} (took {time.time()-t0:.2f}s)")
+    logger.info("Markets: %d (took %.2fs)", len(raw_markets), (time.time() - t0))
     
     # 3. Process & Store
     conn = setup_db()
@@ -214,8 +216,11 @@ def run_scrape():
     conn.commit()
     conn.close()
     
-    print(f"Saved: {count_outcomes} outcomes, {count_tags} tags.")
-    print(f"Total Time: {time.time() - start_total:.2f}s")
+    logger.info("Saved: %d outcomes, %d tags.", count_outcomes, count_tags)
+    logger.info("Total time: %.2fs", (time.time() - start_total))
 
 if __name__ == "__main__":
+    from logging_setup import setup_logging
+
+    setup_logging("scraper")
     run_scrape()

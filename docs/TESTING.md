@@ -25,7 +25,7 @@ Scénáře odpovídající typickým akcím ve frontend UI. Vše běží nad sna
 
 - **Excluded**: 1 tag a 2 tagy vyloučené.
 - **Included**: 1 tag, 2 tagy a comma-separated vstup (`"tagA,tagB"`), jak to chodí z UI/proxy.
-- **Included + Excluded konflikt**: `included=[A,B]` + `excluded=[A]` → výsledek je podmnožina `(B \ A)`.
+- **Included + Excluded konflikt**: `included=[A,B]` + `excluded=[A]` → výsledek je podmnožina `(B \\ A)`.
 - **Price (pravděpodobnost)**: `min_price/max_price` kolem mediánu.
 - **Spread**: `max_spread` kolem 25. percentilu.
 - **Volume/Liquidity**: `min_volume/min_liquidity` kolem 75. percentilu.
@@ -52,3 +52,4 @@ Volitelné budgety (když chceš hlídat regresi tvrdě, v ms):
 
 Override cesty k hlavní DB (když je repo jinde):
 - `MAIN_DB_PATH="/cesta/k/data/markets.db"`
+

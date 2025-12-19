@@ -16,7 +16,7 @@ The backend handles the data, scraping, and API (and may optionally serve the UI
     ```bash
     docker compose up -d --build
     ```
-    Your API will be available at `http://YOUR_VPS_IP/api/...` (or `https://YOUR_DOMAIN/api/...` if you later add HTTPS).
+    Your API will be available at `http://YOUR_VPS_IP/api/...` (or `https://api.polylab.app/api/...` once you point `api.polylab.app` to your VPS and enable HTTPS).
 
 ## 2. Frontend Deployment (Vercel)
 
@@ -39,7 +39,7 @@ The frontend is a single static HTML file.
     ```json
     {
       "source": "/api/:path*",
-      "destination": "http://YOUR_VPS_IP/api/:path*"
+      "destination": "https://api.polylab.app/api/:path*"
     }
     ```
 
@@ -47,4 +47,4 @@ The frontend is a single static HTML file.
 
 1.  Open your Vercel URL.
 2.  Open the browser console (F12).
-3.  Check if network requests to `YOUR_VPS_IP/api/markets` are successful.
+3.  Check if network requests to `/api/markets` are successful (rewritten to `https://api.polylab.app`).

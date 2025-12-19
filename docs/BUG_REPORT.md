@@ -21,3 +21,4 @@
 - Re-verify the `loading` variable's lifecycle in the `fetchMarkets` function and its impact on the `v-show` directive.
 - Consider adding temporary console logs to track the `loading.value` state during filter changes.
 - Explore adding a small artificial delay (e.g., `setTimeout`) to `loading.value = false` in development to ensure the overlay is visible for testing purposes.
+

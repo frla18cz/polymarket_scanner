@@ -127,3 +127,4 @@ The table must provide at least these columns (and sorting where applicable):
 
 - Default is **Cards** on narrow screens, with a quick toggle to **Table** (so users can choose).
 - The filters drawer may auto-open once on first visit to make discoverability obvious.
+

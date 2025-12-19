@@ -31,21 +31,17 @@ sudo usermod -aG docker $USER
 cd polymarket_scanner
 
 # 2. (Volitelné) Nastavení domény pro HTTPS
-# Otevři Caddyfile a nahraď :80 svou doménou (např. polylab.app)
+# Ověř Caddyfile; pro PolyLab typicky používáme API host (např. api.polylab.app).
 # nano Caddyfile
 # (Ctrl+O ulož, Ctrl+X konec)
 
-# 3. (Volitelné) Odkomentování Caddy v docker-compose.yml
-# Pokud chceš HTTPS, otevři docker-compose.yml a odkomentuj sekci 'caddy'.
-# nano docker-compose.yml
-
-# 4. Spuštění
+# 3. Spuštění
 docker compose up -d --build
 ```
 
 ## 4. Ověření
-Aplikace by měla běžet na IP adrese tvé instance na portu 80 (pokud jsi použil Caddy) nebo 8000.
-Otevři v prohlížeči: `http://TVOJE_EXTERNAL_IP:8000`
+Aplikace by měla běžet na IP adrese tvé instance na portu 80 (pokud používáš Caddy) nebo 8000.
+Otevři v prohlížeči: `http://TVOJE_EXTERNAL_IP:8000` nebo `https://api.polylab.app` (pokud máš DNS + HTTPS).
 
 ## 5. Správa
 *   **Logy:** `docker compose logs -f`

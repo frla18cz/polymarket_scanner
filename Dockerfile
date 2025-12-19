@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.12-slim
 
 # Set work directory
 WORKDIR /app
@@ -12,6 +12,7 @@ COPY . .
 
 # Create data directory
 RUN mkdir -p /app/data
+RUN mkdir -p /app/logs
 
 # Ensure python output is sent straight to terminal (logs)
 ENV PYTHONUNBUFFERED=1

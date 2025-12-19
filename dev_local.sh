@@ -3,6 +3,8 @@ set -euo pipefail
 
 export ENABLE_DIAGNOSTICS="${ENABLE_DIAGNOSTICS:-1}"
 export SERVE_FRONTEND="${SERVE_FRONTEND:-1}"
+export LOG_DIR="${LOG_DIR:-logs}"
+export LOG_TO_FILE="${LOG_TO_FILE:-1}"
 
 LAN_IP="$(ipconfig getifaddr en0 2>/dev/null || true)"
 if [ -n "${LAN_IP:-}" ]; then

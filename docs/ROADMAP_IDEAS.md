@@ -92,3 +92,4 @@ Náš cíl není jen zobrazovat, co se děje (to dělá Polymarket web), ale **o
 ---
 
 *Tento dokument byl vygenerován 5.12.2025 jako základní stavební kámen pro další vývoj.*
+

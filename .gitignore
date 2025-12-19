@@ -29,6 +29,12 @@ archive.zip
 local_db*
 .gemini-clipboard/
 *.log
+logs/*
+!logs/.gitkeep
+run/*
+!run/.gitkeep
+scrape_stats.csv
+*.pid
 data/markets.db
 data/metrics.db
 data/metrics.db-*

@@ -1,5 +1,5 @@
-# Replace 'localhost' with your domain name (e.g., polylab.app) for production
-:80 {
-    # Reverse proxy to our FastAPI container
+# Production backend origin for PolyLab.
+# Frontend (`https://www.polylab.app`) can proxy `/api/*` to this host via `vercel.json`.
+api.polylab.app {
     reverse_proxy web:8000
 }

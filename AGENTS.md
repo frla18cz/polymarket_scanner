@@ -4,7 +4,7 @@
 
 - `main.py`: FastAPI app (API routes, DB access, diagnostics) and optional UI serving.
 - `auto_refresh.py` / `scraper.py` / `gamma_client.py`: background refresh + Polymarket/Gamma fetching logic.
-- `tests/`: unit tests and perf simulations (see `TESTING.md`).
+- `tests/`: unit tests and perf simulations (see `docs/TESTING.md`).
 - `static/` and `frontend_deploy/`: built/served frontend assets (`index.html`, `assets/`).
 - `data/`: local SQLite files (ignored by git) such as `data/markets.db` and `data/metrics.db`.
 
@@ -27,12 +27,12 @@
 - Tests are `unittest`-based and discovered via filename pattern `*_unittest.py`.
 - Run tests: `python -m unittest discover -s tests -p "*_unittest.py"`
 - Perf tests are opt-in: `RUN_PERF_TESTS=1 python -m unittest discover -s tests -p "*_unittest.py"`
-- Note: tests call endpoint functions directly (not `TestClient`) due to httpx/TestClient version constraints (`TESTING.md`).
+- Note: tests call endpoint functions directly (not `TestClient`) due to httpx/TestClient version constraints (`docs/TESTING.md`).
 
 ## Commit & Pull Request Guidelines
 
 - Commit messages commonly use lightweight prefixes: `fix: ...`, `feat: ...`, `perf: ...`, `ui: ...`, `docs: ...`, `chore: ...`.
-- PRs: include a short “what/why”, link relevant issues/docs (e.g., `UI_CONTRACT.md`), and add screenshots for UI changes.
+- PRs: include a short “what/why”, link relevant issues/docs (e.g., `docs/UI_CONTRACT.md`), and add screenshots for UI changes.
 
 ## Security & Configuration Tips
 

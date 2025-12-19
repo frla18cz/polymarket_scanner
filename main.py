@@ -2,7 +2,8 @@ import os
 import sqlite3
 import time
 import json
-from datetime import datetime, timedelta
+import logging
+from datetime import datetime, timedelta, timezone
 from typing import Optional, List, Any
 from fastapi import FastAPI, Query, Response, Request, HTTPException
 from fastapi.responses import FileResponse
@@ -11,6 +12,11 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import uvicorn
 from pathlib import Path
+
+from logging_setup import setup_logging
+
+setup_logging("web")
+logger = logging.getLogger("polylab")
 
 # Paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -126,7 +132,7 @@ def ensure_indices():
             )
             conn.commit()
         except Exception as e:
-            print(f"WARNING: Failed to ensure APR column/index readiness: {e}")
+            logger.warning("Failed to ensure APR column/index readiness: %s", e)
         
         conn.executescript("""
             CREATE INDEX IF NOT EXISTS idx_market_tags_label ON market_tags(tag_label);
@@ -148,9 +154,9 @@ def ensure_indices():
             ANALYZE;
         """)
         conn.commit()
-        print("DEBUG: Database WAL mode enabled and indices verified.")
+        logger.info("Database WAL mode enabled and indices verified.")
     except Exception as e:
-        print(f"WARNING: Failed to optimize DB: {e}")
+        logger.warning("Failed to optimize DB: %s", e)
     finally:
         conn.close()
 
@@ -263,7 +269,7 @@ async def measure_execution_time(request: Request, call_next):
             conn.commit()
             conn.close()
     except Exception as e:
-        print(f"Error logging metric: {e}")
+        logger.warning("Error logging metric: %s", e)
         
     return response
 
@@ -309,12 +315,24 @@ def get_markets(
     include_expired: bool = True,
     search: Optional[str] = None
 ):
-    print(f"DEBUG: get_markets called with included_tags={included_tags}, excluded_tags={excluded_tags}")
+    # When calling endpoint functions directly (tests/tools), FastAPI's `Query(...)` defaults
+    # are not resolved and can show up as `fastapi.params.Query` instances.
+    try:
+        from fastapi.params import Query as _QueryParam  # type: ignore
+    except Exception:
+        _QueryParam = None
+    if _QueryParam is not None:
+        if isinstance(included_tags, _QueryParam):
+            included_tags = None
+        if isinstance(excluded_tags, _QueryParam):
+            excluded_tags = None
+
+    logger.debug("get_markets called with included_tags=%s, excluded_tags=%s", included_tags, excluded_tags)
     
     # Handle comma-separated tags (proxy fix)
     if included_tags and len(included_tags) == 1 and "," in included_tags[0]:
         included_tags = included_tags[0].split(",")
-        print(f"DEBUG: Parsed comma-separated included_tags: {included_tags}")
+        logger.debug("Parsed comma-separated included_tags: %s", included_tags)
 
     if excluded_tags and len(excluded_tags) == 1 and "," in excluded_tags[0]:
         excluded_tags = excluded_tags[0].split(",")
@@ -392,19 +410,19 @@ def get_markets(
         min_hours_to_expire, max_hours_to_expire = max_hours_to_expire, min_hours_to_expire
 
     if min_hours_to_expire is not None:
-        min_dt = datetime.utcnow() + timedelta(hours=int(min_hours_to_expire))
+        min_dt = datetime.now(timezone.utc) + timedelta(hours=int(min_hours_to_expire))
         min_str = min_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
         where_clauses.append("datetime(end_date) >= datetime(?)")
         params.append(min_str)
 
     if max_hours_to_expire is not None:
-        cutoff_dt = datetime.utcnow() + timedelta(hours=int(max_hours_to_expire))
+        cutoff_dt = datetime.now(timezone.utc) + timedelta(hours=int(max_hours_to_expire))
         cutoff_str = cutoff_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
         where_clauses.append("datetime(end_date) <= datetime(?)")
         params.append(cutoff_str)
 
     if (min_hours_to_expire is not None or max_hours_to_expire is not None) and not include_expired:
-        now_str = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        now_str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         where_clauses.append("datetime(end_date) >= datetime(?)")
         params.append(now_str)
 
@@ -449,24 +467,24 @@ def get_markets(
     try:
         rows = cursor.execute(sql, params).fetchall()
     except Exception as e:
-        print(f"ERROR executing SQL: {e}")
+        logger.exception("Error executing SQL: %s", e)
         conn.close()
         return []
         
     t_end = time.time()
     duration = t_end - t_start
     
-    print(f"PERF: SQL Query took {duration:.4f} seconds. Rows returned: {len(rows)}")
+    logger.debug("SQL query took %.4fs (rows=%d)", duration, len(rows))
     
     if duration > 0.5: # Log anything over 500ms
-        print(f"SLOW QUERY DETECTED! SQL: {sql} PARAMS: {params}")
+        logger.warning("Slow SQL query (%.4fs): %s params=%s", duration, sql, params)
         try:
             explain_sql = f"EXPLAIN QUERY PLAN {sql}"
             plan = cursor.execute(explain_sql, params).fetchall()
-            print("QUERY PLAN:")
+            logger.debug("Query plan:")
             for p in plan:
-                print(dict(p))
-        except:
+                logger.debug("%s", dict(p))
+        except Exception:
             pass
 
     conn.close()
