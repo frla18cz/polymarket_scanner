@@ -5,6 +5,8 @@ This document provides essential context, architectural details, and operational
 ## 1. Project Overview
 **PolyLab** is a high-performance scanner and analytics tool for [Polymarket](https://polymarket.com/). It aggregates market data, calculates metrics (APR, spread, liquidity), and provides a fast, filterable interface for finding betting opportunities.
 
+**Authentication:** Users can sign in via Supabase Auth (Google/Email) to access premium filters and presets.
+
 ## 2. Architecture & Tech Stack
 
 ### Backend
