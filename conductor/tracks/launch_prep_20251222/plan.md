@@ -10,25 +10,25 @@
 - [ ] Task: Conductor - User Manual Verification 'Operational Setup' (Protocol in workflow.md)
 
 ## Phase 2: Content Creation (Legal & FAQ)
-- [ ] Task: Draft Privacy Policy
+- [x] Task: Draft Privacy Policy
     -   *Context:* Need a standard policy covering analytics and auth.
     -   *Action:* Draft text using a standard template suitable for a non-commercial/freemium web app.
-- [ ] Task: Draft Terms of Service
+- [x] Task: Draft Terms of Service
     -   *Context:* Critical disclaimer: "Not Financial Advice".
     -   *Action:* Draft text emphasizing the analytical nature of the tool.
-- [ ] Task: Write FAQ Content
+- [x] Task: Write FAQ Content
     -   *Context:* Address the 5 key questions identified in the spec.
     -   *Action:* Write clear, concise answers in markdown format.
 - [ ] Task: Conductor - User Manual Verification 'Content Creation' (Protocol in workflow.md)
 
 ## Phase 3: Frontend Implementation
-- [ ] Task: Design Footer Component
+- [x] Task: Design Footer Component
     -   *Context:* The footer is the standard place for Legal/Contact links.
     -   *Action:* Update `index.html` to include a footer with links to FAQ, Privacy, Terms, and Contact.
-- [ ] Task: Implement FAQ Modal/Section
+- [x] Task: Implement FAQ Modal/Section
     -   *Context:* A dedicated area for user questions.
     -   *Action:* Create a Vue.js component (or HTML section) for the FAQ with accordion functionality.
-- [ ] Task: Implement Legal Pages (Modals or Views)
+- [x] Task: Implement Legal Pages (Modals or Views)
     -   *Context:* Display the drafted legal text.
     -   *Action:* Create views for Privacy Policy and ToS.
 - [ ] Task: Verify Links and Responsive Design
