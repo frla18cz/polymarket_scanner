@@ -9,5 +9,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [ ] Track: Implement Email MCP Server for native AI integration.
+## [x] Track: Implement Email functionality via standalone scripts.
 *Link: [./conductor/tracks/email_mcp_20251222/](./conductor/tracks/email_mcp_20251222/)*
