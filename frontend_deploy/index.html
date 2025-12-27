@@ -797,8 +797,10 @@
 
                         <!-- List -->
                         <div v-else class="pb-4">
-                            <div v-for="(m, idx) in markets" :key="m.market_id + m.outcome_name"
-                                class="border-b border-poly-accent/50">
+                            <div v-for="(m, idx) in markets" 
+                                 :key="m.market_id + m.outcome_name"
+                                 v-memo="[m, expandedId === m.market_id + m.outcome_name, selectedIndex === idx, effectiveViewMode, compactMode, copiedKey]"
+                                 class="border-b border-poly-accent/50">
 
                                 <!-- ================= MOBILE CARD VIEW (Active on sm/xs) ================= -->
                                 <div v-if="effectiveViewMode === 'cards'"
