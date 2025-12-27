@@ -32,7 +32,10 @@ To enable Google Login:
 3.  **Redirect URLs:**
     - Supabase -> Auth -> URL Configuration
     - Site URL: `https://polylab.vercel.app` (Production)
-    - Additional Redirect URLs: `http://127.0.0.1:8000` (Localhost)
+    - Additional Redirect URLs: 
+        - `http://127.0.0.1:8000` (Localhost)
+        - `https://www.polylab.app`
+        - `https://polylab.app`
 
 ## Premium Features (Gate)
 Currently, the following features are gated on the frontend:
