@@ -1,0 +1,8 @@
+Task: Create Demo Asset (Iteration 2)
+Summary: Upgraded demo generation to 1080p Full HD using Playwright and MoviePy.
+Changes:
+- Viewport increased to 1920x1080.
+- Added visual cursor tracking and click effects via injected JS.
+- Slowed down interactions for better visibility.
+- Output high-bitrate MP4 and optimized GIF.
+User Feedback: Met 'Full HD' and 'Slow down' requirements.
