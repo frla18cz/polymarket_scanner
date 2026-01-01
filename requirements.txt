@@ -8,3 +8,5 @@ httpx
 mcp
 playwright
 python-dotenv
+moviepy
+imageio[ffmpeg]
