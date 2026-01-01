@@ -1,0 +1,9 @@
+Task: Create Demo Asset (GIF/Video)
+Summary: Implemented automated demo generation using Playwright.
+Files:
+- generate_demo.py: Automation script
+- static/assets/demo.gif: Generated asset
+- tests/test_demo_asset_unittest.py: Verification test
+- requirements.txt: Added playwright
+- tech-stack.md: Updated with Playwright
+Why: High-quality, repeatable demo generation for outreach without manual recording.
