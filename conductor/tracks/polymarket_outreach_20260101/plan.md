@@ -20,12 +20,12 @@
 - [x] Task: Draft Outreach Email
     -   *Context:* The initial contact with Polymarket.
     -   *Action:* Drafted `docs/PITCH_DRAFT.md`.
-- [x] Task: Create Demo Asset (GIF/Video) [289c717]
+- [~] Task: Create Demo Asset (GIF/Video)
     -   *Context:* Use Playwright to automate the UI and capture a demo GIF.
     -   *Action:* Implement `generate_demo.py` using Playwright and produce `static/assets/demo.gif`.
 
 ## Phase 3: Execution
-- [ ] Task: Deploy to Production
+- [~] Task: Deploy to Production
     -   *Context:* Ensure all changes (meta tags, footer) are live on `polylab.app`.
     -   *Action:* Push to main and verify Vercel deployment.
 - [ ] Task: Send Email to Polymarket
