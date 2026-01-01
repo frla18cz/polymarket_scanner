@@ -25,7 +25,7 @@
     -   *Action:* Implement `generate_demo.py` using Playwright and produce `static/assets/demo.gif`.
 
 ## Phase 3: Execution
-- [~] Task: Deploy to Production
+- [x] Task: Deploy to Production [1c18f52]
     -   *Context:* Ensure all changes (meta tags, footer) are live on `polylab.app`.
     -   *Action:* Push to main and verify Vercel deployment.
 - [ ] Task: Send Email to Polymarket
