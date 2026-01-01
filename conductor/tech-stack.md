@@ -24,4 +24,8 @@
 ## 5. Development & Deployment
 *   **Containerization:** **Docker** and **Docker Compose** for environment consistency.
 *   **Testing:** **pytest** and `unittest` for backend and API correctness.
+*   **E2E Testing/Automation:** **Playwright** (Python) for automated browser testing and demo asset generation.
 *   **Reverse Proxy:** **Caddy** included in the production container setup.
+
+---
+*Updated: 2026-01-01 - Added Playwright to support automated demo asset generation and E2E testing.*
