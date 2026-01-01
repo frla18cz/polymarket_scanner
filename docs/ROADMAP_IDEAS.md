@@ -75,6 +75,7 @@ Náš cíl není jen zobrazovat, co se děje (to dělá Polymarket web), ale **o
     *   Sdílet na Discordu Polymarketu.
     *   Twitter vlákno s ukázkou "Jak jsem našel 5% ROI za den pomocí tohoto nástroje".
     *   Tagovat `@Polymarket`, `@VitalikButerin` (často o Polymarketu píše).
+    *   **TODO:** Generate high-quality 1080p demo video (Current version in `generate_demo.py` needs better smoothness and clarity).
 
 3.  **Grant Application:**
     *   Až bude mít projekt trakci (uživatele), požádat o grant.

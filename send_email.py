@@ -38,11 +38,18 @@ def send_email(to_email, subject, body):
         return False
 
 if __name__ == "__main__":
-    # Test execution
-    # Usage: python send_email.py
-    TEST_RECIPIENT = os.getenv("ZOHO_EMAIL") # Send to yourself for testing
-    send_email(
-        TEST_RECIPIENT, 
-        "PolyLab AI Test", 
-        "Hello! This is a test email sent by the PolyLab AI Agent via Zoho SMTP."
-    )
+    import sys
+    if len(sys.argv) > 1:
+        # CLI Mode
+        if len(sys.argv) < 4:
+            print("Usage: python send_email.py <to> <subject> <body>")
+            sys.exit(1)
+        send_email(sys.argv[1], sys.argv[2], sys.argv[3])
+    else:
+        # Test execution
+        TEST_RECIPIENT = os.getenv("ZOHO_EMAIL") # Send to yourself for testing
+        send_email(
+            TEST_RECIPIENT, 
+            "PolyLab AI Test", 
+            "Hello! This is a test email sent by the PolyLab AI Agent via Zoho SMTP."
+        )

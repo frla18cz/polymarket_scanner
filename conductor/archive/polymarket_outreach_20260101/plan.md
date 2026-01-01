@@ -23,6 +23,7 @@
 - [x] Task: Create Demo Asset (GIF/Video) [de0e1a9]
     -   *Context:* Use Playwright to automate the UI and capture a demo GIF.
     -   *Action:* Implement `generate_demo.py` using Playwright and produce `static/assets/demo.gif`.
+    -   *Note:* Current automated quality is insufficient for marketing. Script remains but assets are for internal use only.
 
 ## Phase 3: Execution
 - [x] Task: Deploy to Production [1c18f52]
@@ -30,5 +31,6 @@
     -   *Action:* Push to main and verify Vercel deployment.
 - [x] Task: Send Email to Polymarket [N/A]
     -   *Action:* Send the finalized email to `hello@polymarket.com`.
-- [ ] Task: Community Launch (Twitter/Discord)
-    -   *Action:* Post in Polymarket Discord #dev-projects and tweet with relevant tags.
+- [ ] Task: Community Launch (Twitter/Discord) [CANCELLED]
+    -   *Note:* Deferred until higher quality demo assets are available. Moved to Roadmap.
+

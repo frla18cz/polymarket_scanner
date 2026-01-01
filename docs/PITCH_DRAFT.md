@@ -21,5 +21,5 @@ Many "safe" high-probability outcomes or high-yield long shots are buried in the
 I'd love to hear your thoughts or see if there's any way to integrate these insights more closely with the community.
 
 Best,
-[Your Name]
+Ondrej Frlicka
 PolyLab Creator
