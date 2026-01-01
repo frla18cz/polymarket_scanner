@@ -20,7 +20,7 @@
 - [x] Task: Draft Outreach Email
     -   *Context:* The initial contact with Polymarket.
     -   *Action:* Drafted `docs/PITCH_DRAFT.md`.
-- [~] Task: Create Demo Asset (GIF/Video)
+- [x] Task: Create Demo Asset (GIF/Video) [289c717]
     -   *Context:* Use Playwright to automate the UI and capture a demo GIF.
     -   *Action:* Implement `generate_demo.py` using Playwright and produce `static/assets/demo.gif`.
 
