@@ -10,7 +10,7 @@
 - [x] Task: Verify Email Delivery
     -   *Action:* Access verified via `check_emails.py` and `send_email.py`.
 
-## Phase 2: Pitch Preparation
+## Phase 2: Pitch Preparation [checkpoint: 1a41ab0]
 - [x] Task: SEO & Social Meta Tags
     -   *Context:* Ensure shared links look professional.
     -   *Action:* Updated `index.html` with OG tags and description.
