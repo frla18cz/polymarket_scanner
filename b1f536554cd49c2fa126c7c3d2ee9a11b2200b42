@@ -1,0 +1,6 @@
+Task: Phase 4 - Frontend Implementation
+- Added Smart Money Win Rate slider to sidebar filters.
+- Added 'Smart Win' column to desktop table.
+- Implemented fetchHolders(market_id) in Vue app.
+- Added Top Holders table to market detail view (desktop & mobile).
+- Fixed HoldersClient tests and SmartMoneyScraper tests to match new API structure and DB schema.
