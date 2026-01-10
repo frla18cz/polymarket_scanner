@@ -21,7 +21,7 @@ class TestSmartMoneyScraper(unittest.TestCase):
         # mock_conn.execute(...).fetchall(...)
         mock_cursor = MagicMock()
         mock_conn.execute.return_value = mock_cursor
-        mock_cursor.fetchall.return_value = [{"market_id": "m1"}]
+        mock_cursor.fetchall.return_value = [{"condition_id": "m1"}]
         
         # Mock Holders Client
         mock_h_instance = MockHolders.return_value
@@ -34,7 +34,7 @@ class TestSmartMoneyScraper(unittest.TestCase):
         mock_p_instance.fetch_user_pnl.return_value = 50.0
         
         # Run
-        smart_money_scraper.run()
+        smart_money_scraper.run([])
         
         # Verify
         mock_h_instance.fetch_holders.assert_called_with("m1", limit=50)

@@ -15,13 +15,23 @@ class TestHoldersClient(unittest.TestCase):
         from holders_client import HoldersClient
         client = HoldersClient()
         
-        # Mock sorted response
+        # Mock token-based response
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = [
-            {"address": "0x1", "positionSize": 100},
-            {"address": "0x2", "positionSize": 50},
-            {"address": "0x3", "positionSize": 10}
+            {
+                "token": "tok1",
+                "holders": [
+                    {"proxyWallet": "0x1", "amount": 100},
+                    {"proxyWallet": "0x2", "amount": 50}
+                ]
+            },
+            {
+                "token": "tok2",
+                "holders": [
+                    {"proxyWallet": "0x3", "amount": 10}
+                ]
+            }
         ]
         mock_get.return_value = mock_response
         
@@ -29,26 +39,35 @@ class TestHoldersClient(unittest.TestCase):
         
         self.assertEqual(len(holders), 3)
         self.assertEqual(holders[0]['address'], "0x1")
+        self.assertEqual(holders[0]['positionSize'], 100)
         
     @patch('requests.get')
     def test_fetch_holders_unsorted_warning(self, mock_get):
         from holders_client import HoldersClient
         client = HoldersClient()
         
-        # Mock UNsorted response
+        # Mock UNsorted response (after flattening)
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = [
-            {"address": "0x1", "positionSize": 10},
-            {"address": "0x2", "positionSize": 100}
+            {
+                "token": "t1",
+                "holders": [
+                    {"proxyWallet": "0x1", "amount": 10},
+                    {"proxyWallet": "0x2", "amount": 100}
+                ]
+            }
         ]
         mock_get.return_value = mock_response
         
-        # Use logs capture or just verify it returns the data anyway
-        with self.assertLogs('polylab.holders', level='WARNING') as cm:
-            holders = client.fetch_holders("market_unsorted")
-            self.assertEqual(len(holders), 2)
-            self.assertTrue(any("unsorted" in m for m in cm.output))
+        # Note: HoldersClient now explicitly sorts the flattened list, 
+        # so the "unsorted warning" check might not be needed or should check input.
+        # But we check that it RETURNS them correctly sorted.
+        holders = client.fetch_holders("market_unsorted")
+        self.assertEqual(len(holders), 2)
+        # Should be sorted DESC by client
+        self.assertEqual(holders[0]['positionSize'], 100)
+        self.assertEqual(holders[1]['positionSize'], 10)
 
     @patch('requests.get')
     def test_fetch_pnl_success(self, mock_get):

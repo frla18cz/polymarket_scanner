@@ -724,6 +724,26 @@
 
                     <div class="border-t border-poly-accent/30 my-3"></div>
 
+                    <!-- Smart Money Win Rate -->
+                    <div>
+                        <label class="text-xs text-gray-400 font-semibold mb-2 block flex justify-between">
+                            <span>Smart Money Win Rate</span>
+                            <span
+                                class="px-2 py-0.5 rounded-full text-xs border border-poly-accent/70 bg-poly-card/30 text-gray-200 font-mono tabular-nums">
+                                {{ filters.min_smart_money_win_rate.toFixed(0) }}%
+                            </span>
+                        </label>
+                        <input type="range" min="0" max="100" step="1"
+                            v-model.number="filters.min_smart_money_win_rate" @change="resetAndFetch"
+                            class="w-full h-1 bg-poly-accent/70 rounded-lg appearance-none cursor-pointer">
+                        <div class="flex justify-between text-[10px] text-gray-500 mt-1">
+                            <span>0%</span>
+                            <span>100%</span>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-poly-accent/30 my-3"></div>
+
                     <!-- Min Liquidity -->
                     <div>
                         <label class="text-xs text-gray-400 font-semibold mb-2 block flex justify-between">
@@ -788,7 +808,7 @@
                         <div class="grid grid-cols-12 gap-4 px-6 py-3 border-b border-poly-accent bg-poly-bg text-xs font-bold text-gray-400 uppercase tracking-wider z-10 sticky top-0 shadow-sm"
                             :class="effectiveViewMode === 'table' ? '' : 'hidden md:grid'">
                             <div class="col-span-1 text-center">Icon</div>
-                            <div class="col-span-3 cursor-pointer hover:text-white" @click="setSort('question')">Market
+                            <div class="col-span-2 cursor-pointer hover:text-white" @click="setSort('question')">Market
                             </div>
                             <div class="col-span-1 text-right cursor-pointer hover:text-white"
                                 @click="setSort('price')">Price</div>
@@ -796,6 +816,8 @@
                                 @click="setSort('spread')">Spread</div>
                             <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('apr')">
                                 APR</div>
+                            <div class="col-span-1 text-right cursor-pointer hover:text-white"
+                                @click="setSort('smart_money_win_rate')">Smart Win</div>
                             <div class="col-span-2 text-right cursor-pointer hover:text-white"
                                 @click="setSort('volume_usd')">Volume</div>
                             <div class="col-span-1 text-right cursor-pointer hover:text-white"
@@ -815,7 +837,7 @@
                         <div v-else class="pb-4">
                             <div v-for="(m, idx) in markets" 
                                  :key="m.market_id + m.outcome_name"
-                                 v-memo="[m, expandedId === m.market_id + m.outcome_name, selectedIndex === idx, effectiveViewMode, compactMode, copiedKey]"
+                                 v-memo="[m, expandedId === m.market_id + m.outcome_name, selectedIndex === idx, effectiveViewMode, compactMode, copiedKey, holdersByMarket[m.market_id], holdersLoading[m.market_id], holdersError[m.market_id]]"
                                  class="border-b border-poly-accent/50">
 
                                 <!-- ================= MOBILE CARD VIEW (Active on sm/xs) ================= -->
@@ -984,6 +1006,49 @@
                                                 <span class="text-white font-mono select-all truncate">{{ m.market_id }}</span>
                                             </div>
                                         </div>
+
+                                        <div class="mt-3 rounded border border-poly-accent bg-poly-bg/40 p-3">
+                                            <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                                Top Holders</div>
+                                            <div v-if="holdersLoading[m.market_id]" class="mt-2 text-[11px] text-gray-500">
+                                                Loading holders...
+                                            </div>
+                                            <div v-else-if="holdersError[m.market_id]" class="mt-2 text-[11px] text-poly-red">
+                                                Failed to load holders.
+                                            </div>
+                                            <div v-else-if="!holdersByMarket[m.market_id] || holdersByMarket[m.market_id].length === 0"
+                                                class="mt-2 text-[11px] text-gray-500">
+                                                No holders data.
+                                            </div>
+                                            <div v-else class="mt-2 overflow-x-auto">
+                                                <table class="min-w-full text-[11px]">
+                                                    <thead class="text-[10px] uppercase tracking-wider text-gray-500">
+                                                        <tr>
+                                                            <th class="text-left font-semibold py-1">Address</th>
+                                                            <th class="text-right font-semibold py-1">Size</th>
+                                                            <th class="text-right font-semibold py-1">P/L</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="text-gray-300">
+                                                        <tr v-for="holder in holdersByMarket[m.market_id]"
+                                                            :key="`${holder.wallet_address}-${holder.outcome_index}`"
+                                                            class="border-t border-poly-accent/30">
+                                                            <td class="py-1 font-mono text-gray-300"
+                                                                :title="holder.wallet_address">
+                                                                {{ formatWalletAddress(holder.wallet_address) }}
+                                                            </td>
+                                                            <td class="py-1 text-right font-mono text-gray-200">
+                                                                {{ formatNumberCompact(holder.position_size) }}
+                                                            </td>
+                                                            <td class="py-1 text-right font-mono"
+                                                                :class="Number(holder.total_pnl) > 0 ? 'text-poly-green' : (Number(holder.total_pnl) < 0 ? 'text-poly-red' : 'text-gray-400')">
+                                                                {{ formatPnl(holder.total_pnl) }}
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1004,7 +1069,7 @@
                                     </div>
 
                                     <!-- Question & Outcome -->
-                                    <div class="col-span-3 pr-2">
+                                    <div class="col-span-2 pr-2">
                                         <div class="mb-1">
                                             <div class="flex items-center gap-2 mb-1">
                                                 <span
@@ -1039,6 +1104,11 @@
                                     <!-- APR -->
                                     <div class="col-span-1 text-right text-gray-300 text-xs font-mono">
                                         {{ formatAprPercent(m.apr, m.price, m.end_date) }}
+                                    </div>
+
+                                    <!-- Smart Win -->
+                                    <div class="col-span-1 text-right text-gray-300 text-xs font-mono">
+                                        {{ formatSmartWinRate(m.smart_money_win_rate) }}
                                     </div>
 
                                     <!-- Volume -->
@@ -1197,6 +1267,49 @@
                                             </div>
                                         </div>
                                     </div>
+
+                                    <div class="mt-4 rounded border border-poly-accent bg-poly-bg/40 p-3">
+                                        <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                            Top Holders</div>
+                                        <div v-if="holdersLoading[m.market_id]" class="mt-2 text-[11px] text-gray-500">
+                                            Loading holders...
+                                        </div>
+                                        <div v-else-if="holdersError[m.market_id]" class="mt-2 text-[11px] text-poly-red">
+                                            Failed to load holders.
+                                        </div>
+                                        <div v-else-if="!holdersByMarket[m.market_id] || holdersByMarket[m.market_id].length === 0"
+                                            class="mt-2 text-[11px] text-gray-500">
+                                            No holders data.
+                                        </div>
+                                        <div v-else class="mt-2 overflow-x-auto">
+                                            <table class="min-w-full text-[11px]">
+                                                <thead class="text-[10px] uppercase tracking-wider text-gray-500">
+                                                    <tr>
+                                                        <th class="text-left font-semibold py-1">Address</th>
+                                                        <th class="text-right font-semibold py-1">Size</th>
+                                                        <th class="text-right font-semibold py-1">P/L</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="text-gray-300">
+                                                    <tr v-for="holder in holdersByMarket[m.market_id]"
+                                                        :key="`${holder.wallet_address}-${holder.outcome_index}`"
+                                                        class="border-t border-poly-accent/30">
+                                                        <td class="py-1 font-mono text-gray-300"
+                                                            :title="holder.wallet_address">
+                                                            {{ formatWalletAddress(holder.wallet_address) }}
+                                                        </td>
+                                                        <td class="py-1 text-right font-mono text-gray-200">
+                                                            {{ formatNumberCompact(holder.position_size) }}
+                                                        </td>
+                                                        <td class="py-1 text-right font-mono"
+                                                            :class="Number(holder.total_pnl) > 0 ? 'text-poly-green' : (Number(holder.total_pnl) < 0 ? 'text-poly-red' : 'text-gray-400')">
+                                                            {{ formatPnl(holder.total_pnl) }}
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
 
                             </div>
@@ -1300,6 +1413,9 @@
                 const offset = ref(0);
                 const limit = 100; // Load 100 at a time
                 const serverLastUpdated = ref(null);
+                const holdersByMarket = ref({});
+                const holdersLoading = ref({});
+                const holdersError = ref({});
 
                 // --- Supabase Auth ---
                 const supabaseUrl = 'https://wdwvmsrqepxvhkmodqks.supabase.co';
@@ -1517,6 +1633,7 @@
 	                    max_price: 1.00,
 	                    max_spread: 0.05,
 	                    min_apr_percent: 0,
+                        min_smart_money_win_rate: 0,
 	                    min_hours_to_expire: 0,
 	                    max_hours_to_expire: 0,
 	                    expiry_index: 0,
@@ -2011,11 +2128,35 @@
                     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " (" + d.toLocaleDateString() + ")";
                 });
 
+                const fetchHolders = async (marketId) => {
+                    if (!marketId) return;
+                    const key = String(marketId);
+                    if (holdersByMarket.value[key] || holdersLoading.value[key]) return;
+
+                    holdersLoading.value = { ...holdersLoading.value, [key]: true };
+                    holdersError.value = { ...holdersError.value, [key]: null };
+
+                    try {
+                        const res = await fetch(`${API_BASE_URL}/api/markets/${encodeURIComponent(key)}/holders`);
+                        if (!res.ok) throw new Error(`Failed to load holders (${res.status})`);
+                        const data = await res.json();
+                        const holders = Array.isArray(data) ? data : (data && Array.isArray(data.holders) ? data.holders : []);
+                        holdersByMarket.value = { ...holdersByMarket.value, [key]: holders };
+                    } catch (e) {
+                        console.error("fetchHolders: Error during fetch", e);
+                        holdersError.value = { ...holdersError.value, [key]: String(e?.message || e) };
+                    } finally {
+                        holdersLoading.value = { ...holdersLoading.value, [key]: false };
+                    }
+                };
+
                 // Toggle Details
                 const toggleDetails = (market, idx = null) => {
                     const id = market.market_id + market.outcome_name;
                     if (typeof idx === "number") selectedIndex.value = idx;
-                    expandedId.value = expandedId.value === id ? null : id;
+                    const next = expandedId.value === id ? null : id;
+                    expandedId.value = next;
+                    if (next) fetchHolders(market.market_id);
                 };
 
                 // Presets
@@ -2034,6 +2175,7 @@
 	                    filters.value.max_price = 1.00;
 	                    filters.value.max_spread = 0.05;
 	                    filters.value.min_apr_percent = 0;
+                        filters.value.min_smart_money_win_rate = 0;
 	                    filters.value.min_hours_to_expire = 0;
 	                    setExpiryHours(0);
 	                    filters.value.include_expired = true;
@@ -2065,6 +2207,7 @@
 	                    filters.value.max_price = 1.00;
 	                    filters.value.max_spread = 0.05;
 	                    filters.value.min_apr_percent = 0;
+                        filters.value.min_smart_money_win_rate = 0;
 	                    filters.value.min_hours_to_expire = 0;
 	                    setExpiryHours(0);
 	                    filters.value.include_expired = true;
@@ -2083,6 +2226,42 @@
                     return new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short", style: 'currency', currency: 'USD' }).format(value);
                 };
 
+                const formatNumberCompact = (value) => {
+                    if (value === null || value === undefined) return "-";
+                    const v = Number(value);
+                    if (!isFinite(v)) return "-";
+                    return new Intl.NumberFormat('en-US', {
+                        notation: "compact",
+                        compactDisplay: "short",
+                        maximumFractionDigits: 2,
+                    }).format(v);
+                };
+
+                const formatPnl = (value) => {
+                    if (value === null || value === undefined) return "-";
+                    const v = Number(value);
+                    if (!isFinite(v)) return "-";
+                    return new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD',
+                        maximumFractionDigits: 2,
+                    }).format(v);
+                };
+
+                const formatWalletAddress = (address) => {
+                    const s = String(address || "");
+                    if (!s) return "-";
+                    if (s.length <= 12) return s;
+                    return `${s.slice(0, 6)}...${s.slice(-4)}`;
+                };
+
+                const formatSmartWinRate = (rateFraction) => {
+                    if (rateFraction === null || rateFraction === undefined) return "-";
+                    const v = Number(rateFraction);
+                    if (!isFinite(v) || v < 0) return "-";
+                    return `${(v * 100).toFixed(1)}%`;
+                };
+
 	                const DEFAULT_FILTERS = {
 	                    min_volume: 5000,
 	                    min_liquidity: 1000,
@@ -2090,6 +2269,7 @@
 	                    max_price: 1.00,
 	                    max_spread: 0.05,
 	                    min_apr_percent: 0,
+                        min_smart_money_win_rate: 0,
 	                    min_hours_to_expire: 0,
 	                    max_hours_to_expire: 0,
 	                    expiry_index: 0,
@@ -2114,6 +2294,7 @@
                         price: "Price",
                         spread: "Spread",
                         apr: "APR",
+                        smart_money_win_rate: "Smart Win",
                         question: "Market",
                     };
                     return map[sortBy] || String(sortBy || "");
@@ -2146,6 +2327,9 @@
                     }
                     if (f.min_apr_percent !== DEFAULT_FILTERS.min_apr_percent) {
                         chips.push(`APR ≥ ${aprLabel.value}`);
+                    }
+                    if (f.min_smart_money_win_rate !== DEFAULT_FILTERS.min_smart_money_win_rate) {
+                        chips.push(`Smart Win ≥ ${Number(f.min_smart_money_win_rate || 0).toFixed(0)}%`);
                     }
                     if (f.min_volume !== DEFAULT_FILTERS.min_volume) {
                         chips.push(`Vol ≥ ${formatCompact(f.min_volume)}`);
@@ -2308,6 +2492,7 @@
                         if (filters.value.min_apr_percent > 0) {
                             params.append("min_apr", String(filters.value.min_apr_percent / 100));
                         }
+                        params.append("min_smart_money_win_rate", String(filters.value.min_smart_money_win_rate / 100));
                         params.append("include_expired", filters.value.include_expired);
                         if (filters.value.search) params.append("search", filters.value.search);
                         params.append("sort_by", filters.value.sort_by);
@@ -2460,6 +2645,9 @@
                     showMobileFilters,
                     effectiveViewMode,
                     filters,
+                    holdersByMarket,
+                    holdersLoading,
+                    holdersError,
                     activeFilterChips,
                     activeFiltersCount,
 	                    expiryOptions,
@@ -2505,10 +2693,14 @@
                     // Formatters & Others
                     formatCurrency,
                     formatCompact,
+                    formatNumberCompact,
+                    formatPnl,
                     formatDate,
                     formatAprPercent,
+                    formatSmartWinRate,
                     timeFromNow,
                     formatImpliedOdds,
+                    formatWalletAddress,
                     copyToClipboard,
                     copiedKey,
                     resetAndFetch,

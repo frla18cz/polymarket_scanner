@@ -87,10 +87,10 @@ def fetch_pnl_worker(wallet: str) -> Tuple[str, float]:
     val = client.fetch_user_pnl(wallet)
     return wallet, (val if val is not None else 0.0)
 
-def run():
+def run(args_list: Optional[List[str]] = None):
     parser = argparse.ArgumentParser(description="Scrape Smart Money data.")
     parser.add_argument("--limit", type=int, default=None, help="Limit number of markets to process (for testing)")
-    args = parser.parse_args()
+    args = parser.parse_args(args_list)
 
     logger.info(f"Starting Smart Money Scraper job... (Limit: {args.limit})")
     start_time = time.time()

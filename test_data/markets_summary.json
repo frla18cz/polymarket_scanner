@@ -1,0 +1,282 @@
+[
+  {
+    "question": "Will Trump deport 250,000-500,000 people?",
+    "outcome_name": "No",
+    "smart_money_win_rate": 0.7,
+    "volume_usd": 1041044.785764,
+    "condition_id": "0x49686d26fb712515cd5e12c23f0a1c7e10214c7faa3cb0a730aabe0c33694082"
+  },
+  {
+    "question": "Will Trump deport 250,000-500,000 people?",
+    "outcome_name": "Yes",
+    "smart_money_win_rate": 0.7,
+    "volume_usd": 1041044.785764,
+    "condition_id": "0x49686d26fb712515cd5e12c23f0a1c7e10214c7faa3cb0a730aabe0c33694082"
+  },
+  {
+    "question": "Will Elon and DOGE cut between $200-250b in federal spending in 2025?",
+    "outcome_name": "No",
+    "smart_money_win_rate": 0.6,
+    "volume_usd": 417553.503307,
+    "condition_id": "0x50e477f0b316a3d97d60486479657c63be0763834d0e2e8a30b1b86dc3c1c001"
+  },
+  {
+    "question": "Will Elon and DOGE cut between $200-250b in federal spending in 2025?",
+    "outcome_name": "Yes",
+    "smart_money_win_rate": 0.6,
+    "volume_usd": 417553.503307,
+    "condition_id": "0x50e477f0b316a3d97d60486479657c63be0763834d0e2e8a30b1b86dc3c1c001"
+  },
+  {
+    "question": "Will 2025 be the hottest year on record?",
+    "outcome_name": "No",
+    "smart_money_win_rate": 0.575,
+    "volume_usd": 2203805.176193,
+    "condition_id": "0xe6508d867d153a268bdab732aa8abc8cc57e652d28a23aa042da40895bf031b2"
+  },
+  {
+    "question": "Will 2025 be the hottest year on record?",
+    "outcome_name": "Yes",
+    "smart_money_win_rate": 0.575,
+    "volume_usd": 2203805.176193,
+    "condition_id": "0xe6508d867d153a268bdab732aa8abc8cc57e652d28a23aa042da40895bf031b2"
+  },
+  {
+    "question": "Will Elon and DOGE cut less than $50b in federal spending in 2025?",
+    "outcome_name": "No",
+    "smart_money_win_rate": 0.55,
+    "volume_usd": 315608.417567,
+    "condition_id": "0xc0e6b917320a47228fb96e3b5ae0e5c93773a5ae2662ae4e1f37807cfe47ce98"
+  },
+  {
+    "question": "Will Elon and DOGE cut less than $50b in federal spending in 2025?",
+    "outcome_name": "Yes",
+    "smart_money_win_rate": 0.55,
+    "volume_usd": 315608.417567,
+    "condition_id": "0xc0e6b917320a47228fb96e3b5ae0e5c93773a5ae2662ae4e1f37807cfe47ce98"
+  },
+  {
+    "question": "Will Trump deport less than 250,000?",
+    "outcome_name": "No",
+    "smart_money_win_rate": 0.55,
+    "volume_usd": 944350.197624,
+    "condition_id": "0xaf9d0e448129a9f657f851d49495ba4742055d80e0ef1166ba0ee81d4d594214"
+  },
+  {
+    "question": "Will Trump deport less than 250,000?",
+    "outcome_name": "Yes",
+    "smart_money_win_rate": 0.55,
+    "volume_usd": 944350.197624,
+    "condition_id": "0xaf9d0e448129a9f657f851d49495ba4742055d80e0ef1166ba0ee81d4d594214"
+  },
+  {
+    "question": "Will Elon and DOGE cut more than $250b in federal spending in 2025?",
+    "outcome_name": "No",
+    "smart_money_win_rate": 0.525,
+    "volume_usd": 660247.754576,
+    "condition_id": "0x9d24d9f9b5995949cb158d943793dea20bd448e1b3971cb6f7418bb15e719661"
+  },
+  {
+    "question": "Will Elon and DOGE cut more than $250b in federal spending in 2025?",
+    "outcome_name": "Yes",
+    "smart_money_win_rate": 0.525,
+    "volume_usd": 660247.754576,
+    "condition_id": "0x9d24d9f9b5995949cb158d943793dea20bd448e1b3971cb6f7418bb15e719661"
+  },
+  {
+    "question": "Will Elon and DOGE cut between $150-200b in federal spending in 2025?",
+    "outcome_name": "No",
+    "smart_money_win_rate": 0.525,
+    "volume_usd": 296029.779903,
+    "condition_id": "0xe68594f1350f5535532b24979b5b5c1948432cbfc0c363802c32a8f9ab4e6509"
+  },
+  {
+    "question": "Will Elon and DOGE cut between $150-200b in federal spending in 2025?",
+    "outcome_name": "Yes",
+    "smart_money_win_rate": 0.525,
+    "volume_usd": 296029.779903,
+    "condition_id": "0xe68594f1350f5535532b24979b5b5c1948432cbfc0c363802c32a8f9ab4e6509"
+  },
+  {
+    "question": "Will Trump deport 750,000 or more people in 2025?",
+    "outcome_name": "No",
+    "smart_money_win_rate": 0.5,
+    "volume_usd": 399031.458673,
+    "condition_id": "0x22ac5f75af18fdb453497fbf7ac0606a09a6fd55b78b2d08aace6b946ad62038"
+  },
+  {
+    "question": "Will Trump deport 750,000 or more people in 2025?",
+    "outcome_name": "Yes",
+    "smart_money_win_rate": 0.5,
+    "volume_usd": 399031.458673,
+    "condition_id": "0x22ac5f75af18fdb453497fbf7ac0606a09a6fd55b78b2d08aace6b946ad62038"
+  },
+  {
+    "question": "Will Trump deport 1,250,000-1,500,000 people?",
+    "outcome_name": "No",
+    "smart_money_win_rate": 0.5,
+    "volume_usd": 318519.661196,
+    "condition_id": "0x9472be65457510b7fc3477b20ba90910e99d92eac8421a14bf4b7b7a08ef31dc"
+  },
+  {
+    "question": "Will Trump deport 1,250,000-1,500,000 people?",
+    "outcome_name": "Yes",
+    "smart_money_win_rate": 0.5,
+    "volume_usd": 318519.661196,
+    "condition_id": "0x9472be65457510b7fc3477b20ba90910e99d92eac8421a14bf4b7b7a08ef31dc"
+  },
+  {
+    "question": "Will Trump deport 500,000-750,000- people?",
+    "outcome_name": "No",
+    "smart_money_win_rate": 0.5,
+    "volume_usd": 437328.055009,
+    "condition_id": "0x2393ed0b0fdc450054c7b9071907eca75cf4fc36e385adf4a0a5f99ee62243e8"
+  },
+  {
+    "question": "Will Trump deport 500,000-750,000- people?",
+    "outcome_name": "Yes",
+    "smart_money_win_rate": 0.5,
+    "volume_usd": 437328.055009,
+    "condition_id": "0x2393ed0b0fdc450054c7b9071907eca75cf4fc36e385adf4a0a5f99ee62243e8"
+  },
+  {
+    "question": "Will Elon cut the budget by at least 10% in 2025?",
+    "outcome_name": "No",
+    "smart_money_win_rate": 0.475,
+    "volume_usd": 105755.331257,
+    "condition_id": "0xe9c127a8c35f045d37b5344b0a36711084fa20c2fc1618bf178a5386f90610be"
+  },
+  {
+    "question": "Will Elon cut the budget by at least 10% in 2025?",
+    "outcome_name": "Yes",
+    "smart_money_win_rate": 0.475,
+    "volume_usd": 105755.331257,
+    "condition_id": "0xe9c127a8c35f045d37b5344b0a36711084fa20c2fc1618bf178a5386f90610be"
+  },
+  {
+    "question": "Will Trump deport 750,000-1,000,000 people?",
+    "outcome_name": "No",
+    "smart_money_win_rate": 0.475,
+    "volume_usd": 381810.074646,
+    "condition_id": "0x44f08744458b8896620cd3330bc5e1ea69df4199b02d4fc583b3fc96e5d314ce"
+  },
+  {
+    "question": "Will Trump deport 750,000-1,000,000 people?",
+    "outcome_name": "Yes",
+    "smart_money_win_rate": 0.475,
+    "volume_usd": 381810.074646,
+    "condition_id": "0x44f08744458b8896620cd3330bc5e1ea69df4199b02d4fc583b3fc96e5d314ce"
+  },
+  {
+    "question": "Will Trump deport 1,500,000-1,750,000 people?",
+    "outcome_name": "No",
+    "smart_money_win_rate": 0.47368421052631576,
+    "volume_usd": 324241.58251,
+    "condition_id": "0xc55db914f0fd1fee18997706712c0dfd8d0369cdbef93a9fef12bd001914ca77"
+  },
+  {
+    "question": "Will Trump deport 1,500,000-1,750,000 people?",
+    "outcome_name": "Yes",
+    "smart_money_win_rate": 0.47368421052631576,
+    "volume_usd": 324241.58251,
+    "condition_id": "0xc55db914f0fd1fee18997706712c0dfd8d0369cdbef93a9fef12bd001914ca77"
+  },
+  {
+    "question": "Will Elon cut the budget by at least 5% in 2025?",
+    "outcome_name": "No",
+    "smart_money_win_rate": 0.45,
+    "volume_usd": 144680.598591,
+    "condition_id": "0xcab7ba4a9133cfd407d7e73e5757e5abbace413b59421527a31113406c97815c"
+  },
+  {
+    "question": "Will Elon cut the budget by at least 5% in 2025?",
+    "outcome_name": "Yes",
+    "smart_money_win_rate": 0.45,
+    "volume_usd": 144680.598591,
+    "condition_id": "0xcab7ba4a9133cfd407d7e73e5757e5abbace413b59421527a31113406c97815c"
+  },
+  {
+    "question": "Will Elon and DOGE cut between $100-150b in federal spending in 2025?",
+    "outcome_name": "No",
+    "smart_money_win_rate": 0.45,
+    "volume_usd": 273234.13143,
+    "condition_id": "0xea644975be7b2ad32b536a94ae21b707ecb2f84290225b24e60ca46dd77903dd"
+  },
+  {
+    "question": "Will Elon and DOGE cut between $100-150b in federal spending in 2025?",
+    "outcome_name": "Yes",
+    "smart_money_win_rate": 0.45,
+    "volume_usd": 273234.13143,
+    "condition_id": "0xea644975be7b2ad32b536a94ae21b707ecb2f84290225b24e60ca46dd77903dd"
+  },
+  {
+    "question": "Will Elon and DOGE cut between $50-100b in federal spending in 2025?",
+    "outcome_name": "No",
+    "smart_money_win_rate": 0.45,
+    "volume_usd": 348768.904237,
+    "condition_id": "0x5533fb9ab797777a243c75b1bf3882c54b1ee91f794730c090bf701598993529"
+  },
+  {
+    "question": "Will Elon and DOGE cut between $50-100b in federal spending in 2025?",
+    "outcome_name": "Yes",
+    "smart_money_win_rate": 0.45,
+    "volume_usd": 348768.904237,
+    "condition_id": "0x5533fb9ab797777a243c75b1bf3882c54b1ee91f794730c090bf701598993529"
+  },
+  {
+    "question": "Will Trump & Elon reduce the deficit in 2025? ",
+    "outcome_name": "No",
+    "smart_money_win_rate": 0.45,
+    "volume_usd": 194501.895911,
+    "condition_id": "0x318b222c1435b47c338e66ca6001f782711186a488ae7b7248f7edc6ff076a83"
+  },
+  {
+    "question": "Will Trump & Elon reduce the deficit in 2025? ",
+    "outcome_name": "Yes",
+    "smart_money_win_rate": 0.45,
+    "volume_usd": 194501.895911,
+    "condition_id": "0x318b222c1435b47c338e66ca6001f782711186a488ae7b7248f7edc6ff076a83"
+  },
+  {
+    "question": "Will Trump deport 1,000,000-1,250,000 people?",
+    "outcome_name": "No",
+    "smart_money_win_rate": 0.45,
+    "volume_usd": 364361.606388,
+    "condition_id": "0x49a20c7523c271099008f3ef9a31521263b24d637959852a391e6b4697b1a437"
+  },
+  {
+    "question": "Will Trump deport 1,000,000-1,250,000 people?",
+    "outcome_name": "Yes",
+    "smart_money_win_rate": 0.45,
+    "volume_usd": 364361.606388,
+    "condition_id": "0x49a20c7523c271099008f3ef9a31521263b24d637959852a391e6b4697b1a437"
+  },
+  {
+    "question": "Will Trump deport 2,000,000 or more people?",
+    "outcome_name": "No",
+    "smart_money_win_rate": 0.4,
+    "volume_usd": 303258.753748,
+    "condition_id": "0xb9bbdd34304344dcc45803780a34c97d73a00133a5ecf70f63e1008b8abb2fca"
+  },
+  {
+    "question": "Will Trump deport 2,000,000 or more people?",
+    "outcome_name": "Yes",
+    "smart_money_win_rate": 0.4,
+    "volume_usd": 303258.753748,
+    "condition_id": "0xb9bbdd34304344dcc45803780a34c97d73a00133a5ecf70f63e1008b8abb2fca"
+  },
+  {
+    "question": "Will Trump deport 1,750,000-2,000,000 people?",
+    "outcome_name": "No",
+    "smart_money_win_rate": 0.4,
+    "volume_usd": 288704.281427,
+    "condition_id": "0x50c669f178da4e5bbea7f1be25041fd278914712fa87a6a6f8e57d5923d88dee"
+  },
+  {
+    "question": "Will Trump deport 1,750,000-2,000,000 people?",
+    "outcome_name": "Yes",
+    "smart_money_win_rate": 0.4,
+    "volume_usd": 288704.281427,
+    "condition_id": "0x50c669f178da4e5bbea7f1be25041fd278914712fa87a6a6f8e57d5923d88dee"
+  }
+]
