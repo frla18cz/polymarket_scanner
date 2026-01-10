@@ -1,12 +1,12 @@
 # Plan: Smart Money & Holders Analysis Implementation
 
 ## Phase 1: Database & Data Models
-- [ ] Task: Define SQL Schema
+- [x] Task: Define SQL Schema [commit: dc5a115]
     - Create SQL migration script (or update schema definition logic) to add `holders` and `wallets_stats` tables.
     - Add necessary indices for performance (`market_id`, `wallet_address`).
-- [ ] Task: Update Database Initialization Logic
+- [x] Task: Update Database Initialization Logic [commit: dc5a115]
     - Modify `main.py` or `scraper.py` (wherever DB init happens) to ensure new tables are created on startup.
-- [ ] Task: Create Data Access Models (DTOs)
+- [x] Task: Create Data Access Models (DTOs) [commit: dc5a115]
     - Define Pydantic models for `Holder` and `WalletStats` to ensure type safety within the Python code.
 
 ## Phase 2: Scraper Implementation (Holders & P/L)
