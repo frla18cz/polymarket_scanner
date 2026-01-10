@@ -58,6 +58,17 @@ class TagStats(BaseModel):
     tag_label: str
     count: int
 
+class Holder(BaseModel):
+    market_id: str
+    outcome_index: int
+    wallet_address: str
+    position_size: float
+    snapshot_at: str
+
+class WalletStats(BaseModel):
+    wallet_address: str
+    total_pnl: float
+    last_updated: str
 
 class PerfScenarioResult(BaseModel):
     name: str
@@ -135,6 +146,24 @@ def ensure_indices():
             logger.warning("Failed to ensure APR column/index readiness: %s", e)
         
         conn.executescript("""
+            CREATE TABLE IF NOT EXISTS holders (
+                market_id TEXT,
+                outcome_index INTEGER,
+                wallet_address TEXT,
+                position_size REAL,
+                snapshot_at TEXT
+            );
+            
+            CREATE TABLE IF NOT EXISTS wallets_stats (
+                wallet_address TEXT PRIMARY KEY,
+                total_pnl REAL,
+                last_updated TEXT
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_holders_market ON holders(market_id);
+            CREATE INDEX IF NOT EXISTS idx_holders_wallet ON holders(wallet_address);
+            CREATE INDEX IF NOT EXISTS idx_wallets_stats_address ON wallets_stats(wallet_address);
+
             CREATE INDEX IF NOT EXISTS idx_market_tags_label ON market_tags(tag_label);
             CREATE INDEX IF NOT EXISTS idx_market_tags_market_id ON market_tags(market_id);
             CREATE INDEX IF NOT EXISTS idx_amo_market_id ON active_market_outcomes(market_id);
