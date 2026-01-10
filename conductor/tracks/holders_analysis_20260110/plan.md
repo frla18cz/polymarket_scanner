@@ -9,7 +9,7 @@
 - [x] Task: Create Data Access Models (DTOs) [commit: dc5a115]
     - Define Pydantic models for `Holder` and `WalletStats` to ensure type safety within the Python code.
 
-## Phase 2: Scraper Implementation (Holders & P/L)
+## Phase 2: Scraper Implementation (Holders & P/L) [checkpoint: 60d2108]
 - [x] Task: Implement `HoldersClient` [commit: effae3c]
     - Add method to fetch holders from Gamma API with `limit=50`.
     - Implement the "sorted check" validation logic.
@@ -24,7 +24,7 @@
         3. Extracts unique wallets.
         4. Fetches P/L for unique wallets.
         5. Saves data to SQLite.
-- [ ] Task: Conductor - User Manual Verification 'Scraper Implementation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Scraper Implementation' (Protocol in workflow.md)
 
 ## Phase 3: Metrics Calculation & API Integration
 - [ ] Task: Implement Metrics Logic
