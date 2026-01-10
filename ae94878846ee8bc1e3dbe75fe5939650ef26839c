@@ -1,0 +1,7 @@
+Task: Phase 3 - Metrics Calculation & API Integration
+- Added 'smart_money_win_rate' column and index to active_market_outcomes.
+- Implemented metrics calculation in smart_money_scraper.py using SQL.
+- Added GET /api/markets/{id}/holders endpoint with P/L join.
+- Updated GET /api/markets with min_smart_money_win_rate filter and sorting.
+- Updated docs/UI_CONTRACT.md.
+- Verified with tests/test_api_holders_integration_unittest.py and tests/test_api_smart_money_filter_unittest.py.
