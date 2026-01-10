@@ -1,0 +1,5 @@
+Task: Phase 1 - Database & Data Models
+- Defined SQL schema for 'holders' and 'wallets_stats'.
+- Updated main.py ensure_indices to create these tables.
+- Added Pydantic models Holder and WalletStats.
+- Verified with tests/test_holders_schema_unittest.py.
