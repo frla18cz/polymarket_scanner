@@ -16,6 +16,7 @@ Rule: **edit `frontend_deploy/index.html` and copy it to `static/index.html`** (
 - `GET /api/tags` → list of tags for include/exclude autocomplete
 - `GET /api/status` → `{ last_updated }` timestamp shown in header
 - `GET /api/markets` → main table/card data (supports all filters below)
+- `GET /api/markets/{market_id}/holders` → list of top holders with P/L stats for a specific market
 
 ## Required filters (UI → `/api/markets` query params)
 
@@ -51,13 +52,16 @@ All filters must work the same on desktop and mobile because they share the same
 - **Min volume / liquidity**
   - UI: `filters.min_volume`, `filters.min_liquidity`
   - API: `min_volume`, `min_liquidity`
+- **Min Smart Money Win Rate**
+  - UI: `filters.min_smart_money_win_rate` (percentage, e.g. `50` = 50%)
+  - API: `min_smart_money_win_rate` (fraction, e.g. `0.5` = 50%)
 - **Search**
   - UI: `filters.search`
   - API: `search=<string>` (omit when empty)
 - **Sort**
   - UI: `filters.sort_by`, `filters.sort_dir`
   - API:
-    - `sort_by` in `volume_usd|liquidity_usd|end_date|price|spread|apr|question`
+    - `sort_by` in `volume_usd|liquidity_usd|end_date|price|spread|apr|question|smart_money_win_rate`
     - `sort_dir` in `asc|desc`
 - **Pagination**
   - UI: fixed `limit=100`, `offset` increments by 100

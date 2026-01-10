@@ -1,6 +1,7 @@
 import time
 import logging
 import sqlite3
+import argparse
 import concurrent.futures
 from datetime import datetime, timezone
 from typing import List, Set, Dict, Tuple, Optional
@@ -12,18 +13,21 @@ from logging_setup import setup_logging
 setup_logging("smart_money")
 logger = logging.getLogger("polylab.smart_money")
 
-def get_active_market_ids() -> List[str]:
+def get_active_market_ids(limit: Optional[int] = None) -> List[str]:
     conn = get_db_connection()
     try:
-        # Get distinct market IDs
-        rows = conn.execute("SELECT DISTINCT market_id FROM active_market_outcomes").fetchall()
-        return [r["market_id"] for r in rows if r["market_id"]]
+        # We need the condition_id for the Holders API
+        sql = "SELECT DISTINCT condition_id FROM active_market_outcomes WHERE condition_id IS NOT NULL"
+        if limit:
+            sql += f" LIMIT {limit}"
+        rows = conn.execute(sql).fetchall()
+        return [r["condition_id"] for r in rows if r["condition_id"]]
     finally:
         conn.close()
 
-def save_holders_batch(conn: sqlite3.Connection, market_id: str, holders: List[Dict]):
+def save_holders_batch(conn: sqlite3.Connection, condition_id: str, holders: List[Dict]):
     # Delete existing for this market to avoid duplicates/stale data for the current snapshot
-    conn.execute("DELETE FROM holders WHERE market_id = ?", (market_id,))
+    conn.execute("DELETE FROM holders WHERE market_id = ?", (condition_id,))
     
     snapshot_at = datetime.now(timezone.utc).isoformat()
     
@@ -36,7 +40,7 @@ def save_holders_batch(conn: sqlite3.Connection, market_id: str, holders: List[D
         pos_size = float(h.get("positionSize") or h.get("size") or 0.0)
         
         if addr:
-             records.append((market_id, out_idx, addr, pos_size, snapshot_at))
+             records.append((condition_id, out_idx, addr, pos_size, snapshot_at))
 
     if records:
         conn.executemany("""
@@ -51,16 +55,16 @@ def save_wallet_stats(conn: sqlite3.Connection, wallet: str, pnl: float):
         VALUES (?, ?, ?)
     """, (wallet, pnl, last_updated))
 
-def process_market_holders(market_id: str, holders_client: HoldersClient) -> List[str]:
+def process_market_holders(condition_id: str, holders_client: HoldersClient) -> List[str]:
     """
     Fetches holders for a market, saves them to DB, and returns list of unique wallet addresses found.
     """
     conn = get_db_connection()
     unique_wallets = []
     try:
-        data = holders_client.fetch_holders(market_id, limit=50)
+        data = holders_client.fetch_holders(condition_id, limit=50)
         if data:
-            save_holders_batch(conn, market_id, data)
+            save_holders_batch(conn, condition_id, data)
             conn.commit()
             
             # Extract unique wallets
@@ -69,7 +73,7 @@ def process_market_holders(market_id: str, holders_client: HoldersClient) -> Lis
                 if addr:
                     unique_wallets.append(addr)
     except Exception as e:
-        logger.error(f"Failed to process holders for market {market_id}: {e}")
+        logger.error(f"Failed to process holders for market {condition_id}: {e}")
     finally:
         conn.close()
     
@@ -84,16 +88,20 @@ def fetch_pnl_worker(wallet: str) -> Tuple[str, float]:
     return wallet, (val if val is not None else 0.0)
 
 def run():
-    logger.info("Starting Smart Money Scraper job...")
+    parser = argparse.ArgumentParser(description="Scrape Smart Money data.")
+    parser.add_argument("--limit", type=int, default=None, help="Limit number of markets to process (for testing)")
+    args = parser.parse_args()
+
+    logger.info(f"Starting Smart Money Scraper job... (Limit: {args.limit})")
     start_time = time.time()
     
     try:
-        market_ids = get_active_market_ids()
+        condition_ids = get_active_market_ids(limit=args.limit)
     except Exception as e:
         logger.error(f"Failed to get active markets: {e}")
         return
 
-    logger.info(f"Found {len(market_ids)} active markets.")
+    logger.info(f"Found {len(condition_ids)} active markets to process.")
     
     holders_client = HoldersClient()
     
@@ -101,11 +109,11 @@ def run():
     
     # 1. Fetch Holders
     # Running serially for now to be gentle on Data API, usually fast enough.
-    for i, m_id in enumerate(market_ids):
-        wallets = process_market_holders(m_id, holders_client)
+    for i, c_id in enumerate(condition_ids):
+        wallets = process_market_holders(c_id, holders_client)
         all_unique_wallets.update(wallets)
         if (i + 1) % 50 == 0:
-            logger.info(f"Processed holders for {i+1}/{len(market_ids)} markets.")
+            logger.info(f"Processed holders for {i+1}/{len(condition_ids)} markets.")
             
     logger.info(f"Found {len(all_unique_wallets)} unique wallets to analyze.")
     
@@ -134,6 +142,25 @@ def run():
                     logger.error(f"Error fetching PnL for {w}: {e}")
             
             conn.commit() # Final commit
+        
+        # 3. Calculate and Update Metrics
+        logger.info("Calculating and updating Smart Money metrics...")
+        conn.execute("""
+            UPDATE active_market_outcomes
+            SET smart_money_win_rate = (
+                SELECT CAST(SUM(CASE WHEN ws.total_pnl > 0 THEN 1 ELSE 0 END) AS REAL) / COUNT(*)
+                FROM holders h
+                JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
+                WHERE h.market_id = active_market_outcomes.condition_id
+            )
+            WHERE EXISTS (
+                SELECT 1 FROM holders h 
+                WHERE h.market_id = active_market_outcomes.condition_id
+            );
+        """)
+        conn.commit()
+        logger.info("Metrics update complete.")
+
     finally:
         conn.close()
 

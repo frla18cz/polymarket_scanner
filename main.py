@@ -66,9 +66,21 @@ class Holder(BaseModel):
     snapshot_at: str
 
 class WalletStats(BaseModel):
+
     wallet_address: str
+
     total_pnl: float
+
     last_updated: str
+
+class HolderDetail(BaseModel):
+    wallet_address: str
+    position_size: float
+    outcome_index: int
+    total_pnl: Optional[float] = None
+
+
+
 
 class PerfScenarioResult(BaseModel):
     name: str
@@ -121,6 +133,14 @@ def ensure_indices():
             cols = [r["name"] for r in conn.execute("PRAGMA table_info(active_market_outcomes)").fetchall()]
             if "apr" not in cols:
                 conn.execute("ALTER TABLE active_market_outcomes ADD COLUMN apr REAL;")
+                conn.commit()
+            
+            if "smart_money_win_rate" not in cols:
+                conn.execute("ALTER TABLE active_market_outcomes ADD COLUMN smart_money_win_rate REAL;")
+                conn.commit()
+
+            if "condition_id" not in cols:
+                conn.execute("ALTER TABLE active_market_outcomes ADD COLUMN condition_id TEXT;")
                 conn.commit()
 
             conn.execute(
@@ -175,6 +195,7 @@ def ensure_indices():
             CREATE INDEX IF NOT EXISTS idx_amo_spread ON active_market_outcomes(spread);
             CREATE INDEX IF NOT EXISTS idx_amo_liquidity ON active_market_outcomes(liquidity_usd);
             CREATE INDEX IF NOT EXISTS idx_amo_apr ON active_market_outcomes(apr);
+            CREATE INDEX IF NOT EXISTS idx_amo_smart_money ON active_market_outcomes(smart_money_win_rate);
             
             -- Text Search Indices (helps with sorting/exact match)
             CREATE INDEX IF NOT EXISTS idx_amo_question ON active_market_outcomes(question);
@@ -302,7 +323,38 @@ async def measure_execution_time(request: Request, call_next):
         
     return response
 
+@app.get("/api/markets/{market_id}/holders", response_model=List[HolderDetail])
+def get_market_holders(market_id: str):
+    conn = get_db_connection()
+    try:
+        # Join holders with wallets_stats to get PnL
+        sql = """
+            SELECT 
+                h.wallet_address, 
+                h.position_size, 
+                h.outcome_index,
+                ws.total_pnl
+            FROM holders h
+            LEFT JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
+            WHERE h.market_id = ?
+            ORDER BY h.outcome_index ASC, h.position_size DESC
+        """
+        rows = conn.execute(sql, (market_id,)).fetchall()
+        return [
+            HolderDetail(
+                wallet_address=r["wallet_address"],
+                position_size=r["position_size"],
+                outcome_index=r["outcome_index"],
+                total_pnl=r["total_pnl"]
+            )
+            for r in rows
+        ]
+    finally:
+        conn.close()
+
 @app.get("/api/tags", response_model=List[TagStats])
+
+
 def get_tags():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -339,6 +391,7 @@ def get_markets(
     max_price: Optional[float] = 1.0,
     max_spread: Optional[float] = None,
     min_apr: Optional[float] = None,
+    min_smart_money_win_rate: Optional[float] = None,
     min_hours_to_expire: Optional[int] = None,
     max_hours_to_expire: Optional[int] = None,
     include_expired: bool = True,
@@ -421,6 +474,10 @@ def get_markets(
         where_clauses.append(f"({apr_sql} IS NOT NULL AND {apr_sql} >= ?)")
         params.append(float(min_apr))
 
+    if min_smart_money_win_rate is not None:
+        where_clauses.append("smart_money_win_rate >= ?")
+        params.append(float(min_smart_money_win_rate))
+
     if search:
         where_clauses.append("(question LIKE ? OR outcome_name LIKE ?)")
         params.append(f"%{search}%")
@@ -472,7 +529,7 @@ def get_markets(
     where_str = " AND ".join(where_clauses)
     
     # Sorting
-    valid_sorts = ["volume_usd", "liquidity_usd", "end_date", "price", "spread", "apr", "question"]
+    valid_sorts = ["volume_usd", "liquidity_usd", "end_date", "price", "spread", "apr", "question", "smart_money_win_rate"]
     if sort_by not in valid_sorts:
         sort_by = "volume_usd"
 

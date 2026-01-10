@@ -5,7 +5,7 @@ import time
 import datetime
 import ast
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, List, Optional
 
 # Import local client
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -36,6 +36,7 @@ def setup_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             snapshot_at TEXT,
             market_id TEXT,
+            condition_id TEXT,
             event_slug TEXT,
             question TEXT,
             url TEXT,
@@ -48,7 +49,8 @@ def setup_db():
             start_date TEXT,
             end_date TEXT,
             category TEXT,
-            icon_url TEXT
+            icon_url TEXT,
+            smart_money_win_rate REAL
         )
     ''')
     
@@ -64,7 +66,7 @@ def setup_db():
     conn.commit()
     return conn
 
-def run_scrape():
+def run_scrape(limit_count: Optional[int] = None):
     start_total = time.time()
     logger.info("Starting scrape...")
     
@@ -92,6 +94,8 @@ def run_scrape():
     # 2. Fetch Markets
     t0 = time.time()
     raw_markets = fetcher.fetch_all_markets()
+    if limit_count:
+        raw_markets = raw_markets[:limit_count]
     logger.info("Markets: %d (took %.2fs)", len(raw_markets), (time.time() - t0))
     
     # 3. Process & Store
@@ -185,14 +189,14 @@ def run_scrape():
             
             cursor.execute('''
                 INSERT INTO active_market_outcomes (
-                    snapshot_at, market_id, event_slug, question, url, outcome_name, 
+                    snapshot_at, market_id, condition_id, event_slug, question, url, outcome_name, 
                     price, apr, spread, volume_usd, liquidity_usd, start_date, end_date, 
-                    category, icon_url
-                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    category, icon_url, smart_money_win_rate
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             ''', (
-                snapshot_at, m_id, event_slug, question, url, str(outcome_name),
+                snapshot_at, m_id, m.get("conditionId"), event_slug, question, url, str(outcome_name),
                 price, apr, float(m.get("spread") or 0), float(m.get("volume") or 0), float(m.get("liquidity") or 0),
-                m.get("startDate"), m.get("endDate"), primary_category, icon_url
+                m.get("startDate"), m.get("endDate"), primary_category, icon_url, None
             ))
             count_outcomes += 1
             
@@ -221,6 +225,11 @@ def run_scrape():
 
 if __name__ == "__main__":
     from logging_setup import setup_logging
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Scrape Polymarket data.")
+    parser.add_argument("--limit", type=int, default=None, help="Limit number of markets to process (for testing)")
+    args = parser.parse_args()
 
     setup_logging("scraper")
-    run_scrape()
+    run_scrape(limit_count=args.limit)
