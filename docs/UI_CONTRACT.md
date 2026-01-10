@@ -78,6 +78,7 @@ Both desktop and mobile “details” must include (when available):
 
 - Link to market (`url`)
 - Copy Market ID (`market_id`) and Copy Link
+- Condition ID (`condition_id`) for holders lookup
 - Event slug (`event_slug`) if present
 - Probability (`price`), spread (`spread`), APR (`apr`), volume (`volume_usd`), liquidity (`liquidity_usd`)
 - Dates (`start_date`, `end_date`) and relative expiry (“in X days” / “Expired”)

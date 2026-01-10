@@ -34,25 +34,25 @@
     - Create a new API endpoint `/api/market/{id}/holders` (or expand existing detail endpoint) to return the Top-K holders list with their P/L data.
 - [x] Task: Conductor - User Manual Verification 'Metrics Calculation & API Integration' (Protocol in workflow.md)
 
-## Phase 4: Frontend Implementation
-- [ ] Task: Update Scanner Table
+## Phase 4: Frontend Implementation [checkpoint: b1f5365]
+- [x] Task: Update Scanner Table [commit: b1f5365]
     - Add new columns for "Smart Money" metrics to the main table.
     - Add sorting/filtering capabilities for these columns.
-- [ ] Task: Build Market Detail View
+- [x] Task: Build Market Detail View [commit: b1f5365]
     - Create a UI component to display the list of Top Holders (address, size, P/L).
-- [ ] Task: Build Leaderboard Page
+- [x] Task: Build Leaderboard Page [commit: b1f5365]
     - Create a simple "Smart Money Leaderboard" page listing top wallets by P/L.
-- [ ] Task: Conductor - User Manual Verification 'Frontend Implementation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Frontend Implementation' (Protocol in workflow.md)
 
-## Phase 5: Testing & Deployment
-- [ ] Task: Write Unit Tests
+## Phase 5: Testing & Deployment [checkpoint: b1f5365]
+- [x] Task: Write Unit Tests [commit: b1f5365]
     - Test Scraper logic (mock API responses).
     - Test Data Aggregation logic.
     - Test new API endpoints.
-- [ ] Task: Performance Verification
+- [x] Task: Performance Verification [commit: b1f5365]
     - Run the scraper on a subset of data to verify rate limit adherence.
     - Check database query speeds with the new joins.
-- [ ] Task: Final Polish
+- [x] Task: Final Polish [commit: b1f5365]
     - Ensure UI is responsive and consistent.
     - Update documentation (`UI_CONTRACT.md`).
-- [ ] Task: Conductor - User Manual Verification 'Testing & Deployment' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Testing & Deployment' (Protocol in workflow.md)
