@@ -10,14 +10,14 @@
     - Define Pydantic models for `Holder` and `WalletStats` to ensure type safety within the Python code.
 
 ## Phase 2: Scraper Implementation (Holders & P/L)
-- [ ] Task: Implement `HoldersClient`
+- [x] Task: Implement `HoldersClient` [commit: effae3c]
     - Add method to fetch holders from Gamma API with `limit=50`.
     - Implement the "sorted check" validation logic.
-- [ ] Task: Implement `PnLClient`
+- [x] Task: Implement `PnLClient` [commit: effae3c]
     - Add method to fetch user P/L from the P/L API.
     - Implement concurrency logic (Worker Pool = 10, Sleep = 0.3s).
     - Implement retry logic for 429/timeouts.
-- [ ] Task: Create `SmartMoneyScraper` Job
+- [x] Task: Create `SmartMoneyScraper` Job [commit: effae3c]
     - Create a new orchestration function/script that:
         1. Gets list of active markets.
         2. Iterates markets to fetch Holders.
