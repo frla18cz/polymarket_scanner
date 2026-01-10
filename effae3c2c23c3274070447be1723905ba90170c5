@@ -1,0 +1,5 @@
+Task: Phase 2 - Scraper Implementation
+- Implemented HoldersClient (fetching + validation).
+- Implemented PnLClient (fetching + retry logic).
+- Created SmartMoneyScraper job (orchestration + DB saving).
+- Verified with tests/test_holders_client_unittest.py.
