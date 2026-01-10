@@ -26,13 +26,13 @@
         5. Saves data to SQLite.
 - [x] Task: Conductor - User Manual Verification 'Scraper Implementation' (Protocol in workflow.md)
 
-## Phase 3: Metrics Calculation & API Integration
-- [ ] Task: Implement Metrics Logic
+## Phase 3: Metrics Calculation & API Integration [checkpoint: ae94878]
+- [x] Task: Implement Metrics Logic [commit: ae94878]
     - Create functions to calculate aggregated market metrics (e.g., `top_holders_win_rate`).
     - Update `get_markets` endpoint in `main.py` to join/include these new metrics in the response.
-- [ ] Task: Add Market Detail Endpoint
+- [x] Task: Add Market Detail Endpoint [commit: ae94878]
     - Create a new API endpoint `/api/market/{id}/holders` (or expand existing detail endpoint) to return the Top-K holders list with their P/L data.
-- [ ] Task: Conductor - User Manual Verification 'Metrics Calculation & API Integration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Metrics Calculation & API Integration' (Protocol in workflow.md)
 
 ## Phase 4: Frontend Implementation
 - [ ] Task: Update Scanner Table
