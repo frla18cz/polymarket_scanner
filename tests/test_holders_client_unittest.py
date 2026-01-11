@@ -15,59 +15,44 @@ class TestHoldersClient(unittest.TestCase):
         from holders_client import HoldersClient
         client = HoldersClient()
         
-        # Mock token-based response
+        # Mock token-based response with enough holders for validation
+        holders_0 = [{"proxyWallet": f"0x0_{i}", "amount": 100, "outcomeIndex": 0} for i in range(20)]
+        holders_1 = [{"proxyWallet": f"0x1_{i}", "amount": 50, "outcomeIndex": 1} for i in range(20)]
+        
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = [
-            {
-                "token": "tok1",
-                "holders": [
-                    {"proxyWallet": "0x1", "amount": 100},
-                    {"proxyWallet": "0x2", "amount": 50}
-                ]
-            },
-            {
-                "token": "tok2",
-                "holders": [
-                    {"proxyWallet": "0x3", "amount": 10}
-                ]
-            }
+            {"token": "tok1", "holders": holders_0},
+            {"token": "tok2", "holders": holders_1}
         ]
         mock_get.return_value = mock_response
         
-        holders = client.fetch_holders("market_123", limit=3)
+        holders = client.fetch_holders("market_123")
         
-        self.assertEqual(len(holders), 3)
-        self.assertEqual(holders[0]['address'], "0x1")
-        self.assertEqual(holders[0]['positionSize'], 100)
+        self.assertIsNotNone(holders)
+        self.assertEqual(len(holders), 40)
         
     @patch('requests.get')
     def test_fetch_holders_unsorted_warning(self, mock_get):
         from holders_client import HoldersClient
         client = HoldersClient()
         
-        # Mock UNsorted response (after flattening)
+        # Mock enough holders but unsorted
+        holders_0 = [{"proxyWallet": f"0x0_{i}", "amount": i, "outcomeIndex": 0} for i in range(20)]
+        holders_1 = [{"proxyWallet": f"0x1_{i}", "amount": i, "outcomeIndex": 1} for i in range(20)]
+        
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = [
-            {
-                "token": "t1",
-                "holders": [
-                    {"proxyWallet": "0x1", "amount": 10},
-                    {"proxyWallet": "0x2", "amount": 100}
-                ]
-            }
+            {"token": "t1", "holders": holders_0 + holders_1}
         ]
         mock_get.return_value = mock_response
         
-        # Note: HoldersClient now explicitly sorts the flattened list, 
-        # so the "unsorted warning" check might not be needed or should check input.
-        # But we check that it RETURNS them correctly sorted.
         holders = client.fetch_holders("market_unsorted")
-        self.assertEqual(len(holders), 2)
-        # Should be sorted DESC by client
-        self.assertEqual(holders[0]['positionSize'], 100)
-        self.assertEqual(holders[1]['positionSize'], 10)
+        self.assertIsNotNone(holders)
+        self.assertEqual(len(holders), 40)
+        # Should be sorted DESC by amount (which we mapped to positionSize)
+        self.assertEqual(holders[0]['positionSize'], 19)
 
     @patch('requests.get')
     def test_fetch_pnl_success(self, mock_get):

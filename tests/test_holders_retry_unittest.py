@@ -9,21 +9,22 @@ class TestHoldersRetry(unittest.TestCase):
     def test_fetch_holders_retries_on_failure(self, mock_sleep, mock_get):
         client = HoldersClient()
         
-        # Mock failure, then success
-        mock_error = Exception("Network error")
+        # Mock failure, then success with enough data
+        mock_error = requests.exceptions.RequestException("Network error")
         mock_success = MagicMock()
         mock_success.status_code = 200
-        mock_success.json.return_value = [
-            {"token": "t1", "holders": [{"proxyWallet": "0x1", "amount": 100}]}
-        ]
+        
+        holders_0 = [{"proxyWallet": f"0x0_{i}", "amount": 10, "outcomeIndex": 0} for i in range(20)]
+        holders_1 = [{"proxyWallet": f"0x1_{i}", "amount": 10, "outcomeIndex": 1} for i in range(20)]
+        mock_success.json.return_value = [{"holders": holders_0 + holders_1}]
         
         # First two calls fail, third succeeds
         mock_get.side_effect = [mock_error, mock_error, mock_success]
         
         holders = client.fetch_holders("market_123")
         
-        self.assertEqual(len(holders), 1)
-        self.assertEqual(holders[0]['address'], "0x1")
+        self.assertIsNotNone(holders)
+        self.assertEqual(len(holders), 40)
         self.assertEqual(mock_get.call_count, 3)
         self.assertEqual(mock_sleep.call_count, 2)
 
@@ -33,11 +34,11 @@ class TestHoldersRetry(unittest.TestCase):
         client = HoldersClient()
         
         # All three calls fail
-        mock_get.side_effect = Exception("Network error")
+        mock_get.side_effect = requests.exceptions.RequestException("Network error")
         
         holders = client.fetch_holders("market_123")
         
-        self.assertEqual(holders, [])
+        self.assertIsNone(holders)
         self.assertEqual(mock_get.call_count, 3)
         self.assertEqual(mock_sleep.call_count, 2)
 
@@ -50,7 +51,7 @@ class TestHoldersRetry(unittest.TestCase):
         mock_get.return_value = mock_response
         
         holders = client.fetch_holders("market_123")
-        self.assertEqual(holders, [])
+        self.assertIsNone(holders)
 
 class TestPnLClientRetry(unittest.TestCase):
     @patch('requests.get')

@@ -37,7 +37,7 @@ class TestSmartMoneyScraper(unittest.TestCase):
         smart_money_scraper.run([])
         
         # Verify
-        mock_h_instance.fetch_holders.assert_called_with("m1", limit=50)
+        mock_h_instance.fetch_holders.assert_called_with("m1", limit=1000)
         # Verify PnL fetched 
         # Since it runs in threads, timing is tricky but run() waits for threads.
         mock_p_instance.fetch_user_pnl.assert_called_with("0x1")
