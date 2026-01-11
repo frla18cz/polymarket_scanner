@@ -1,0 +1,9 @@
+Task: Implementace Validace a Limitu
+Summary of changes:
+- Updated HoldersClient.fetch_holders to use limit=1000 to capture unbalanced outcome distributions.
+- Implemented validation in fetch_holders: ensures at least 20 holders are found for both outcome 0 and outcome 1.
+- Added a 3-attempt retry loop with a 2-second fixed delay if validation fails.
+- Changed fetch_holders return value to None on final failure to distinguish between "empty but valid" and "failed/invalid data".
+- Updated smart_money_scraper.py to skip database updates for markets where fetch_holders returns None, preserving existing data.
+- Created unit tests for validation and scraper skip logic.
+Why: To prevent the scanner from overwriting good market data with incomplete snapshots returned by the Polymarket API during temporary glitches or due to low fetch limits. Ensuring 20+ holders per side guarantees higher quality Smart Money metrics.
