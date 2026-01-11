@@ -1,0 +1,4 @@
+Task: Technical Refinement - Parallelism & Robustness
+- Switched holder fetching to 10-worker thread pool (reduced runtime from hours to ~20 mins).
+- Enhanced PnLClient with exponential backoff (1s, 2s, 4s, 8s, 16s) to handle high-volume API requests.
+- Added --resume flag to skip re-fetching holder lists if data already exists in DB.
