@@ -65,8 +65,8 @@ def process_market_holders_worker(condition_id: str) -> List[str]:
     holders_client = HoldersClient()
     unique_wallets = []
     try:
-        data = holders_client.fetch_holders(condition_id, limit=50)
-        if data:
+        data = holders_client.fetch_holders(condition_id, limit=1000)
+        if data is not None:
             # We need a fresh connection per thread for SQLite safety
             conn = get_db_connection()
             try:
@@ -80,6 +80,8 @@ def process_market_holders_worker(condition_id: str) -> List[str]:
                 addr = h.get("address") or h.get("user")
                 if addr:
                     unique_wallets.append(addr)
+        else:
+            logger.warning(f"Skipping market {condition_id} due to validation failure or API error.")
     except Exception as e:
         logger.error(f"Failed to process holders for market {condition_id}: {e}")
     
