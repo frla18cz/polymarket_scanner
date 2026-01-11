@@ -1,0 +1,4 @@
+Verification Report - Phase 1: Implementace Logic
+- Automated Tests: python -m unittest tests/test_holders_retry_unittest.py tests/test_holders_client_unittest.py (PASSED)
+- Manual Verification: Provided plan to run scraper with --limit 1.
+- User Confirmation: Confirmed via chat.
