@@ -1,0 +1,6 @@
+Task: Fix tests to match new holders validation and limit behavior
+Summary of changes:
+- Updated tests/test_holders_client_unittest.py to include sufficient mock data (20+ per side) to pass the new validation.
+- Updated tests/test_holders_retry_unittest.py to expect None on failure and use requests.exceptions.RequestException to trigger retries.
+- Updated tests/test_smart_money_scraper_unittest.py to expect limit=1000 call to fetch_holders.
+Why: To maintain test passing status after implementing significant changes to the holders fetching and validation logic. Ensures that the test suite accurately reflects the updated API contract and internal validation rules.
