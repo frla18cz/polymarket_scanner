@@ -1,0 +1,8 @@
+Task: Aktualizovat HoldersClient
+Summary of changes:
+- Implemented a retry loop in HoldersClient.fetch_holders to handle transient network errors.
+- Added 3 attempts (1 initial + 2 retries) with a fixed 1-second delay between attempts.
+- Added logging for warnings on retries and errors on final failure.
+- Created tests/test_holders_retry_unittest.py with comprehensive tests for success after retry, failure after max retries, and error cases.
+- Achieved 97% code coverage for holders_client.py.
+Why: To prevent the Smart Money scraper from skipping markets due to temporary API timeouts or network glitches, ensuring more complete data collection during long runs.
