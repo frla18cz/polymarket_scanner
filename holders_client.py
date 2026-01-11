@@ -52,37 +52,38 @@ class PnLClient:
     def fetch_user_pnl(self, wallet_address: str) -> Optional[float]:
         """
         Fetches user PnL history and returns the latest value.
+        Implements exponential backoff for retries.
         """
         url = f"{self.base_url}/user-pnl"
         params = {"user_address": wallet_address}
         
-        retries = 3
+        retries = 5
         for attempt in range(retries):
             try:
-                response = requests.get(url, params=params, timeout=10)
+                response = requests.get(url, params=params, timeout=15)
                 
                 if response.status_code == 429:
-                    logger.warning(f"Rate limited (429) for {wallet_address}, retrying...")
-                    time.sleep(1 * (attempt + 1))
+                    wait_time = (2 ** attempt) + 1
+                    logger.warning(f"Rate limited (429) for {wallet_address}, waiting {wait_time}s (attempt {attempt+1}/{retries})")
+                    time.sleep(wait_time)
                     continue
                     
                 response.raise_for_status()
                 data = response.json()
                 
-                # Expecting list of time-series points. 
                 if isinstance(data, list) and len(data) > 0:
                     last_point = data[-1]
-                    # API returns 'p' for profit/value? Or is it 'pnl'? 
-                    # User spec says "vezmi poslední bod p".
                     return float(last_point.get("p", 0.0))
                 
-                # Empty history or different format
                 return 0.0 
                 
-            except requests.exceptions.RequestException as e:
+            except (requests.exceptions.RequestException, requests.exceptions.Timeout) as e:
+                wait_time = (2 ** attempt) + 0.5
                 if attempt == retries - 1:
-                    logger.error(f"Failed to fetch PnL for {wallet_address} after retries: {e}")
-                time.sleep(0.5)
+                    logger.error(f"Failed to fetch PnL for {wallet_address} after {retries} retries: {e}")
+                else:
+                    logger.warning(f"Connection error for {wallet_address}, retrying in {wait_time}s... ({e})")
+                    time.sleep(wait_time)
             except Exception as e:
                 logger.error(f"Unexpected error for {wallet_address}: {e}")
                 break

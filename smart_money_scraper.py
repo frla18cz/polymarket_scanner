@@ -55,17 +55,25 @@ def save_wallet_stats(conn: sqlite3.Connection, wallet: str, pnl: float):
         VALUES (?, ?, ?)
     """, (wallet, pnl, last_updated))
 
-def process_market_holders(condition_id: str, holders_client: HoldersClient) -> List[str]:
+def process_market_holders_worker(condition_id: str) -> List[str]:
     """
-    Fetches holders for a market, saves them to DB, and returns list of unique wallet addresses found.
+    Worker function to fetch holders for a single market.
     """
-    conn = get_db_connection()
+    # Small sleep to distribute load and respect rate limits
+    time.sleep(0.3)
+    
+    holders_client = HoldersClient()
     unique_wallets = []
     try:
         data = holders_client.fetch_holders(condition_id, limit=50)
         if data:
-            save_holders_batch(conn, condition_id, data)
-            conn.commit()
+            # We need a fresh connection per thread for SQLite safety
+            conn = get_db_connection()
+            try:
+                save_holders_batch(conn, condition_id, data)
+                conn.commit()
+            finally:
+                conn.close()
             
             # Extract unique wallets
             for h in data:
@@ -74,57 +82,76 @@ def process_market_holders(condition_id: str, holders_client: HoldersClient) -> 
                     unique_wallets.append(addr)
     except Exception as e:
         logger.error(f"Failed to process holders for market {condition_id}: {e}")
-    finally:
-        conn.close()
     
     return unique_wallets
 
 def fetch_pnl_worker(wallet: str) -> Tuple[str, float]:
-    # Instantiate client per worker (safe)
-    client = PnLClient() 
-    # Sleep to respect rate limits (distributes load)
+    """
+    Worker function to fetch PnL for a single wallet with a safety sleep.
+    """
+    # Sleep to respect rate limits (distributes load across workers)
     time.sleep(0.3)
+    client = PnLClient() 
     val = client.fetch_user_pnl(wallet)
     return wallet, (val if val is not None else 0.0)
+
+def get_unique_wallets_from_db() -> Set[str]:
+    """
+    Fetches all unique wallet addresses from the holders table.
+    """
+    conn = get_db_connection()
+    try:
+        rows = conn.execute("SELECT DISTINCT wallet_address FROM holders").fetchall()
+        return {r["wallet_address"] for r in rows if r["wallet_address"]}
+    finally:
+        conn.close()
 
 def run(args_list: Optional[List[str]] = None):
     parser = argparse.ArgumentParser(description="Scrape Smart Money data.")
     parser.add_argument("--limit", type=int, default=None, help="Limit number of markets to process (for testing)")
+    parser.add_argument("--resume", action="store_true", help="Only fetch PnL for existing wallets in DB")
     args = parser.parse_args(args_list)
 
-    logger.info(f"Starting Smart Money Scraper job... (Limit: {args.limit})")
     start_time = time.time()
-    
-    try:
-        condition_ids = get_active_market_ids(limit=args.limit)
-    except Exception as e:
-        logger.error(f"Failed to get active markets: {e}")
-        return
-
-    logger.info(f"Found {len(condition_ids)} active markets to process.")
-    
-    holders_client = HoldersClient()
+    logger.info(f"Starting Smart Money Scraper job... (Resume mode: {args.resume})")
     
     all_unique_wallets = set()
-    
-    # 1. Fetch Holders
-    # Running serially for now to be gentle on Data API, usually fast enough.
-    for i, c_id in enumerate(condition_ids):
-        wallets = process_market_holders(c_id, holders_client)
-        all_unique_wallets.update(wallets)
-        if (i + 1) % 50 == 0:
-            logger.info(f"Processed holders for {i+1}/{len(condition_ids)} markets.")
+
+    if args.resume:
+        logger.info("Načítám unikátní peněženky z existující tabulky holders...")
+        all_unique_wallets = get_unique_wallets_from_db()
+    else:
+        try:
+            condition_ids = get_active_market_ids(limit=args.limit)
+        except Exception as e:
+            logger.error(f"Failed to get active markets: {e}")
+            return
+
+        logger.info(f"Found {len(condition_ids)} active markets to process.")
+        
+        # 1. Fetch Holders (Parallelized)
+        logger.info("Faze 1: Stahování holderů pro trhy...")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            future_to_cid = {executor.submit(process_market_holders_worker, cid): cid for cid in condition_ids}
             
-    logger.info(f"Found {len(all_unique_wallets)} unique wallets to analyze.")
+            count = 0
+            for future in concurrent.futures.as_completed(future_to_cid):
+                wallets = future.result()
+                all_unique_wallets.update(wallets)
+                count += 1
+                if count % 100 == 0:
+                    logger.info(f"Zpracováno držitelů pro {count}/{len(condition_ids)} trhů.")
+            
+    logger.info(f"Nalezeno {len(all_unique_wallets)} unikátních peněženek k analýze.")
     
-    # 2. Fetch PnL
+    # 2. Fetch PnL (Parallelized with robust Retry)
     if not all_unique_wallets:
-        logger.info("No wallets to process.")
+        logger.info("Žádné peněženky ke zpracování.")
         return
 
+    logger.info("Faze 2: Stahování P/L pro peněženky (s Retry logikou)...")
     conn = get_db_connection()
     try:
-        # Using 10 workers as per spec
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
             future_to_wallet = {executor.submit(fetch_pnl_worker, w): w for w in all_unique_wallets}
             
@@ -135,16 +162,16 @@ def run(args_list: Optional[List[str]] = None):
                     wallet, pnl = future.result()
                     save_wallet_stats(conn, wallet, pnl)
                     count += 1
-                    if count % 50 == 0:
-                        conn.commit() # Commit in batches
-                        logger.info(f"Processed PnL for {count}/{len(all_unique_wallets)} wallets.")
+                    if count % 100 == 0:
+                        conn.commit() # Batch commit
+                        logger.info(f"Zpracováno P/L pro {count}/{len(all_unique_wallets)} peněženek.")
                 except Exception as e:
-                    logger.error(f"Error fetching PnL for {w}: {e}")
+                    logger.error(f"Kritická chyba při zpracování workeru pro {w}: {e}")
             
-            conn.commit() # Final commit
+            conn.commit() 
         
         # 3. Calculate and Update Metrics
-        logger.info("Calculating and updating Smart Money metrics...")
+        logger.info("Faze 3: Výpočet a aktualizace Smart Money metrik...")
         conn.execute("""
             UPDATE active_market_outcomes
             SET smart_money_win_rate = (
@@ -159,13 +186,13 @@ def run(args_list: Optional[List[str]] = None):
             );
         """)
         conn.commit()
-        logger.info("Metrics update complete.")
+        logger.info("Všechny metriky byly úspěšně aktualizovány.")
 
     finally:
         conn.close()
 
     duration = time.time() - start_time
-    logger.info(f"Smart Money Scrape completed in {duration:.2f}s")
+    logger.info(f"Smart Money Scraper dokončen za {duration:.2f}s")
 
 if __name__ == "__main__":
     run()
