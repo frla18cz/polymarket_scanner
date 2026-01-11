@@ -1,12 +1,12 @@
 # Plán: Implementace Retry mechanismu pro HoldersClient
 
-## Fáze 1: Implementace Logic
+## Fáze 1: Implementace Logic [checkpoint: f75f6c1]
 - [x] Task: Aktualizovat `HoldersClient` [commit: 82c16a9]
     - Upravit metodu `fetch_holders` v souboru `holders_client.py`.
     - Obalit volání `requests.get` do `for` cyklu (rozsah 3 pokusů).
     - Přidat `time.sleep(1)` v bloku `except`, pokud to není poslední pokus.
     - Přidat logování (`logger.warning`) při zachycení chyby před retry.
-- [ ] Task: Conductor - User Manual Verification 'Implementace Logic' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Implementace Logic' (Protocol in workflow.md)
 
 ## Fáze 2: Testování
 - [x] Task: Vytvořit Unit Test pro Retry [commit: 82c16a9]
