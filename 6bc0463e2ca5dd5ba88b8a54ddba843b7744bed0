@@ -1,0 +1,11 @@
+Phase 2 Verification Report
+
+Automated Test Command:
+python -m unittest discover -s tests -p "*_unittest.py"
+
+Manual Verification Steps:
+1. Execute the command that fetches holders from the Goldsky subgraph for a known condition_id (from test_data/markets_summary.json).
+2. Confirm holders_count is positive, holders are sorted descending by positionSize, len <= 40, and outcomeIndexes are 0/1.
+
+User Confirmation:
+- User said they checked briefly ('kontroloval jsem zbezne, ale asi to bude ok') and requested to close Phase 2.
