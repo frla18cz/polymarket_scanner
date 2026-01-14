@@ -1,0 +1,7 @@
+Task: Implement GoldskyClient.fetch_holders_subgraph (Phase 2: Tests and Core Logic)
+Summary:
+- Add subgraph GraphQL query and fetch logic for both outcomes, merging and sorting holders by position size.
+- Handle request/GraphQL failures by logging and returning None.
+- Add unit tests for success, empty response, and request error cases.
+Files: holders_client.py, tests/test_goldsky_client_unittest.py
+Why: Use the Goldsky subgraph to reliably fetch top holders per outcome for smart money metrics.
