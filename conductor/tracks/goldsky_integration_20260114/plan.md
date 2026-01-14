@@ -17,9 +17,9 @@ Tento plán popisuje kroky pro integraci Goldsky Subgraph pro stahování držit
 - [x] Task: Conductor - User Manual Verification 'Fáze 2' (Protocol in workflow.md) [6bc0463]
 
 ## Fáze 3: Integrace do Scraperu
-- [ ] Úkol: Upravit `smart_money_scraper.py` tak, aby prioritně volal `GoldskyClient`.
-- [ ] Úkol: Implementovat logiku "Primary: Goldsky, Fallback: Legacy API" v `process_market_holders_worker`.
-- [ ] Úkol: Ujistit se, že batch insert do SQLite funguje správně i pro nová data.
+- [x] Úkol: Upravit `smart_money_scraper.py` tak, aby prioritně volal `GoldskyClient`. [4395794]
+- [x] Úkol: Implementovat logiku "Primary: Goldsky, Fallback: Legacy API" v `process_market_holders_worker`. [4395794]
+- [x] Úkol: Ujistit se, že batch insert do SQLite funguje správně i pro nová data. [4395794]
 - [ ] Task: Conductor - User Manual Verification 'Fáze 3' (Protocol in workflow.md)
 
 ## Fáze 4: Verifikace a Cleanup
