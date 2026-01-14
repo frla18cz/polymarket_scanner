@@ -1,0 +1,79 @@
+import unittest
+import os
+import sys
+import requests
+from unittest.mock import patch, MagicMock
+
+# Add project root to path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from holders_client import GoldskyClient
+
+class TestGoldskyClient(unittest.TestCase):
+
+    def setUp(self):
+        self.client = GoldskyClient()
+
+    @patch('holders_client.requests.post')
+    def test_fetch_holders_subgraph_success(self, mock_post):
+        """Test successful fetching of holders from the subgraph."""
+        # Mock successful API response for two calls (outcome 0 and 1)
+        mock_response_1 = MagicMock()
+        mock_response_1.status_code = 200
+        mock_response_1.json.return_value = {
+            "data": {
+                "userBalances": [
+                    {"user": "0x123", "balance": "1000"},
+                    {"user": "0x456", "balance": "2000"}
+                ]
+            }
+        }
+        mock_response_2 = MagicMock()
+        mock_response_2.status_code = 200
+        mock_response_2.json.return_value = {
+            "data": {
+                "userBalances": [
+                    {"user": "0x789", "balance": "3000"},
+                    {"user": "0xabc", "balance": "4000"}
+                ]
+            }
+        }
+        mock_post.side_effect = [mock_response_1, mock_response_2]
+
+        condition_id = "0x123abc"
+        holders = self.client.fetch_holders_subgraph(condition_id, limit=20)
+
+        self.assertIsNotNone(holders)
+        self.assertEqual(len(holders), 4)
+        # The list is sorted, so 0xabc should be first
+        self.assertEqual(holders[0]["address"], "0xabc")
+        self.assertEqual(holders[0]["positionSize"], 4000)
+
+        # Check that post was called twice
+        self.assertEqual(mock_post.call_count, 2)
+
+    @patch('holders_client.requests.post')
+    def test_fetch_holders_subgraph_empty(self, mock_post):
+        """Test handling of an empty response."""
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"data": {"userBalances": []}}
+        mock_post.return_value = mock_response
+
+        condition_id = "0x456def"
+        holders = self.client.fetch_holders_subgraph(condition_id, limit=20)
+
+        self.assertEqual(holders, [])
+
+    @patch('holders_client.requests.post')
+    def test_fetch_holders_subgraph_api_error(self, mock_post):
+        """Test handling of an API error (e.g., 500)."""
+        mock_post.side_effect = requests.exceptions.RequestException("API is down")
+
+        condition_id = "0x789ghi"
+        holders = self.client.fetch_holders_subgraph(condition_id, limit=20)
+
+        self.assertIsNone(holders)
+
+if __name__ == '__main__':
+    unittest.main()
