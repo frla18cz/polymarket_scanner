@@ -23,6 +23,6 @@ Tento plán popisuje kroky pro integraci Goldsky Subgraph pro stahování držit
 - [x] Task: Conductor - User Manual Verification 'Fáze 3' (Protocol in workflow.md) [c065244]
 
 ## Fáze 4: Verifikace a Cleanup
-- [ ] Úkol: Spustit integrační testy a ověřit Smart Money výpočty.
-- [ ] Úkol: Provést manuální scrape a zkontrolovat logs/data v DB.
-- [ ] Task: Conductor - User Manual Verification 'Fáze 4' (Protocol in workflow.md)
+- [x] Úkol: Spustit integrační testy a ověřit Smart Money výpočty. [98b7a4d]
+- [x] Úkol: Provést manuální scrape a zkontrolovat logs/data v DB. [98b7a4d]
+- [x] Task: Conductor - User Manual Verification 'Fáze 4' (Protocol in workflow.md) [98b7a4d]
