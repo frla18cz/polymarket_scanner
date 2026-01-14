@@ -1,9 +1,16 @@
 import requests
 import time
 import logging
+import os # Import os for environment variables
 from typing import List, Dict, Any, Optional
 
 logger = logging.getLogger("polylab.holders")
+
+# Default Goldsky Subgraph URL
+DEFAULT_GOLDSKY_SUBGRAPH_URL = os.getenv(
+    "GOLDSKY_SUBGRAPH_URL",
+    "https://api.goldsky.com/api/public/project_cl6mb8i9h0003e201j6li0diw/subgraphs/positions-subgraph/0.0.7/gn"
+)
 
 class HoldersClient:
     def __init__(self):
@@ -83,6 +90,14 @@ class HoldersClient:
                 break
         
         return None
+
+class GoldskyClient:
+    def __init__(self):
+        self.url = os.getenv(
+            "GOLDSKY_SUBGRAPH_URL",
+            "https://api.goldsky.com/api/public/project_cl6mb8i9h0003e201j6li0diw/subgraphs/positions-subgraph/0.0.7/gn"
+        )
+
 
 class PnLClient:
     def __init__(self):
