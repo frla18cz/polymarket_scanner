@@ -4,7 +4,7 @@ Tento plán popisuje kroky pro integraci Goldsky Subgraph pro stahování držit
 
 ## Fáze 1: Příprava a Konfigurace
 - [x] Úkol: Přidat `GOLDSKY_SUBGRAPH_URL` do environment proměnných (např. v `.env` nebo v kódu jako default). [b85935a]
-- [ ] Úkol: Vytvořit placeholder pro novou třídu `GoldskyClient` v `holders_client.py`.
+- [x] Úkol: Vytvořit placeholder pro novou třídu `GoldskyClient` v `holders_client.py`. [b85935a]
 - [ ] Task: Conductor - User Manual Verification 'Fáze 1' (Protocol in workflow.md)
 
 ## Fáze 2: Testy a Core Logika (TDD)
