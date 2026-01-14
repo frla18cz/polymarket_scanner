@@ -7,14 +7,14 @@ Tento plán popisuje kroky pro integraci Goldsky Subgraph pro stahování držit
 - [x] Úkol: Vytvořit placeholder pro novou třídu `GoldskyClient` v `holders_client.py`. [b85935a]
 - [x] Task: Conductor - User Manual Verification 'Fáze 1' (Protocol in workflow.md) [74938ff]
 
-## Fáze 2: Testy a Core Logika (TDD)
+## Fáze 2: Testy a Core Logika (TDD) [checkpoint: 6bc0463]
 - [x] Úkol: Napsat unit test v `tests/test_goldsky_client_unittest.py` pro ověření komunikace se subgraph (mockování odpovědí). [9dddee7]
 - [x] Úkol: Implementovat `GoldskyClient.fetch_holders_subgraph` s podporou pro: [9dddee7]
     - GraphQL query (GetUserBalances).
     - Limit "Top 20" per outcome.
     - Retry logiku.
 - [x] Úkol: Ověřit, že testy procházejí. [9dddee7]
-- [ ] Task: Conductor - User Manual Verification 'Fáze 2' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Fáze 2' (Protocol in workflow.md) [6bc0463]
 
 ## Fáze 3: Integrace do Scraperu
 - [ ] Úkol: Upravit `smart_money_scraper.py` tak, aby prioritně volal `GoldskyClient`.
