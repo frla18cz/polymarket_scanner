@@ -1,0 +1,33 @@
+Phase 1 Verification Report
+
+Automated Test Command:
+python -m unittest tests/test_goldsky_config_unittest.py
+
+Manual Verification Steps:
+1.  **Open `holders_client.py`:** Verify that `GoldskyClient` class exists and its `__init__` method sets `self.url` using `os.getenv` with the default Goldsky subgraph URL.
+2.  **Verify Environment Variable Override:**
+    *   Open a terminal in the project root.
+    *   Set the environment variable: `export GOLDSKY_SUBGRAPH_URL="http://test.goldsky.url"`
+    *   Start a Python interpreter: `python`
+    *   In the interpreter, run:
+        ```python
+        from holders_client import GoldskyClient
+        client = GoldskyClient()
+        print(client.url)
+        ```
+    *   Confirm that the output is `http://test.goldsky.url`.
+    *   Exit the interpreter (`exit()`).
+    *   Unset the environment variable: `unset GOLDSKY_SUBGRAPH_URL`
+3.  **Verify Default URL:**
+    *   Start a Python interpreter: `python`
+    *   In the interpreter, run:
+        ```python
+        from holders_client import GoldskyClient
+        client = GoldskyClient()
+        print(client.url)
+        ```
+    *   Confirm that the output is the default Goldsky subgraph URL: `https://api.goldsky.com/api/public/project_cl6mb8i9h0003e201j6li0diw/subgraphs/positions-subgraph/0.0.7/gn`.
+    *   Exit the interpreter (`exit()`).
+
+User Confirmation:
+- The user responded 'dobre jak ted dal postupovat?pokracuj' which is interpreted as confirmation.
