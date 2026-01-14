@@ -1,0 +1,4 @@
+Task: Upravit smart_money_scraper.py tak, aby prioritně volal GoldskyClient.
+Summary: Integrated GoldskyClient into smart_money_scraper.py. The scraper now attempts to fetch top 20 holders from Goldsky Subgraph first and falls back to the Legacy Holders API if Goldsky fails.
+Files: smart_money_scraper.py, tests/test_goldsky_integration_unittest.py
+Why: Goldsky provides a more stable way to fetch holder data.
