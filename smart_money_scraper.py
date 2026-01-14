@@ -6,7 +6,7 @@ import concurrent.futures
 from datetime import datetime, timezone
 from typing import List, Set, Dict, Tuple, Optional
 
-from holders_client import HoldersClient, PnLClient
+from holders_client import HoldersClient, PnLClient, GoldskyClient
 from main import get_db_connection
 from logging_setup import setup_logging
 
@@ -58,15 +58,35 @@ def save_wallet_stats(conn: sqlite3.Connection, wallet: str, pnl: float):
 def process_market_holders_worker(condition_id: str) -> List[str]:
     """
     Worker function to fetch holders for a single market.
+    Tries Goldsky Subgraph first, falls back to Legacy API.
     """
-    # Small sleep to distribute load and respect rate limits
+    # Small sleep to distribute load
     time.sleep(0.3)
     
-    holders_client = HoldersClient()
     unique_wallets = []
+    data = None
+
+    # 1. Try Goldsky Subgraph
     try:
-        data = holders_client.fetch_holders(condition_id, limit=1000)
-        if data is not None:
+        goldsky_client = GoldskyClient()
+        data = goldsky_client.fetch_holders_subgraph(condition_id)
+        if data:
+            logger.info(f"Fetched {len(data)} holders from Goldsky for {condition_id}")
+    except Exception as e:
+        logger.warning(f"Goldsky fetch failed for {condition_id}: {e}")
+
+    # 2. Fallback to Legacy API
+    if not data:
+        try:
+            holders_client = HoldersClient()
+            data = holders_client.fetch_holders(condition_id, limit=1000)
+            if data:
+                logger.info(f"Fetched {len(data)} holders from Legacy API for {condition_id}")
+        except Exception as e:
+            logger.error(f"Legacy API fetch failed for {condition_id}: {e}")
+
+    if data:
+        try:
             # We need a fresh connection per thread for SQLite safety
             conn = get_db_connection()
             try:
@@ -80,10 +100,10 @@ def process_market_holders_worker(condition_id: str) -> List[str]:
                 addr = h.get("address") or h.get("user")
                 if addr:
                     unique_wallets.append(addr)
-        else:
-            logger.warning(f"Skipping market {condition_id} due to validation failure or API error.")
-    except Exception as e:
-        logger.error(f"Failed to process holders for market {condition_id}: {e}")
+        except Exception as e:
+            logger.error(f"Failed to save holders for {condition_id}: {e}")
+    else:
+        logger.warning(f"No holders data found for market {condition_id} (both Goldsky and Legacy failed).")
     
     return unique_wallets
 
