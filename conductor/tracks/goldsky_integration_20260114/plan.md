@@ -5,15 +5,15 @@ Tento plán popisuje kroky pro integraci Goldsky Subgraph pro stahování držit
 ## Fáze 1: Příprava a Konfigurace [checkpoint: 74938ff]
 - [x] Úkol: Přidat `GOLDSKY_SUBGRAPH_URL` do environment proměnných (např. v `.env` nebo v kódu jako default). [b85935a]
 - [x] Úkol: Vytvořit placeholder pro novou třídu `GoldskyClient` v `holders_client.py`. [b85935a]
-- [~] Task: Conductor - User Manual Verification 'Fáze 1' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Fáze 1' (Protocol in workflow.md) [74938ff]
 
 ## Fáze 2: Testy a Core Logika (TDD)
-- [ ] Úkol: Napsat unit test v `tests/test_goldsky_client_unittest.py` pro ověření komunikace se subgraph (mockování odpovědí).
-- [ ] Úkol: Implementovat `GoldskyClient.fetch_holders_subgraph` s podporou pro:
+- [x] Úkol: Napsat unit test v `tests/test_goldsky_client_unittest.py` pro ověření komunikace se subgraph (mockování odpovědí). [9dddee7]
+- [x] Úkol: Implementovat `GoldskyClient.fetch_holders_subgraph` s podporou pro: [9dddee7]
     - GraphQL query (GetUserBalances).
     - Limit "Top 20" per outcome.
     - Retry logiku.
-- [ ] Úkol: Ověřit, že testy procházejí.
+- [x] Úkol: Ověřit, že testy procházejí. [9dddee7]
 - [ ] Task: Conductor - User Manual Verification 'Fáze 2' (Protocol in workflow.md)
 
 ## Fáze 3: Integrace do Scraperu
