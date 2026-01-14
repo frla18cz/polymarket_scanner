@@ -24,6 +24,9 @@ The project is currently free-to-use, with potential future plans for premium fe
     *   **Time-based Filters:** Filter markets by start/end dates and duration.
     *   **Price Filters:** Narrow down opportunities by probability/price ranges.
     *   **Tag Management:** Powerful search using inclusion and exclusion tags to isolate specific niches.
+*   **Smart Money Insights:**
+    *   **Holder Analysis:** Automated tracking of top holders for every market using Goldsky Subgraph and Polymarket API.
+    *   **Win Rate Metrics:** Calculation of "Smart Money Win Rate" for market outcomes based on the historical PnL of their top holders.
 *   **Data Aggregation:** Hourly snapshots of market data to provide a stable analysis baseline.
 
 ## 4. Technical Foundation

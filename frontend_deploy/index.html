@@ -2128,8 +2128,8 @@
                     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " (" + d.toLocaleDateString() + ")";
                 });
 
-                const fetchHolders = async (marketId) => {
-                    if (!marketId) return;
+                const fetchHolders = async (marketId, conditionId) => {
+                    if (!marketId || !conditionId) return;
                     const key = String(marketId);
                     if (holdersByMarket.value[key] || holdersLoading.value[key]) return;
 
@@ -2137,7 +2137,8 @@
                     holdersError.value = { ...holdersError.value, [key]: null };
 
                     try {
-                        const res = await fetch(`${API_BASE_URL}/api/markets/${encodeURIComponent(key)}/holders`);
+                        // Backend expects condition_id because that is what is stored in the holders table
+                        const res = await fetch(`${API_BASE_URL}/api/markets/${encodeURIComponent(conditionId)}/holders`);
                         if (!res.ok) throw new Error(`Failed to load holders (${res.status})`);
                         const data = await res.json();
                         const holders = Array.isArray(data) ? data : (data && Array.isArray(data.holders) ? data.holders : []);
@@ -2156,7 +2157,7 @@
                     if (typeof idx === "number") selectedIndex.value = idx;
                     const next = expandedId.value === id ? null : id;
                     expandedId.value = next;
-                    if (next) fetchHolders(market.market_id);
+                    if (next) fetchHolders(market.market_id, market.condition_id);
                 };
 
                 // Presets

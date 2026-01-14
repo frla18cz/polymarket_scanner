@@ -17,6 +17,10 @@
     - Add method to fetch user P/L from the P/L API.
     - Implement concurrency logic (Worker Pool = 10, Sleep = 0.3s).
     - Implement retry logic for 429/timeouts.
+- [x] Task: Technical Refinement - Parallelism & Robustness [commit: ef6b87a]
+    - Parallelize holder fetching phase (10 workers).
+    - Implement exponential backoff retry for P/L API.
+    - Add '--resume' capability to skip already fetched holder lists.
 - [x] Task: Create `SmartMoneyScraper` Job [commit: effae3c]
     - Create a new orchestration function/script that:
         1. Gets list of active markets.
@@ -56,3 +60,9 @@
     - Ensure UI is responsive and consistent.
     - Update documentation (`UI_CONTRACT.md`).
 - [x] Task: Conductor - User Manual Verification 'Testing & Deployment' (Protocol in workflow.md)
+
+## Phase 6: Bug Fixes (Post-Verification)
+- [x] Task: Fix Top Holders UI Visibility
+    - Investigate why "Top Holders" section is not rendering in the frontend despite code existence.
+    - Verify API calls from frontend to `/api/markets/{id}/holders`.
+    - Fix rendering logic.

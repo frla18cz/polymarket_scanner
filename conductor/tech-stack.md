@@ -19,6 +19,7 @@
 
 ## 4. External Integrations
 *   **Core Data API:** **Polymarket Gamma API** used via a custom client (`gamma_client.py`).
+*   **Blockchain Indexing:** **Goldsky Subgraph** for robust and low-latency holder data retrieval.
 *   **Authentication:** Supabase Auth (Email/Google) integration planned for premium features.
 
 ## 5. Development & Deployment
