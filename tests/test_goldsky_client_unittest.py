@@ -66,6 +66,30 @@ class TestGoldskyClient(unittest.TestCase):
         self.assertEqual(holders, [])
 
     @patch('holders_client.requests.post')
+    def test_fetch_holders_subgraph_retry(self, mock_post):
+        """Test that the client retries on transient errors."""
+        # Setup mock responses: 
+        # 1. First call fails (Timeout)
+        # 2. Second call succeeds for outcome 0
+        # 3. Third call succeeds for outcome 1
+        mock_response_success = MagicMock()
+        mock_response_success.status_code = 200
+        mock_response_success.json.return_value = {"data": {"userBalances": [{"user": "0xRetry", "balance": "500"}]}}
+        
+        mock_post.side_effect = [
+            requests.exceptions.Timeout("Slow connection"),
+            mock_response_success,
+            mock_response_success
+        ]
+
+        with patch('holders_client.time.sleep'): # Avoid waiting during tests
+            holders = self.client.fetch_holders_subgraph("0xRetryCID", limit=10)
+
+        self.assertIsNotNone(holders)
+        self.assertEqual(len(holders), 2) # Outcome 0 and 1
+        self.assertEqual(mock_post.call_count, 3)
+
+    @patch('holders_client.requests.post')
     def test_fetch_holders_subgraph_api_error(self, mock_post):
         """Test handling of an API error (e.g., 500)."""
         mock_post.side_effect = requests.exceptions.RequestException("API is down")
