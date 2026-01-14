@@ -2,10 +2,10 @@
 
 Tento plán popisuje kroky pro integraci Goldsky Subgraph pro stahování držitelů, nahrazující/doplňující stávající limitované API.
 
-## Fáze 1: Příprava a Konfigurace
+## Fáze 1: Příprava a Konfigurace [checkpoint: 74938ff]
 - [x] Úkol: Přidat `GOLDSKY_SUBGRAPH_URL` do environment proměnných (např. v `.env` nebo v kódu jako default). [b85935a]
 - [x] Úkol: Vytvořit placeholder pro novou třídu `GoldskyClient` v `holders_client.py`. [b85935a]
-- [ ] Task: Conductor - User Manual Verification 'Fáze 1' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Fáze 1' (Protocol in workflow.md)
 
 ## Fáze 2: Testy a Core Logika (TDD)
 - [ ] Úkol: Napsat unit test v `tests/test_goldsky_client_unittest.py` pro ověření komunikace se subgraph (mockování odpovědí).
