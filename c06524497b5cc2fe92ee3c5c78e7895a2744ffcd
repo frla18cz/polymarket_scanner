@@ -1,0 +1,4 @@
+Task: Refine GoldskyClient with retry logic.
+Summary: Added robust retry loop with exponential backoff and 429 handling to GoldskyClient. This ensures the scraper doesn't fall back to legacy API prematurely. Added unit test for retry logic.
+Files: holders_client.py, tests/test_goldsky_client_unittest.py
+Why: Increase reliability of the primary data source (Goldsky).
