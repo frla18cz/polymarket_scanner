@@ -1,11 +1,11 @@
 # Plán: Holders Analysis V2 (Kategorizace, Řazení a Aliasy)
 
-## Fáze 1: Analýza API a Schéma databáze
+## Fáze 1: Analýza API a Schéma databáze [checkpoint: 7c24b0b]
 - [x] Úkol: Analýza API pro získání aliasů [checkpoint: 7f3b891]
     - Note: Alias is available as `name` field in Legacy API (`/holders`). Goldsky Subgraph and PnL API do not provide it.
 - [x] Úkol: Migrace databáze - přidání sloupce `alias` [checkpoint: 5a7c92b]
 - [x] Úkol: Aktualizace Pydantic modelů [checkpoint: 5a7c92b]
-- [ ] Úkol: Conductor - User Manual Verification 'Analýza API a Schéma databáze' (Protocol in workflow.md)
+- [x] Úkol: Conductor - User Manual Verification 'Analýza API a Schéma databáze' (Protocol in workflow.md)
     - Upravit modely `Holder` a `WalletStats` tak, aby zahrnovaly volitelné pole `alias`.
 - [ ] Úkol: Conductor - User Manual Verification 'Analýza API a Schéma databáze' (Protocol in workflow.md)
 
