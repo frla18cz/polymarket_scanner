@@ -64,20 +64,20 @@ class Holder(BaseModel):
     wallet_address: str
     position_size: float
     snapshot_at: str
+    alias: Optional[str] = None
 
 class WalletStats(BaseModel):
-
     wallet_address: str
-
     total_pnl: float
-
     last_updated: str
+    alias: Optional[str] = None
 
 class HolderDetail(BaseModel):
     wallet_address: str
     position_size: float
     outcome_index: int
     total_pnl: Optional[float] = None
+    alias: Optional[str] = None
 
 
 
@@ -130,6 +130,14 @@ def ensure_indices():
 
         # Schema migration (idempotent): add + backfill APR for outcome-level rows
         try:
+            # Check if wallets_stats exists and needs 'alias' column
+            ws_exists = conn.execute("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='wallets_stats'").fetchone()[0]
+            if ws_exists:
+                cols = [r["name"] for r in conn.execute("PRAGMA table_info(wallets_stats)").fetchall()]
+                if "alias" not in cols:
+                    conn.execute("ALTER TABLE wallets_stats ADD COLUMN alias TEXT;")
+                    conn.commit()
+
             cols = [r["name"] for r in conn.execute("PRAGMA table_info(active_market_outcomes)").fetchall()]
             if "apr" not in cols:
                 conn.execute("ALTER TABLE active_market_outcomes ADD COLUMN apr REAL;")
@@ -177,7 +185,8 @@ def ensure_indices():
             CREATE TABLE IF NOT EXISTS wallets_stats (
                 wallet_address TEXT PRIMARY KEY,
                 total_pnl REAL,
-                last_updated TEXT
+                last_updated TEXT,
+                alias TEXT
             );
 
             CREATE INDEX IF NOT EXISTS idx_holders_market ON holders(market_id);

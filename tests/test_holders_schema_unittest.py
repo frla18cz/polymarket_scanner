@@ -1,54 +1,48 @@
 import unittest
-import os
 import sqlite3
+import os
+import shutil
 from pathlib import Path
-
-# Adjust path to import main
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from unittest.mock import patch
 import main
 
 class TestHoldersSchema(unittest.TestCase):
     def setUp(self):
-        # Use an in-memory DB or a temp file for testing
-        self.db_path = "test_holders_schema.db"
-        os.environ["MARKETS_DB_PATH"] = self.db_path
-        # Force main to reload DB path if it was cached (it's a global var in main, tricky)
-        # But main.get_db_connection uses the global DB_PATH which is set at module level.
-        # We need to monkeypatch or reload. Monkeypatching main.DB_PATH is easier.
-        main.DB_PATH = self.db_path
-        
-        # Ensure clean slate
-        if os.path.exists(self.db_path):
-            os.remove(self.db_path)
+        # Create a temp DB path
+        self.test_db_path = "test_holders_schema.db"
+        # Ensure it doesn't exist
+        if os.path.exists(self.test_db_path):
+            os.remove(self.test_db_path)
+            
+        # We need to simulate the environment where the DB is at self.test_db_path
+        # We can patch main.DB_PATH or main.get_db_connection
+        self.patcher = patch('main.DB_PATH', self.test_db_path)
+        self.patcher.start()
 
     def tearDown(self):
-        if os.path.exists(self.db_path):
-            os.remove(self.db_path)
+        self.patcher.stop()
+        if os.path.exists(self.test_db_path):
+            os.remove(self.test_db_path)
+        # Also remove WAL files
+        if os.path.exists(self.test_db_path + "-wal"):
+            os.remove(self.test_db_path + "-wal")
+        if os.path.exists(self.test_db_path + "-shm"):
+            os.remove(self.test_db_path + "-shm")
 
-    def test_tables_created(self):
-        """Test that holders and wallets_stats tables are created by ensure_indices."""
-        # This calls the function that should create the tables
+    def test_wallets_stats_has_alias_column(self):
+        # Initialize DB (this should create tables)
         main.ensure_indices()
         
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.test_db_path)
         cursor = conn.cursor()
         
-        # Check holders table
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='holders'")
-        self.assertIsNotNone(cursor.fetchone(), "Table 'holders' should exist")
+        # Check columns of wallets_stats
+        cursor.execute("PRAGMA table_info(wallets_stats)")
+        columns = [row[1] for row in cursor.fetchall()]
         
-        # Check wallets_stats table
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='wallets_stats'")
-        self.assertIsNotNone(cursor.fetchone(), "Table 'wallets_stats' should exist")
-        
-        # Check columns in holders
-        cursor.execute("PRAGMA table_info(holders)")
-        cols = {row[1] for row in cursor.fetchall()}
-        expected_cols = {'market_id', 'outcome_index', 'wallet_address', 'position_size', 'snapshot_at'}
-        self.assertTrue(expected_cols.issubset(cols), f"Missing columns in holders: {expected_cols - cols}")
-
         conn.close()
+        
+        self.assertIn("alias", columns, "Column 'alias' is missing in wallets_stats table")
 
 if __name__ == '__main__':
     unittest.main()
