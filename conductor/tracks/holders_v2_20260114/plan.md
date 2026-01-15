@@ -7,10 +7,15 @@
 - [x] Úkol: Aktualizace Pydantic modelů [checkpoint: 5a7c92b]
 - [x] Úkol: Conductor - User Manual Verification 'Analýza API a Schéma databáze' (Protocol in workflow.md)
 
-## Fáze 2: Backend - Rozšíření Scraperu a API
+## Fáze 2: Backend - Rozšíření Scraperu a API [checkpoint: 07919cd]
 - [x] Úkol: Implementace získávání aliasů v `SmartMoneyScraper` [checkpoint: 191a9e2]
+    - Upravit logiku stahování P/L tak, aby se ukládal i nalezený alias.
+    - Zajistit, aby prázdné aliasy nepřepsaly již existující (pokud API vrátí null).
 - [x] Úkol: Úprava API endpointu pro držitele [checkpoint: 7c24b0b]
+    - Modifikovat `/api/markets/{id}/holders` tak, aby prováděl JOIN na `wallets_stats` a vracel `alias`.
 - [x] Úkol: Testování Backend změn (TDD) [checkpoint: 7c24b0b]
+    - Napsat testy pro ověření, že scraper správně ukládá aliasy.
+    - Napsat testy pro ověření, že API endpoint vrací aliasy v JSON odpovědi.
 - [x] Úkol: Conductor - User Manual Verification 'Backend - Rozšíření Scraperu a API' (Protocol in workflow.md)
 
 ## Fáze 3: Frontend - Kategorizace a Řazení
