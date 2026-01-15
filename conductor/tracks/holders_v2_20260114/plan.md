@@ -6,19 +6,12 @@
 - [x] Úkol: Migrace databáze - přidání sloupce `alias` [checkpoint: 5a7c92b]
 - [x] Úkol: Aktualizace Pydantic modelů [checkpoint: 5a7c92b]
 - [x] Úkol: Conductor - User Manual Verification 'Analýza API a Schéma databáze' (Protocol in workflow.md)
-    - Upravit modely `Holder` a `WalletStats` tak, aby zahrnovaly volitelné pole `alias`.
-- [ ] Úkol: Conductor - User Manual Verification 'Analýza API a Schéma databáze' (Protocol in workflow.md)
 
 ## Fáze 2: Backend - Rozšíření Scraperu a API
-- [ ] Úkol: Implementace získávání aliasů v `SmartMoneyScraper`
-    - Upravit logiku stahování P/L tak, aby se ukládal i nalezený alias.
-    - Zajistit, aby prázdné aliasy nepřepsaly již existující (pokud API vrátí null).
-- [ ] Úkol: Úprava API endpointu pro držitele
-    - Modifikovat `/api/markets/{id}/holders` tak, aby prováděl JOIN na `wallets_stats` a vracel `alias`.
-- [ ] Úkol: Testování Backend změn (TDD)
-    - Napsat testy pro ověření, že scraper správně ukládá aliasy.
-    - Napsat testy pro ověření, že API endpoint vrací aliasy v JSON odpovědi.
-- [ ] Úkol: Conductor - User Manual Verification 'Backend - Rozšíření Scraperu a API' (Protocol in workflow.md)
+- [x] Úkol: Implementace získávání aliasů v `SmartMoneyScraper` [checkpoint: 191a9e2]
+- [x] Úkol: Úprava API endpointu pro držitele [checkpoint: 7c24b0b]
+- [x] Úkol: Testování Backend změn (TDD) [checkpoint: 7c24b0b]
+- [x] Úkol: Conductor - User Manual Verification 'Backend - Rozšíření Scraperu a API' (Protocol in workflow.md)
 
 ## Fáze 3: Frontend - Kategorizace a Řazení
 - [ ] Úkol: Rozdělení držitelů na Yes/No v UI

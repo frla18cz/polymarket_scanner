@@ -13,14 +13,18 @@ from logging_setup import setup_logging
 setup_logging("smart_money")
 logger = logging.getLogger("polylab.smart_money")
 
-def get_active_market_ids(limit: Optional[int] = None) -> List[str]:
+def get_active_market_ids(limit: Optional[int] = None, randomize: bool = False) -> List[str]:
     conn = get_db_connection()
     try:
         # We need the condition_id for the Holders API
         sql = "SELECT DISTINCT condition_id FROM active_market_outcomes WHERE condition_id IS NOT NULL"
-        if limit:
-            sql += f" LIMIT {limit}"
-        rows = conn.execute(sql).fetchall()
+        params = []
+        if randomize:
+            sql += " ORDER BY RANDOM()"
+        if limit is not None:
+            sql += " LIMIT ?"
+            params.append(limit)
+        rows = conn.execute(sql, params).fetchall()
         return [r["condition_id"] for r in rows if r["condition_id"]]
     finally:
         conn.close()
@@ -48,22 +52,31 @@ def save_holders_batch(conn: sqlite3.Connection, condition_id: str, holders: Lis
             VALUES (?, ?, ?, ?, ?)
         """, records)
 
-def save_wallet_stats(conn: sqlite3.Connection, wallet: str, pnl: float):
+def save_wallet_stats(conn: sqlite3.Connection, wallet: str, pnl: float, alias: Optional[str] = None):
     last_updated = datetime.now(timezone.utc).isoformat()
+    
+    # Logic: 
+    # 1. If alias is provided, update it.
+    # 2. If alias is None, keep existing alias (COALESCE).
+    
     conn.execute("""
-        INSERT OR REPLACE INTO wallets_stats (wallet_address, total_pnl, last_updated)
-        VALUES (?, ?, ?)
-    """, (wallet, pnl, last_updated))
+        INSERT INTO wallets_stats (wallet_address, total_pnl, last_updated, alias)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(wallet_address) DO UPDATE SET
+            total_pnl = excluded.total_pnl,
+            last_updated = excluded.last_updated,
+            alias = COALESCE(excluded.alias, wallets_stats.alias)
+    """, (wallet, pnl, last_updated, alias))
 
-def process_market_holders_worker(condition_id: str) -> List[str]:
+def process_market_holders_worker(condition_id: str) -> Dict[str, Optional[str]]:
     """
     Worker function to fetch holders for a single market.
-    Tries Goldsky Subgraph first, falls back to Legacy API.
+    Returns a dict mapping wallet_address -> alias (or None).
     """
     # Small sleep to distribute load
     time.sleep(0.3)
     
-    unique_wallets = []
+    unique_wallets = {} # address -> alias
     data = None
 
     # 1. Try Goldsky Subgraph
@@ -95,11 +108,17 @@ def process_market_holders_worker(condition_id: str) -> List[str]:
             finally:
                 conn.close()
             
-            # Extract unique wallets
+            # Extract unique wallets and aliases
             for h in data:
                 addr = h.get("address") or h.get("user")
                 if addr:
-                    unique_wallets.append(addr)
+                    # Prefer existing alias if we already found one (though specific to this batch)
+                    # Legacy API provides 'name' which is the alias
+                    alias = h.get("name") 
+                    # If alias is empty string, treat as None
+                    if alias == "": 
+                        alias = None
+                    unique_wallets[addr] = alias
         except Exception as e:
             logger.error(f"Failed to save holders for {condition_id}: {e}")
     else:
@@ -117,34 +136,37 @@ def fetch_pnl_worker(wallet: str) -> Tuple[str, float]:
     val = client.fetch_user_pnl(wallet)
     return wallet, (val if val is not None else 0.0)
 
-def get_unique_wallets_from_db() -> Set[str]:
+def get_unique_wallets_from_db() -> Dict[str, Optional[str]]:
     """
     Fetches all unique wallet addresses from the holders table.
+    Returns dict {address: None} to match the structure.
     """
     conn = get_db_connection()
     try:
         rows = conn.execute("SELECT DISTINCT wallet_address FROM holders").fetchall()
-        return {r["wallet_address"] for r in rows if r["wallet_address"]}
+        # We don't have aliases in holders table, so return None
+        return {r["wallet_address"]: None for r in rows if r["wallet_address"]}
     finally:
         conn.close()
 
 def run(args_list: Optional[List[str]] = None):
     parser = argparse.ArgumentParser(description="Scrape Smart Money data.")
     parser.add_argument("--limit", type=int, default=None, help="Limit number of markets to process (for testing)")
+    parser.add_argument("--randomize", action="store_true", help="Randomize market selection (use with --limit)")
     parser.add_argument("--resume", action="store_true", help="Only fetch PnL for existing wallets in DB")
     args = parser.parse_args(args_list)
 
     start_time = time.time()
     logger.info(f"Starting Smart Money Scraper job... (Resume mode: {args.resume})")
     
-    all_unique_wallets = set()
+    all_unique_wallets = {} # address -> alias
 
     if args.resume:
         logger.info("Načítám unikátní peněženky z existující tabulky holders...")
         all_unique_wallets = get_unique_wallets_from_db()
     else:
         try:
-            condition_ids = get_active_market_ids(limit=args.limit)
+            condition_ids = get_active_market_ids(limit=args.limit, randomize=args.randomize)
         except Exception as e:
             logger.error(f"Failed to get active markets: {e}")
             return
@@ -158,8 +180,15 @@ def run(args_list: Optional[List[str]] = None):
             
             count = 0
             for future in concurrent.futures.as_completed(future_to_cid):
-                wallets = future.result()
-                all_unique_wallets.update(wallets)
+                wallets_dict = future.result()
+                # Update our master dict. If we find an alias later, it overwrites None.
+                # If we have an alias and new one is None, we should keep the alias.
+                for addr, alias in wallets_dict.items():
+                    if addr not in all_unique_wallets:
+                        all_unique_wallets[addr] = alias
+                    elif all_unique_wallets[addr] is None and alias is not None:
+                        all_unique_wallets[addr] = alias
+                        
                 count += 1
                 if count % 100 == 0:
                     logger.info(f"Zpracováno držitelů pro {count}/{len(condition_ids)} trhů.")
@@ -175,14 +204,16 @@ def run(args_list: Optional[List[str]] = None):
     conn = get_db_connection()
     try:
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-            future_to_wallet = {executor.submit(fetch_pnl_worker, w): w for w in all_unique_wallets}
+            future_to_wallet = {executor.submit(fetch_pnl_worker, w): w for w in all_unique_wallets.keys()}
             
             count = 0
             for future in concurrent.futures.as_completed(future_to_wallet):
                 w = future_to_wallet[future]
                 try:
                     wallet, pnl = future.result()
-                    save_wallet_stats(conn, wallet, pnl)
+                    # Retrieve the alias we found earlier
+                    alias = all_unique_wallets.get(wallet)
+                    save_wallet_stats(conn, wallet, pnl, alias=alias)
                     count += 1
                     if count % 100 == 0:
                         conn.commit() # Batch commit

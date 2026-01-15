@@ -13,8 +13,8 @@ class TestSmartMoneySkip(unittest.TestCase):
         
         result = process_market_holders_worker("market_fail")
         
-        # Result should be empty list of wallets
-        self.assertEqual(result, [])
+        # Result should be empty dict of wallets
+        self.assertEqual(result, {})
         # DB connection should NOT be called (no save)
         self.assertFalse(mock_db.called)
 
@@ -29,7 +29,7 @@ class TestSmartMoneySkip(unittest.TestCase):
         
         result = process_market_holders_worker("market_success")
         
-        self.assertEqual(result, ["0x1"])
+        self.assertEqual(result, {"0x1": None})
         self.assertTrue(mock_save.called)
 
 if __name__ == '__main__':

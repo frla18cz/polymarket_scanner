@@ -336,13 +336,14 @@ async def measure_execution_time(request: Request, call_next):
 def get_market_holders(market_id: str):
     conn = get_db_connection()
     try:
-        # Join holders with wallets_stats to get PnL
+        # Join holders with wallets_stats to get PnL and alias
         sql = """
             SELECT 
                 h.wallet_address, 
                 h.position_size, 
                 h.outcome_index,
-                ws.total_pnl
+                ws.total_pnl,
+                ws.alias
             FROM holders h
             LEFT JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
             WHERE h.market_id = ?
@@ -354,7 +355,8 @@ def get_market_holders(market_id: str):
                 wallet_address=r["wallet_address"],
                 position_size=r["position_size"],
                 outcome_index=r["outcome_index"],
-                total_pnl=r["total_pnl"]
+                total_pnl=r["total_pnl"],
+                alias=r["alias"]
             )
             for r in rows
         ]

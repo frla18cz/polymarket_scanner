@@ -29,7 +29,7 @@ class TestGoldskyIntegration(unittest.TestCase):
         mock_goldsky_instance.fetch_holders_subgraph.assert_called_once_with(condition_id)
         # HoldersClient should NOT be called if Goldsky succeeded (or at least Goldsky was tried first)
         self.assertFalse(mock_holders_instance.fetch_holders.called)
-        self.assertEqual(wallets, ["0xGold"])
+        self.assertEqual(wallets, {"0xGold": None})
 
     @patch('smart_money_scraper.get_db_connection')
     @patch('smart_money_scraper.GoldskyClient')
@@ -59,7 +59,7 @@ class TestGoldskyIntegration(unittest.TestCase):
         # Assertions
         mock_goldsky_instance.fetch_holders_subgraph.assert_called_once_with(condition_id)
         mock_holders_instance.fetch_holders.assert_called_once_with(condition_id, limit=1000)
-        self.assertEqual(wallets, ["0xLegacy"])
+        self.assertEqual(wallets, {"0xLegacy": None})
 
 if __name__ == '__main__':
     unittest.main()
