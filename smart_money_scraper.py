@@ -83,36 +83,37 @@ def process_market_holders_worker(condition_id: str) -> Dict[str, Optional[str]]
     try:
         goldsky_client = GoldskyClient()
         data = goldsky_client.fetch_holders_subgraph(condition_id)
-        if data:
+        if data is not None:
             logger.info(f"Fetched {len(data)} holders from Goldsky for {condition_id}")
-            
-            # Try to fetch aliases from Legacy API (best effort)
-            try:
-                holders_client = HoldersClient()
-                legacy_data = holders_client.fetch_holders(condition_id, limit=100)
-                if legacy_data:
-                    for h in legacy_data:
-                        addr = h.get("address")
-                        alias = h.get("name")
-                        if addr and alias:
-                             unique_wallets[addr] = alias
-            except Exception as e:
-                logger.debug(f"Failed to fetch aliases from Legacy API for {condition_id}: {e}")
+
+            if data:
+                # Try to fetch aliases from Legacy API (best effort)
+                try:
+                    holders_client = HoldersClient()
+                    legacy_data = holders_client.fetch_holders(condition_id, limit=100)
+                    if legacy_data:
+                        for h in legacy_data:
+                            addr = h.get("address")
+                            alias = h.get("name")
+                            if addr and alias:
+                                 unique_wallets[addr] = alias
+                except Exception as e:
+                    logger.debug(f"Failed to fetch aliases from Legacy API for {condition_id}: {e}")
 
     except Exception as e:
         logger.warning(f"Goldsky fetch failed for {condition_id}: {e}")
 
     # 2. Fallback to Legacy API
-    if not data:
+    if data is None:
         try:
             holders_client = HoldersClient()
             data = holders_client.fetch_holders(condition_id, limit=1000)
-            if data:
+            if data is not None:
                 logger.info(f"Fetched {len(data)} holders from Legacy API for {condition_id}")
         except Exception as e:
             logger.error(f"Legacy API fetch failed for {condition_id}: {e}")
 
-    if data:
+    if data is not None:
         try:
             # We need a fresh connection per thread for SQLite safety
             conn = get_db_connection()
