@@ -1,0 +1,4 @@
+Task: Zajistit limit 20 holderů na trh pro GoldskyClient i HoldersClient
+Summary: Capped request limit to 20, sliced holder lists to 20, and updated tests to assert capped limits (including Goldsky payload checks).
+Files: holders_client.py; tests/test_goldsky_client_unittest.py; tests/test_holders_client_unittest.py; tests/test_holders_retry_unittest.py; tests/test_holders_validation_unittest.py
+Why: Enforce a consistent top-20 holder cap per market to match spec and reduce data volume.
