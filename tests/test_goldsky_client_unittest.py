@@ -47,7 +47,7 @@ class TestGoldskyClient(unittest.TestCase):
         self.assertEqual(len(holders), 4)
         # The list is sorted, so 0xabc should be first
         self.assertEqual(holders[0]["address"], "0xabc")
-        self.assertEqual(holders[0]["positionSize"], 4000)
+        self.assertEqual(holders[0]["positionSize"], 0.004)
 
         # Check that post was called twice
         self.assertEqual(mock_post.call_count, 2)

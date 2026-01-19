@@ -161,7 +161,7 @@ class GoldskyClient:
                     for item in balances:
                         all_holders.append({
                             "address": item.get("user"),
-                            "positionSize": int(item.get("balance", 0)),
+                            "positionSize": float(item.get("balance", 0)) / 1_000_000,
                             "outcomeIndex": outcome_index,
                         })
                 
