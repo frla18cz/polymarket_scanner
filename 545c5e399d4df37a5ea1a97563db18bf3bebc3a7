@@ -1,0 +1,4 @@
+Task: Verifikace smart_money_scraper pro prázdné seznamy holderů
+Summary: Treated empty holder lists as valid by checking data is not None, ensuring empty lists are saved and no-ops do not error; added test coverage with GoldskyClient patched.
+Files: smart_money_scraper.py; tests/test_smart_money_skip_unittest.py
+Why: Allow markets with 0 holders to be processed without being skipped or raising errors.
