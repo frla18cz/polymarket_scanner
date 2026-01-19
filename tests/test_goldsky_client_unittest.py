@@ -66,6 +66,28 @@ class TestGoldskyClient(unittest.TestCase):
         self.assertEqual(holders, [])
 
     @patch('holders_client.requests.post')
+    def test_fetch_holders_subgraph_caps_limit(self, mock_post):
+        """Test that the client caps and returns at most 20 holders."""
+        balances_0 = [{"user": f"0x0_{i}", "balance": str(1000 + i)} for i in range(15)]
+        balances_1 = [{"user": f"0x1_{i}", "balance": str(2000 + i)} for i in range(15)]
+
+        mock_response_1 = MagicMock()
+        mock_response_1.status_code = 200
+        mock_response_1.json.return_value = {"data": {"userBalances": balances_0}}
+
+        mock_response_2 = MagicMock()
+        mock_response_2.status_code = 200
+        mock_response_2.json.return_value = {"data": {"userBalances": balances_1}}
+
+        mock_post.side_effect = [mock_response_1, mock_response_2]
+
+        holders = self.client.fetch_holders_subgraph("0xLimitCID", limit=50)
+
+        self.assertEqual(len(holders), 20)
+        args, kwargs = mock_post.call_args_list[0]
+        self.assertEqual(kwargs["json"]["variables"]["first"], 20)
+
+    @patch('holders_client.requests.post')
     def test_fetch_holders_subgraph_retry(self, mock_post):
         """Test that the client retries on transient errors."""
         # Setup mock responses: 

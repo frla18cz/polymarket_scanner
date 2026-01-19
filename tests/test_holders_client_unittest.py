@@ -30,7 +30,7 @@ class TestHoldersClient(unittest.TestCase):
         holders = client.fetch_holders("market_123")
         
         self.assertIsNotNone(holders)
-        self.assertEqual(len(holders), 40)
+        self.assertEqual(len(holders), 20)
         
     @patch('requests.get')
     def test_fetch_holders_unsorted_warning(self, mock_get):
@@ -50,7 +50,7 @@ class TestHoldersClient(unittest.TestCase):
         
         holders = client.fetch_holders("market_unsorted")
         self.assertIsNotNone(holders)
-        self.assertEqual(len(holders), 40)
+        self.assertEqual(len(holders), 20)
         # Should be sorted DESC by amount (which we mapped to positionSize)
         self.assertEqual(holders[0]['positionSize'], 19)
 

@@ -16,13 +16,14 @@ class HoldersClient:
     def __init__(self):
         self.base_url = "https://data-api.polymarket.com"
 
-    def fetch_holders(self, market_id: str, limit: int = 1000) -> Optional[List[Dict[str, Any]]]:
+    def fetch_holders(self, market_id: str, limit: int = 20) -> Optional[List[Dict[str, Any]]]:
         """
         Fetches top holders for a market with retries.
         Returns None if an error occurs after all retries.
         """
         url = f"{self.base_url}/holders"
-        params = {"market": market_id, "limit": limit}
+        capped_limit = min(limit, 20)
+        params = {"market": market_id, "limit": capped_limit}
         
         retries = 3
         for attempt in range(retries):
@@ -55,7 +56,7 @@ class HoldersClient:
 
                 # Re-sort because we merged multiple tokens
                 flattened_holders.sort(key=lambda x: float(x.get("positionSize", 0)), reverse=True)
-                return flattened_holders
+                return flattened_holders[:capped_limit]
 
             except (requests.exceptions.RequestException, requests.exceptions.Timeout) as e:
                 if attempt < retries - 1:
@@ -104,6 +105,7 @@ class GoldskyClient:
         Fetches top holders for a market from the Goldsky subgraph with retries.
         Returns None if an error occurs after all retries.
         """
+        capped_limit = min(limit, 20)
         retries = 3
         for attempt in range(retries):
             all_holders = []
@@ -115,7 +117,7 @@ class GoldskyClient:
                         "variables": {
                             "conditionId": condition_id,
                             "outcomeIndex": str(outcome_index),
-                            "first": limit,
+                            "first": capped_limit,
                             "skip": 0,
                         },
                     }
@@ -146,7 +148,7 @@ class GoldskyClient:
                 # If we successfully got data (even if empty list), we return it
                 # Sort by position size descending, as we merged two separate queries
                 all_holders.sort(key=lambda x: x["positionSize"], reverse=True)
-                return all_holders
+                return all_holders[:capped_limit]
 
             except (requests.exceptions.RequestException, requests.exceptions.Timeout) as e:
                 if attempt < retries - 1:

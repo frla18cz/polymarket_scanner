@@ -6,18 +6,18 @@ from holders_client import HoldersClient
 class TestHoldersValidation(unittest.TestCase):
     @patch('requests.get')
     @patch('time.sleep', return_value=None)
-    def test_fetch_holders_limit_is_1000(self, mock_sleep, mock_get):
+    def test_fetch_holders_limit_is_capped(self, mock_sleep, mock_get):
         client = HoldersClient()
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = []
         mock_get.return_value = mock_response
         
-        client.fetch_holders("market_123")
+        client.fetch_holders("market_123", limit=1000)
         
-        # Verify limit=1000 is passed to the API
+        # Verify limit is capped at 20 for the API
         args, kwargs = mock_get.call_args
-        self.assertEqual(kwargs['params']['limit'], 1000)
+        self.assertEqual(kwargs['params']['limit'], 20)
 
     @patch('requests.get')
     @patch('time.sleep', return_value=None)
@@ -38,7 +38,7 @@ class TestHoldersValidation(unittest.TestCase):
         result = client.fetch_holders("market_123")
         
         self.assertIsNotNone(result)
-        self.assertEqual(len(result), 40)
+        self.assertEqual(len(result), 20)
 
     @patch('requests.get')
     @patch('time.sleep', return_value=None)

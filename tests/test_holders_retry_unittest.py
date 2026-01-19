@@ -24,7 +24,7 @@ class TestHoldersRetry(unittest.TestCase):
         holders = client.fetch_holders("market_123")
         
         self.assertIsNotNone(holders)
-        self.assertEqual(len(holders), 40)
+        self.assertEqual(len(holders), 20)
         self.assertEqual(mock_get.call_count, 3)
         self.assertEqual(mock_sleep.call_count, 2)
 
