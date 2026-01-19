@@ -17,6 +17,8 @@ Rule: **edit `frontend_deploy/index.html` and copy it to `static/index.html`** (
 - `GET /api/status` → `{ last_updated }` timestamp shown in header
 - `GET /api/markets` → main table/card data (supports all filters below)
 - `GET /api/markets/{market_id}/holders` → list of top holders with P/L stats for a specific market
+  - Response Model: `List[HolderDetail]`
+  - Fields: `wallet_address`, `position_size`, `outcome_index`, `total_pnl`, `alias` (optional)
 
 ## Required filters (UI → `/api/markets` query params)
 

@@ -26,6 +26,6 @@
 - [x] Úkol: Conductor - User Manual Verification 'Frontend - Kategorizace a Řazení' (Protocol in workflow.md)
 
 ## Fáze 4: Finální verifikace a Dokumentace
-- [~] Úkol: E2E testování celého procesu (Scrape -> DB -> API -> UI)
-- [ ] Úkol: Aktualizace `docs/UI_CONTRACT.md` o nové parametry API
-- [ ] Úkol: Conductor - User Manual Verification 'Finální verifikace a Dokumentace' (Protocol in workflow.md)
+- [x] Úkol: E2E testování celého procesu (Scrape -> DB -> API -> UI) [checkpoint: 8164c20]
+- [x] Úkol: Aktualizace `docs/UI_CONTRACT.md` o nové parametry API [checkpoint: 8164c20]
+- [x] Úkol: Conductor - User Manual Verification 'Finální verifikace a Dokumentace' (Protocol in workflow.md)
