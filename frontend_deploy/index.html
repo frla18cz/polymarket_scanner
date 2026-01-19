@@ -2248,8 +2248,9 @@
                         const allHolders = Array.isArray(data) ? data : (data && Array.isArray(data.holders) ? data.holders : []);
                         
                         // Categorize
-                        const yes = allHolders.filter(h => h.outcome_index === 1);
-                        const no = allHolders.filter(h => h.outcome_index === 0);
+                        // outcome_index 0 is typically Yes (first outcome), outcome_index 1 is typically No (second outcome)
+                        const yes = allHolders.filter(h => h.outcome_index === 0);
+                        const no = allHolders.filter(h => h.outcome_index === 1);
                         
                         holdersByMarket.value = { 
                             ...holdersByMarket.value, 

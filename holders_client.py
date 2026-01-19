@@ -59,20 +59,18 @@ class HoldersClient:
                         h["positionSize"] = h.get("amount")
                         flattened_holders.append(h)
 
-                # Validation logic: At least 20 holders for outcome 0 AND at least 20 for outcome 1
-                # (Assuming binary markets are the priority, multi-outcome might need adjustment but
-                # spec says "apply to outcome 0 and 1").
+                # Validation logic: At least 20 holders for outcome 0 (YES) AND at least 20 for outcome 1 (NO)
                 c0 = outcome_counts.get(0, 0)
                 c1 = outcome_counts.get(1, 0)
                 
                 if c0 < 20 or c1 < 20:
-                    msg = f"Validation failed for {market_id}: Only {c1} YES / {c0} NO holders found (attempt {attempt+1}/{retries})"
+                    msg = f"Validation failed for {market_id}: Only {c0} YES / {c1} NO holders found (attempt {attempt+1}/{retries})"
                     if attempt < retries - 1:
                         logger.warning(f"{msg}, retrying in 2s...")
                         time.sleep(2)
                         continue
                     else:
-                        logger.error(f"Insufficient data for {market_id} after {retries} attempts ({c1} YES, {c0} NO). Skipping.")
+                        logger.error(f"Insufficient data for {market_id} after {retries} attempts ({c0} YES, {c1} NO). Skipping.")
                         return None
 
                 # Re-sort because we merged multiple tokens
