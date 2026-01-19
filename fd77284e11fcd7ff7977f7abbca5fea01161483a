@@ -1,0 +1,4 @@
+Task: Odstranit validační limity v holders_client.py (HoldersClient/GoldskyClient)
+Summary: Removed per-outcome minimum-holder validation in HoldersClient and updated validation tests to accept low-count responses without retries.
+Files: holders_client.py; tests/test_holders_validation_unittest.py
+Why: Allow markets with low holder counts to be processed instead of being dropped as insufficient data.
