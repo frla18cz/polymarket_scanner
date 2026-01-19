@@ -14,8 +14,3 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## [x] Track: Add simple retry mechanism to HoldersClient.fetch_holders
 *Link: [./conductor/tracks/holders_retry_20260111/](./conductor/tracks/holders_retry_20260111/)*
-
----
-
-## [x] Track: Holders Analysis V2 (Kategorizace, Řazení a Aliasy)
-*Link: [./conductor/tracks/holders_v2_20260114/](./conductor/tracks/holders_v2_20260114/)*
