@@ -837,7 +837,6 @@
                         <div v-else class="pb-4">
                             <div v-for="(m, idx) in markets" 
                                  :key="m.market_id + m.outcome_name"
-                                 v-memo="[m, expandedId === m.market_id + m.outcome_name, selectedIndex === idx, effectiveViewMode, compactMode, copiedKey, holdersByMarket[m.market_id], holdersLoading[m.market_id], holdersError[m.market_id]]"
                                  class="border-b border-poly-accent/50">
 
                                 <!-- ================= MOBILE CARD VIEW (Active on sm/xs) ================= -->
@@ -1008,45 +1007,90 @@
                                         </div>
 
                                         <div class="mt-3 rounded border border-poly-accent bg-poly-bg/40 p-3">
-                                            <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                            <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold mb-3">
                                                 Top Holders</div>
-                                            <div v-if="holdersLoading[m.market_id]" class="mt-2 text-[11px] text-gray-500">
-                                                Loading holders...
+                                            <div v-if="holdersLoading[m.market_id]" class="text-[11px] text-gray-500 py-4 text-center">
+                                                <i class="ph ph-spinner animate-spin mr-2"></i>Loading holders...
                                             </div>
-                                            <div v-else-if="holdersError[m.market_id]" class="mt-2 text-[11px] text-poly-red">
+                                            <div v-else-if="holdersError[m.market_id]" class="text-[11px] text-poly-red py-4 text-center">
                                                 Failed to load holders.
                                             </div>
-                                            <div v-else-if="!holdersByMarket[m.market_id] || holdersByMarket[m.market_id].length === 0"
-                                                class="mt-2 text-[11px] text-gray-500">
+                                            <div v-else-if="!holdersByMarket[m.market_id] || (holdersByMarket[m.market_id].yes.length === 0 && holdersByMarket[m.market_id].no.length === 0)"
+                                                class="text-[11px] text-gray-500 py-4 text-center">
                                                 No holders data.
                                             </div>
-                                            <div v-else class="mt-2 overflow-x-auto">
-                                                <table class="min-w-full text-[11px]">
-                                                    <thead class="text-[10px] uppercase tracking-wider text-gray-500">
-                                                        <tr>
-                                                            <th class="text-left font-semibold py-1">Address</th>
-                                                            <th class="text-right font-semibold py-1">Size</th>
-                                                            <th class="text-right font-semibold py-1">P/L</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody class="text-gray-300">
-                                                        <tr v-for="holder in holdersByMarket[m.market_id]"
-                                                            :key="`${holder.wallet_address}-${holder.outcome_index}`"
-                                                            class="border-t border-poly-accent/30">
-                                                            <td class="py-1 font-mono text-gray-300"
-                                                                :title="holder.wallet_address">
-                                                                {{ formatWalletAddress(holder.wallet_address) }}
-                                                            </td>
-                                                            <td class="py-1 text-right font-mono text-gray-200">
-                                                                {{ formatNumberCompact(holder.position_size) }}
-                                                            </td>
-                                                            <td class="py-1 text-right font-mono"
-                                                                :class="Number(holder.total_pnl) > 0 ? 'text-poly-green' : (Number(holder.total_pnl) < 0 ? 'text-poly-red' : 'text-gray-400')">
-                                                                {{ formatPnl(holder.total_pnl) }}
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
+                                            <div v-else class="space-y-6">
+                                                <!-- YES HOLDERS -->
+                                                <div v-if="holdersByMarket[m.market_id].yes.length">
+                                                    <div class="text-[10px] font-bold text-poly-green uppercase mb-2">Holders: YES</div>
+                                                    <div class="overflow-x-auto">
+                                                        <table class="min-w-full text-[11px]" :key="`mob-table-no-${holdersSortBy}-${holdersSortDir}`">
+                                                            <thead class="text-[10px] uppercase text-gray-500 border-b border-poly-accent/30">
+                                                                <tr>
+                                                                    <th class="text-left font-semibold py-1">User</th>
+                                                                    <th class="text-right font-semibold py-1 cursor-pointer hover:text-white" @click.stop="toggleHoldersSort('position_size')">
+                                                                        Size <i v-if="holdersSortBy === 'position_size'" :class="holdersSortDir === 'desc' ? 'ph-caret-down' : 'ph-caret-up'" class="ph text-[8px]"></i>
+                                                                    </th>
+                                                                    <th class="text-right font-semibold py-1 cursor-pointer hover:text-white" @click.stop="toggleHoldersSort('total_pnl')">
+                                                                        P/L <i v-if="holdersSortBy === 'total_pnl'" :class="holdersSortDir === 'desc' ? 'ph-caret-down' : 'ph-caret-up'" class="ph text-[8px]"></i>
+                                                                    </th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody class="text-gray-300">
+                                                                <tr v-for="holder in getSortedHolders(holdersByMarket[m.market_id].yes)"
+                                                                    :key="`${holder.wallet_address}-yes`"
+                                                                    class="border-t border-poly-accent/10">
+                                                                    <td class="py-1.5 font-mono text-gray-300" :title="holder.wallet_address">
+                                                                        {{ holder.alias || formatWalletAddress(holder.wallet_address) }}
+                                                                    </td>
+                                                                    <td class="py-1.5 text-right font-mono text-gray-200">
+                                                                        {{ formatNumberCompact(holder.position_size) }}
+                                                                    </td>
+                                                                    <td class="py-1.5 text-right font-mono"
+                                                                        :class="Number(holder.total_pnl) > 0 ? 'text-poly-green' : (Number(holder.total_pnl) < 0 ? 'text-poly-red' : 'text-gray-400')">
+                                                                        {{ formatPnl(holder.total_pnl) }}
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+
+                                                <!-- NO HOLDERS -->
+                                                <div v-if="holdersByMarket[m.market_id].no.length">
+                                                    <div class="text-[10px] font-bold text-poly-red uppercase mb-2">Holders: NO</div>
+                                                    <div class="overflow-x-auto">
+                                                        <table class="min-w-full text-[11px]" :key="`mob-table-no-${holdersSortBy}-${holdersSortDir}`">
+                                                            <thead class="text-[10px] uppercase text-gray-500 border-b border-poly-accent/30">
+                                                                <tr>
+                                                                    <th class="text-left font-semibold py-1">User</th>
+                                                                    <th class="text-right font-semibold py-1 cursor-pointer hover:text-white" @click.stop="toggleHoldersSort('position_size')">
+                                                                        Size <i v-if="holdersSortBy === 'position_size'" :class="holdersSortDir === 'desc' ? 'ph-caret-down' : 'ph-caret-up'" class="ph text-[8px]"></i>
+                                                                    </th>
+                                                                    <th class="text-right font-semibold py-1 cursor-pointer hover:text-white" @click.stop="toggleHoldersSort('total_pnl')">
+                                                                        P/L <i v-if="holdersSortBy === 'total_pnl'" :class="holdersSortDir === 'desc' ? 'ph-caret-down' : 'ph-caret-up'" class="ph text-[8px]"></i>
+                                                                    </th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody class="text-gray-300">
+                                                                <tr v-for="holder in getSortedHolders(holdersByMarket[m.market_id].no)"
+                                                                    :key="`${holder.wallet_address}-no`"
+                                                                    class="border-t border-poly-accent/10">
+                                                                    <td class="py-1.5 font-mono text-gray-300" :title="holder.wallet_address">
+                                                                        {{ holder.alias || formatWalletAddress(holder.wallet_address) }}
+                                                                    </td>
+                                                                    <td class="py-1.5 text-right font-mono text-gray-200">
+                                                                        {{ formatNumberCompact(holder.position_size) }}
+                                                                    </td>
+                                                                    <td class="py-1.5 text-right font-mono"
+                                                                        :class="Number(holder.total_pnl) > 0 ? 'text-poly-green' : (Number(holder.total_pnl) < 0 ? 'text-poly-red' : 'text-gray-400')">
+                                                                        {{ formatPnl(holder.total_pnl) }}
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -1268,46 +1312,105 @@
                                         </div>
                                     </div>
 
-                                    <div class="mt-4 rounded border border-poly-accent bg-poly-bg/40 p-3">
-                                        <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                                    <div class="mt-4 rounded border border-poly-accent bg-poly-bg/40 p-4">
+                                        <div class="text-[10px] uppercase tracking-wider text-gray-500 font-bold mb-4">
                                             Top Holders</div>
-                                        <div v-if="holdersLoading[m.market_id]" class="mt-2 text-[11px] text-gray-500">
-                                            Loading holders...
+                                        <div v-if="holdersLoading[m.market_id]" class="py-8 text-center text-gray-500">
+                                            <i class="ph ph-spinner animate-spin text-xl mr-2"></i>Loading holders...
                                         </div>
-                                        <div v-else-if="holdersError[m.market_id]" class="mt-2 text-[11px] text-poly-red">
+                                        <div v-else-if="holdersError[m.market_id]" class="py-8 text-center text-poly-red">
                                             Failed to load holders.
                                         </div>
-                                        <div v-else-if="!holdersByMarket[m.market_id] || holdersByMarket[m.market_id].length === 0"
-                                            class="mt-2 text-[11px] text-gray-500">
-                                            No holders data.
+                                        <div v-else-if="!holdersByMarket[m.market_id] || (holdersByMarket[m.market_id].yes.length === 0 && holdersByMarket[m.market_id].no.length === 0)"
+                                            class="py-8 text-center text-gray-500">
+                                            No holders data found for this market snapshot.
                                         </div>
-                                        <div v-else class="mt-2 overflow-x-auto">
-                                            <table class="min-w-full text-[11px]">
-                                                <thead class="text-[10px] uppercase tracking-wider text-gray-500">
-                                                    <tr>
-                                                        <th class="text-left font-semibold py-1">Address</th>
-                                                        <th class="text-right font-semibold py-1">Size</th>
-                                                        <th class="text-right font-semibold py-1">P/L</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody class="text-gray-300">
-                                                    <tr v-for="holder in holdersByMarket[m.market_id]"
-                                                        :key="`${holder.wallet_address}-${holder.outcome_index}`"
-                                                        class="border-t border-poly-accent/30">
-                                                        <td class="py-1 font-mono text-gray-300"
-                                                            :title="holder.wallet_address">
-                                                            {{ formatWalletAddress(holder.wallet_address) }}
-                                                        </td>
-                                                        <td class="py-1 text-right font-mono text-gray-200">
-                                                            {{ formatNumberCompact(holder.position_size) }}
-                                                        </td>
-                                                        <td class="py-1 text-right font-mono"
-                                                            :class="Number(holder.total_pnl) > 0 ? 'text-poly-green' : (Number(holder.total_pnl) < 0 ? 'text-poly-red' : 'text-gray-400')">
-                                                            {{ formatPnl(holder.total_pnl) }}
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
+                                        <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            <!-- YES HOLDERS -->
+                                            <div>
+                                                <div class="flex items-center gap-2 mb-3">
+                                                    <span class="w-2 h-2 rounded-full bg-poly-green"></span>
+                                                    <h5 class="text-[11px] font-bold text-poly-green uppercase tracking-wide">Holders: YES</h5>
+                                                </div>
+                                                <div v-if="holdersByMarket[m.market_id].yes.length" class="overflow-hidden rounded-lg border border-poly-accent/30">
+                                                    <table class="min-w-full text-[12px]" :key="`desk-table-yes-${holdersSortBy}-${holdersSortDir}`">
+                                                        <thead class="bg-poly-accent/20 text-[10px] uppercase text-gray-500">
+                                                            <tr>
+                                                                <th class="text-left font-bold px-3 py-2">User / Address</th>
+                                                                <th class="text-right font-bold px-3 py-2 cursor-pointer hover:text-white transition-colors" @click.stop="toggleHoldersSort('position_size')">
+                                                                    Size <i v-if="holdersSortBy === 'position_size'" :class="holdersSortDir === 'desc' ? 'ph-caret-down' : 'ph-caret-up'" class="ph"></i>
+                                                                </th>
+                                                                <th class="text-right font-bold px-3 py-2 cursor-pointer hover:text-white transition-colors" @click.stop="toggleHoldersSort('total_pnl')">
+                                                                    Total P/L <i v-if="holdersSortBy === 'total_pnl'" :class="holdersSortDir === 'desc' ? 'ph-caret-down' : 'ph-caret-up'" class="ph"></i>
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody class="divide-y divide-poly-accent/20">
+                                                            <tr v-for="holder in getSortedHolders(holdersByMarket[m.market_id].yes)"
+                                                                :key="`${holder.wallet_address}-yes`"
+                                                                class="hover:bg-poly-accent/10 transition-colors">
+                                                                <td class="px-3 py-2 font-medium text-gray-300" :title="holder.wallet_address">
+                                                                    <div class="flex items-center gap-2">
+                                                                        <i class="ph ph-user text-gray-600"></i>
+                                                                        <span>{{ holder.alias || formatWalletAddress(holder.wallet_address) }}</span>
+                                                                    </div>
+                                                                </td>
+                                                                <td class="px-3 py-2 text-right font-mono text-gray-200">
+                                                                    {{ formatNumberCompact(holder.position_size) }}
+                                                                </td>
+                                                                <td class="px-3 py-2 text-right font-mono font-bold"
+                                                                    :class="Number(holder.total_pnl) > 0 ? 'text-poly-green' : (Number(holder.total_pnl) < 0 ? 'text-poly-red' : 'text-gray-500')">
+                                                                    {{ formatPnl(holder.total_pnl) }}
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                <div v-else class="text-[11px] text-gray-600 italic py-2">No holders listed for YES.</div>
+                                            </div>
+
+                                            <!-- NO HOLDERS -->
+                                            <div>
+                                                <div class="flex items-center gap-2 mb-3">
+                                                    <span class="w-2 h-2 rounded-full bg-poly-red"></span>
+                                                    <h5 class="text-[11px] font-bold text-poly-red uppercase tracking-wide">Holders: NO</h5>
+                                                </div>
+                                                <div v-if="holdersByMarket[m.market_id].no.length" class="overflow-hidden rounded-lg border border-poly-accent/30">
+                                                    <table class="min-w-full text-[12px]" :key="`desk-table-no-${holdersSortBy}-${holdersSortDir}`">
+                                                        <thead class="bg-poly-accent/20 text-[10px] uppercase text-gray-500">
+                                                            <tr>
+                                                                <th class="text-left font-bold px-3 py-2">User / Address</th>
+                                                                <th class="text-right font-bold px-3 py-2 cursor-pointer hover:text-white transition-colors" @click.stop="toggleHoldersSort('position_size')">
+                                                                    Size <i v-if="holdersSortBy === 'position_size'" :class="holdersSortDir === 'desc' ? 'ph-caret-down' : 'ph-caret-up'" class="ph"></i>
+                                                                </th>
+                                                                <th class="text-right font-bold px-3 py-2 cursor-pointer hover:text-white transition-colors" @click.stop="toggleHoldersSort('total_pnl')">
+                                                                    Total P/L <i v-if="holdersSortBy === 'total_pnl'" :class="holdersSortDir === 'desc' ? 'ph-caret-down' : 'ph-caret-up'" class="ph"></i>
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody class="divide-y divide-poly-accent/20">
+                                                            <tr v-for="holder in getSortedHolders(holdersByMarket[m.market_id].no)"
+                                                                :key="`${holder.wallet_address}-no`"
+                                                                class="hover:bg-poly-accent/10 transition-colors">
+                                                                <td class="px-3 py-2 font-medium text-gray-300" :title="holder.wallet_address">
+                                                                    <div class="flex items-center gap-2">
+                                                                        <i class="ph ph-user text-gray-600"></i>
+                                                                        <span>{{ holder.alias || formatWalletAddress(holder.wallet_address) }}</span>
+                                                                    </div>
+                                                                </td>
+                                                                <td class="px-3 py-2 text-right font-mono text-gray-200">
+                                                                    {{ formatNumberCompact(holder.position_size) }}
+                                                                </td>
+                                                                <td class="px-3 py-2 text-right font-mono font-bold"
+                                                                    :class="Number(holder.total_pnl) > 0 ? 'text-poly-green' : (Number(holder.total_pnl) < 0 ? 'text-poly-red' : 'text-gray-500')">
+                                                                    {{ formatPnl(holder.total_pnl) }}
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                <div v-else class="text-[11px] text-gray-600 italic py-2">No holders listed for NO.</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1413,9 +1516,11 @@
                 const offset = ref(0);
                 const limit = 100; // Load 100 at a time
                 const serverLastUpdated = ref(null);
-                const holdersByMarket = ref({});
+                const holdersByMarket = ref({}); // { marketId: { yes: [], no: [] } }
                 const holdersLoading = ref({});
                 const holdersError = ref({});
+                const holdersSortBy = ref('position_size'); // 'position_size' | 'total_pnl'
+                const holdersSortDir = ref('desc');
 
                 // --- Supabase Auth ---
                 const supabaseUrl = 'https://wdwvmsrqepxvhkmodqks.supabase.co';
@@ -2131,24 +2236,54 @@
                 const fetchHolders = async (marketId, conditionId) => {
                     if (!marketId || !conditionId) return;
                     const key = String(marketId);
-                    if (holdersByMarket.value[key] || holdersLoading.value[key]) return;
+                    if (holdersLoading.value[key]) return;
 
                     holdersLoading.value = { ...holdersLoading.value, [key]: true };
                     holdersError.value = { ...holdersError.value, [key]: null };
 
                     try {
-                        // Backend expects condition_id because that is what is stored in the holders table
                         const res = await fetch(`${API_BASE_URL}/api/markets/${encodeURIComponent(conditionId)}/holders`);
                         if (!res.ok) throw new Error(`Failed to load holders (${res.status})`);
                         const data = await res.json();
-                        const holders = Array.isArray(data) ? data : (data && Array.isArray(data.holders) ? data.holders : []);
-                        holdersByMarket.value = { ...holdersByMarket.value, [key]: holders };
+                        const allHolders = Array.isArray(data) ? data : (data && Array.isArray(data.holders) ? data.holders : []);
+                        
+                        // Categorize
+                        const yes = allHolders.filter(h => h.outcome_index === 1);
+                        const no = allHolders.filter(h => h.outcome_index === 0);
+                        
+                        holdersByMarket.value = { 
+                            ...holdersByMarket.value, 
+                            [key]: { yes, no } 
+                        };
                     } catch (e) {
                         console.error("fetchHolders: Error during fetch", e);
                         holdersError.value = { ...holdersError.value, [key]: String(e?.message || e) };
                     } finally {
                         holdersLoading.value = { ...holdersLoading.value, [key]: false };
                     }
+                };
+
+                const toggleHoldersSort = (column) => {
+                    if (holdersSortBy.value === column) {
+                        holdersSortDir.value = holdersSortDir.value === 'desc' ? 'asc' : 'desc';
+                    } else {
+                        holdersSortBy.value = column;
+                        holdersSortDir.value = 'desc';
+                    }
+                };
+
+                const getSortedHolders = (list) => {
+                    if (!list) return [];
+                    const sorted = [...list];
+                    const col = holdersSortBy.value;
+                    const dir = holdersSortDir.value === 'asc' ? 1 : -1;
+                    
+                    sorted.sort((a, b) => {
+                        const valA = Number(a[col] || 0);
+                        const valB = Number(b[col] || 0);
+                        return (valA - valB) * dir;
+                    });
+                    return sorted;
                 };
 
                 // Toggle Details
@@ -2613,6 +2748,7 @@
                     fetchMarkets();
                     updateScreenFlags();
                     window.addEventListener('resize', updateScreenFlags);
+                    window.addEventListener("keydown", onKeyDown);
                     maybeAutoOpenMobileFilters();
 
                     refreshInterval = setInterval(() => {
@@ -2712,6 +2848,8 @@
                     toggleViewMode,
                     applyPreset,
                     resetAllFilters,
+                    toggleHoldersSort,
+                    getSortedHolders,
                     // Auth
                     user,
                     showLoginModal,

@@ -18,19 +18,14 @@
     - Napsat testy pro ověření, že API endpoint vrací aliasy v JSON odpovědi.
 - [x] Úkol: Conductor - User Manual Verification 'Backend - Rozšíření Scraperu a API' (Protocol in workflow.md)
 
-## Fáze 3: Frontend - Kategorizace a Řazení
-- [ ] Úkol: Rozdělení držitelů na Yes/No v UI
-    - Upravit `index.html` tak, aby se seznam držitelů filtroval a zobrazoval ve dvou samostatných tabulkách.
-- [ ] Úkol: Implementace interaktivního řazení
-    - Přidat logiku do Vue.js pro řazení tabulek podle kliknutí na hlavičky (Size, P/L).
-- [ ] Úkol: Logika zobrazení Alias vs. Adresa
-    - Upravit šablonu tak, aby prioritně zobrazovala alias, a pokud chybí, tak zkrácenou adresu.
-    - Přidat tooltip s celou adresou.
-- [ ] Úkol: Testování Frontend změn
-    - Prověřit správnost řazení a rozdělení kategorií na testovacích datech.
-- [ ] Úkol: Conductor - User Manual Verification 'Frontend - Kategorizace a Řazení' (Protocol in workflow.md)
+## Fáze 3: Frontend - Kategorizace a Řazení [checkpoint: 8164c20]
+- [x] Úkol: Rozdělení držitelů na Yes/No v UI [checkpoint: 8164c20]
+- [x] Úkol: Implementace interaktivního řazení [checkpoint: 8164c20]
+- [x] Úkol: Logika zobrazení Alias vs. Adresa [checkpoint: 8164c20]
+- [x] Úkol: Testování Frontend změn [checkpoint: 8164c20]
+- [x] Úkol: Conductor - User Manual Verification 'Frontend - Kategorizace a Řazení' (Protocol in workflow.md)
 
 ## Fáze 4: Finální verifikace a Dokumentace
-- [ ] Úkol: E2E testování celého procesu (Scrape -> DB -> API -> UI)
+- [~] Úkol: E2E testování celého procesu (Scrape -> DB -> API -> UI)
 - [ ] Úkol: Aktualizace `docs/UI_CONTRACT.md` o nové parametry API
 - [ ] Úkol: Conductor - User Manual Verification 'Finální verifikace a Dokumentace' (Protocol in workflow.md)
