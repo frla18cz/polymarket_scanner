@@ -17,9 +17,9 @@
 - [x] Task: Verify Fix with Tests [65b6c4c]
     - [x] Run the reproduction tests and ensure they pass.
     - [x] Run existing holders tests to ensure no regressions.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Implementation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Implementation' (Protocol in workflow.md) [e12c22a]
 
 ## Phase 3: Final Verification and Cleanup
-- [ ] Task: UI Manual Verification
-    - [ ] Run the application locally and verify that a market's Top Holders now show "k" or "M" appropriately instead of "b" or "T".
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Final Verification and Cleanup' (Protocol in workflow.md)
+- [x] Task: UI Manual Verification [e12c22a]
+    - [x] Run the application locally and verify that a market's Top Holders now show "k" or "M" appropriately instead of "b" or "T".
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Final Verification and Cleanup' (Protocol in workflow.md) [e12c22a]
