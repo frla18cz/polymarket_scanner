@@ -85,6 +85,20 @@ def process_market_holders_worker(condition_id: str) -> Dict[str, Optional[str]]
         data = goldsky_client.fetch_holders_subgraph(condition_id)
         if data:
             logger.info(f"Fetched {len(data)} holders from Goldsky for {condition_id}")
+            
+            # Try to fetch aliases from Legacy API (best effort)
+            try:
+                holders_client = HoldersClient()
+                legacy_data = holders_client.fetch_holders(condition_id, limit=100)
+                if legacy_data:
+                    for h in legacy_data:
+                        addr = h.get("address")
+                        alias = h.get("name")
+                        if addr and alias:
+                             unique_wallets[addr] = alias
+            except Exception as e:
+                logger.debug(f"Failed to fetch aliases from Legacy API for {condition_id}: {e}")
+
     except Exception as e:
         logger.warning(f"Goldsky fetch failed for {condition_id}: {e}")
 
@@ -119,6 +133,22 @@ def process_market_holders_worker(condition_id: str) -> Dict[str, Optional[str]]
                     if alias == "": 
                         alias = None
                     unique_wallets[addr] = alias
+            
+            # Try to enrich missing aliases using Legacy API (best effort)
+            missing_aliases = [addr for addr, alias in unique_wallets.items() if alias is None]
+            if missing_aliases:
+                 try:
+                    holders_client = HoldersClient()
+                    legacy_data = holders_client.fetch_holders(condition_id, limit=100)
+                    if legacy_data:
+                        for h in legacy_data:
+                            addr = h.get("address")
+                            alias = h.get("name")
+                            if addr and alias and addr in unique_wallets:
+                                 unique_wallets[addr] = alias
+                 except Exception as e:
+                    logger.debug(f"Failed to enrich aliases from Legacy API for {condition_id}: {e}")
+
         except Exception as e:
             logger.error(f"Failed to save holders for {condition_id}: {e}")
     else:

@@ -97,5 +97,33 @@ class TestSmartMoneyScraperIntegration(unittest.TestCase):
         
         self.assertIsNone(row[0])
 
+    def test_run_enrich_aliases_when_goldsky_succeeds(self):
+        # Setup: Goldsky succeeds (returns data without aliases)
+        mock_goldsky_instance = self.MockGoldsky.return_value
+        mock_goldsky_instance.fetch_holders_subgraph.return_value = [
+            {"address": "0xGoldUser", "positionSize": 500, "outcomeIndex": 1}
+        ]
+
+        # Legacy also succeeds and returns alias
+        mock_holders_instance = self.MockHolders.return_value
+        mock_holders_instance.fetch_holders.return_value = [
+            {"address": "0xGoldUser", "positionSize": 500, "name": "GoldWhale"}
+        ]
+        
+        mock_pnl_instance = self.MockPnL.return_value
+        mock_pnl_instance.fetch_user_pnl.return_value = 1000.0
+
+        # Execute
+        smart_money_scraper.run(args_list=[])
+
+        # Verify
+        conn = sqlite3.connect(self.test_db_path)
+        row = conn.execute("SELECT alias, total_pnl FROM wallets_stats WHERE wallet_address='0xGoldUser'").fetchone()
+        conn.close()
+        
+        self.assertIsNotNone(row)
+        self.assertEqual(row[0], "GoldWhale")
+        self.assertEqual(row[1], 1000.0)
+
 if __name__ == '__main__':
     unittest.main()
