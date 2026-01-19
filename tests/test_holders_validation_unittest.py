@@ -42,7 +42,7 @@ class TestHoldersValidation(unittest.TestCase):
 
     @patch('requests.get')
     @patch('time.sleep', return_value=None)
-    def test_fetch_holders_validation_fail_retry(self, mock_sleep, mock_get):
+    def test_fetch_holders_allows_low_counts(self, mock_sleep, mock_get):
         client = HoldersClient()
         mock_response = MagicMock()
         mock_response.status_code = 200
@@ -53,9 +53,10 @@ class TestHoldersValidation(unittest.TestCase):
         
         result = client.fetch_holders("market_123")
         
-        # Should retry 3 times and then return None (as per spec)
-        self.assertEqual(mock_get.call_count, 3)
-        self.assertIsNone(result)
+        self.assertEqual(mock_get.call_count, 1)
+        self.assertFalse(mock_sleep.called)
+        self.assertIsNotNone(result)
+        self.assertEqual(len(result), 1)
 
 if __name__ == '__main__':
     unittest.main()

@@ -18,8 +18,8 @@ class HoldersClient:
 
     def fetch_holders(self, market_id: str, limit: int = 1000) -> Optional[List[Dict[str, Any]]]:
         """
-        Fetches top holders for a market with retries and validation.
-        Returns None if validation fails after all retries.
+        Fetches top holders for a market with retries.
+        Returns None if an error occurs after all retries.
         """
         url = f"{self.base_url}/holders"
         params = {"market": market_id, "limit": limit}
@@ -44,34 +44,14 @@ class HoldersClient:
                     return None
 
                 flattened_holders = []
-                outcome_counts = {}
                 
                 for token_entry in data:
                     token_holders = token_entry.get("holders", [])
                     for h in token_holders:
-                        # outcomeIndex might be 0, 1, etc.
-                        oi = h.get("outcomeIndex")
-                        if oi is not None:
-                            outcome_counts[oi] = outcome_counts.get(oi, 0) + 1
-                            
                         # Normalize keys to what the scraper expects
                         h["address"] = h.get("proxyWallet")
                         h["positionSize"] = h.get("amount")
                         flattened_holders.append(h)
-
-                # Validation logic: At least 20 holders for outcome 0 (YES) AND at least 20 for outcome 1 (NO)
-                c0 = outcome_counts.get(0, 0)
-                c1 = outcome_counts.get(1, 0)
-                
-                if c0 < 20 or c1 < 20:
-                    msg = f"Validation failed for {market_id}: Only {c0} YES / {c1} NO holders found (attempt {attempt+1}/{retries})"
-                    if attempt < retries - 1:
-                        logger.warning(f"{msg}, retrying in 2s...")
-                        time.sleep(2)
-                        continue
-                    else:
-                        logger.error(f"Insufficient data for {market_id} after {retries} attempts ({c0} YES, {c1} NO). Skipping.")
-                        return None
 
                 # Re-sort because we merged multiple tokens
                 flattened_holders.sort(key=lambda x: float(x.get("positionSize", 0)), reverse=True)
