@@ -1,0 +1,1 @@
+Fixed Top Holders size scaling issue where values were off by 1e6. Modified holders_client.py to divide Goldsky balance by 1,000,000. Updated existing tests and added reproduction test test_holders_scaling_unittest.py.
