@@ -9,6 +9,22 @@
 
 Pozn.: V tomhle prostředí nepoužíváme `fastapi.testclient.TestClient` (nesedí verze `httpx`) ani nespouštíme lokální server (bind na socket je blokovaný), takže voláme přímo funkce endpointů v `main.py`.
 
+## Generování testovacích dat
+
+Pro účely integračních testů (zejména pro holdery a smart money metriky) je možné vygenerovat čerstvou sadu dat do hlavní databáze.
+
+Skript stáhne posledních 100 aktivních trhů a jejich kompletní data (včetně holderů):
+
+```bash
+# Stáhne 100 trhů (default)
+python tests/rebuild_test_data.py
+
+# Stáhne specifický počet trhů a přeskočí potvrzení
+python tests/rebuild_test_data.py --limit 50 --yes
+```
+
+**Pozor:** Tento skript přepíše lokální databázi `data/markets.db`.
+
 ## Testovací matrix (kombinace)
 
 ### A) “Stažení dat” (Gamma API) – unit testy s mockem
