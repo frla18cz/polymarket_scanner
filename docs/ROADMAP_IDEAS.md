@@ -85,6 +85,7 @@ Náš cíl není jen zobrazovat, co se děje (to dělá Polymarket web), ale **o
 
 ## 🛠️ Technický "Backlog" (Co zlepšit pod kapotou)
 
+- [ ] **Filtrování systémových adres:** Automaticky ignorovat adresy jako "Polymarket: Rewards" při výpočtu Smart Money Win Rate (evidováno v `docs/DATA_ANOMALIES.md`).
 - [ ] **Docker Compose:** Plná kontejnerizace (Server + Scraper + DB).
 - [ ] **API Rate Limiting:** Ochrana vlastního API před přetížením.
 - [ ] **Mobile UI:** Optimalizace dashboardu pro telefony (teď je to spíše desktop tabulka).
