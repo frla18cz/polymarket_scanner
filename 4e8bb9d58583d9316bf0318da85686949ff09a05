@@ -1,0 +1,6 @@
+Verification Report - Phase 2: API Integrity
+Automated Tests: python -m unittest discover -s tests -p '*_unittest.py'
+Manual Verification Steps:
+1. Open http://localhost:8000
+2. Verify active markets with NULL/empty Smart Win and APR are visible by default.
+User Confirmation: 'pokracuj'
