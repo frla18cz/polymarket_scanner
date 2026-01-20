@@ -12,7 +12,7 @@
 - [x] Task: Přidat unit test v `tests/test_api_markets_unittest.py` pro ověření přítomnosti trhů bez metrik. (d5ea876)
 - [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md) (4e8bb9d)
 
-## Fáze 3: Testovací nástroje
+## Fáze 3: Testovací nástroje [checkpoint: 8ba5d54]
 - [x] Task: Vytvořit skript `tests/rebuild_test_data.py` dle specifikace (fetch 100 markets + holders).
 - [x] Task: Dokumentovat použití skriptu v `tests/README.md` (nebo v existující dokumentaci).
-- [ ] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md) (8ba5d54)
