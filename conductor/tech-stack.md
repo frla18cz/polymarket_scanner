@@ -24,7 +24,7 @@
 
 ## 5. Development & Deployment
 *   **Containerization:** **Docker** and **Docker Compose** for environment consistency.
-*   **Testing:** **pytest** and `unittest` for backend and API correctness.
+*   **Testing:** **pytest** and `unittest` for backend and API correctness. Includes `tests/rebuild_test_data.py` for generating integration test snapshots.
 *   **E2E Testing/Automation:** **Playwright** (Python) for automated browser testing and demo asset generation.
 *   **Reverse Proxy:** **Caddy** included in the production container setup.
 
