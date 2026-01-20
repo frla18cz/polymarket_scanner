@@ -6,7 +6,7 @@
 - [x] Task: Upravit `HoldersClient.fetch_holders` (Legacy API fallback) pro získání adekvátního počtu dat.
 - [x] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md) (85f1d15)
 
-## Fáze 2: Verifikace scraperu
+## Fáze 2: Verifikace scraperu [checkpoint: 1fa427b]
 - [x] Task: Ověřit, že `smart_money_scraper.py` správně zpracovává a ukládá zvýšený objem dat.
 - [x] Task: Spustit `tests/rebuild_test_data.py` a ověřit v DB, že existují trhy s > 20 holdery.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md) (1fa427b)
