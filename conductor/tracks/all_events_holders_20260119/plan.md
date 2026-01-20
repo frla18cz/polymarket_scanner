@@ -8,8 +8,8 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md) (c278484)
 
 ## Fáze 2: API a Database Integrity
-- [ ] Task: Upravit SQL dotaz v `main.py` (endpoint `/api/markets`), aby explicitně nefiltroval NULL hodnoty u `smart_money_win_rate`.
-- [ ] Task: Přidat unit test v `tests/test_api_markets_unittest.py` pro ověření přítomnosti trhů bez metrik.
+- [x] Task: Upravit SQL dotaz v `main.py` (endpoint `/api/markets`), aby explicitně nefiltroval NULL hodnoty u `smart_money_win_rate`. (d5ea876)
+- [x] Task: Přidat unit test v `tests/test_api_markets_unittest.py` pro ověření přítomnosti trhů bez metrik. (d5ea876)
 - [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
 
 ## Fáze 3: Testovací nástroje
