@@ -16,5 +16,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [~] Track: Fetch Top 20 Holders Per Outcome
+## [x] Track: Fetch Top 20 Holders Per Outcome
 *Link: [./conductor/tracks/fetch_top_20_per_outcome_20260120/](./conductor/tracks/fetch_top_20_per_outcome_20260120/)*

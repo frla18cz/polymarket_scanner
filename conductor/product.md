@@ -25,7 +25,7 @@ The project is currently free-to-use, with potential future plans for premium fe
     *   **Price Filters:** Narrow down opportunities by probability/price ranges.
     *   **Tag Management:** Powerful search using inclusion and exclusion tags to isolate specific niches.
 *   **Smart Money Insights:**
-    *   **Holder Analysis:** Automated tracking of top holders for every market using Goldsky Subgraph and Polymarket API.
+    *   **Holder Analysis:** Automated tracking of top 20 holders for each outcome (e.g., YES/NO) using Goldsky Subgraph and Polymarket API.
     *   **Identity Resolution:** Integration of Polymarket aliases to identify known traders and entities behind wallet addresses.
     *   **Win Rate Metrics:** Calculation of "Smart Money Win Rate" for market outcomes based on the historical PnL of their top holders.
 *   **Data Aggregation:** Hourly snapshots of market data to provide a stable analysis baseline.
