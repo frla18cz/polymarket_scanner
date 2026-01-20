@@ -22,8 +22,11 @@ class HoldersClient:
         Returns None if an error occurs after all retries.
         """
         url = f"{self.base_url}/holders"
-        capped_limit = min(limit, 20)
-        params = {"market": market_id, "limit": capped_limit}
+        # We want top N per outcome. For binary markets, that's 2*N total.
+        # Legacy API likely applies limit per request, so we request more to be safe.
+        per_outcome_limit = min(limit, 20)
+        request_limit = per_outcome_limit * 2 
+        params = {"market": market_id, "limit": request_limit}
         
         retries = 3
         for attempt in range(retries):
@@ -48,15 +51,21 @@ class HoldersClient:
                 
                 for token_entry in data:
                     token_holders = token_entry.get("holders", [])
+                    # Sort and take top N for THIS outcome
+                    outcome_holders = []
                     for h in token_holders:
-                        # Normalize keys to what the scraper expects
                         h["address"] = h.get("proxyWallet")
                         h["positionSize"] = h.get("amount")
-                        flattened_holders.append(h)
+                        outcome_holders.append(h)
+                    
+                    # Sort by size just in case API didn't
+                    outcome_holders.sort(key=lambda x: float(x.get("positionSize", 0)), reverse=True)
+                    # Take top N for this outcome
+                    flattened_holders.extend(outcome_holders[:per_outcome_limit])
 
-                # Re-sort because we merged multiple tokens
+                # Re-sort total list descending by size
                 flattened_holders.sort(key=lambda x: float(x.get("positionSize", 0)), reverse=True)
-                return flattened_holders[:capped_limit]
+                return flattened_holders
 
             except (requests.exceptions.RequestException, requests.exceptions.Timeout) as e:
                 if attempt < retries - 1:
@@ -148,7 +157,7 @@ class GoldskyClient:
                 # If we successfully got data (even if empty list), we return it
                 # Sort by position size descending, as we merged two separate queries
                 all_holders.sort(key=lambda x: x["positionSize"], reverse=True)
-                return all_holders[:capped_limit]
+                return all_holders
 
             except (requests.exceptions.RequestException, requests.exceptions.Timeout) as e:
                 if attempt < retries - 1:
