@@ -1,0 +1,4 @@
+Verification Report - Phase 2: Verification
+Automated Verification: python tests/rebuild_test_data.py --limit 50 --yes
+SQL Check: SELECT count(*) FROM holders WHERE market_id = '...' -> 40
+User Confirmation: Initiated by user request.
