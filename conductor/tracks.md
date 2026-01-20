@@ -16,5 +16,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [~] Track: Robustní analýza holderů pro všechny trhy
+## [x] Track: Robustní analýza holderů pro všechny trhy
 *Link: [./conductor/tracks/all_events_holders_20260119/](./conductor/tracks/all_events_holders_20260119/)*
