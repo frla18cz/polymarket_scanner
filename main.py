@@ -485,7 +485,7 @@ def get_markets(
         where_clauses.append(f"({apr_sql} IS NOT NULL AND {apr_sql} >= ?)")
         params.append(float(min_apr))
 
-    if min_smart_money_win_rate is not None:
+    if min_smart_money_win_rate is not None and float(min_smart_money_win_rate) > 0:
         where_clauses.append("smart_money_win_rate >= ?")
         params.append(float(min_smart_money_win_rate))
 
