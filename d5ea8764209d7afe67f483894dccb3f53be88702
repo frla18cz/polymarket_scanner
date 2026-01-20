@@ -1,0 +1,6 @@
+Task: Upravit SQL dotaz v main.py
+Changes:
+- Modified get_markets to only apply smart_money_win_rate filter if > 0.
+- Added test_smart_money_null_visibility unit test.
+- Fixed DB_PATH contamination in tests.
+Files: main.py, tests/test_api_markets_unittest.py
