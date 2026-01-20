@@ -1,5 +1,12 @@
 # Repository Guidelines
 
+## Conductor / Context-Driven Development
+
+- Use the Conductor strategy for all work in Codex CLI, same as Gemini CLI.
+- Treat `conductor/workflow.md`, `conductor/product.md`, `conductor/product-guidelines.md`, and `conductor/tech-stack.md` as the source of truth when planning and executing tasks.
+- Keep `plan.md` up to date and follow the task lifecycle (TDD, coverage, commits, git notes) defined in Conductor.
+- References: https://developers.googleblog.com/conductor-introducing-context-driven-development-for-gemini-cli/ and https://github.com/gemini-cli-extensions/conductor
+
 ## Project Structure & Module Organization
 
 - `main.py`: FastAPI app (API routes, DB access, diagnostics) and optional UI serving.
