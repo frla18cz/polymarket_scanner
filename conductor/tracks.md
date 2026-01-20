@@ -13,3 +13,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 ## [x] Track: Add simple retry mechanism to HoldersClient.fetch_holders
 
 *Link: [./conductor/tracks/holders_retry_20260111/](./conductor/tracks/holders_retry_20260111/)*
+
+---
+
+## [~] Track: Fetch Top 20 Holders Per Outcome
+*Link: [./conductor/tracks/fetch_top_20_per_outcome_20260120/](./conductor/tracks/fetch_top_20_per_outcome_20260120/)*
