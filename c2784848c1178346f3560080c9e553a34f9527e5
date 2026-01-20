@@ -1,0 +1,6 @@
+Verification Report - Phase 1: Robustní analýza holderů
+Automated Tests: python -m unittest discover -s tests -p '*_unittest.py'
+Manual Verification Steps:
+1. python scraper.py --limit 10
+2. python smart_money_scraper.py --limit 10
+User Confirmation: 'jo, super'
