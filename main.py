@@ -479,7 +479,7 @@ def get_markets(
         where_clauses.append("spread <= ?")
         params.append(max_spread)
 
-    if min_apr is not None:
+    if min_apr is not None and float(min_apr) > 0:
         # Win-APR (linear). Prefer indexed column `apr`, but fall back to formula for older DBs.
         # min_apr is a fraction: 1.0 == 100% APR
         where_clauses.append(f"({apr_sql} IS NOT NULL AND {apr_sql} >= ?)")
