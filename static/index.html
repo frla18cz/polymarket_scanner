@@ -1611,29 +1611,7 @@
                     showInfoModal.value = true;
                 };
 
-                onMounted(async () => {
-                    fetchTags();
-                    fetchStatus();
-                    fetchMarkets();
-                    updateScreenFlags();
-                    window.addEventListener('resize', updateScreenFlags);
-                    maybeAutoOpenMobileFilters();
 
-                    refreshInterval = setInterval(() => {
-                        fetchMarkets(true); // silent update
-                        fetchStatus();
-                    }, 30000);
-
-                    // Auth Init
-                    if (supabase) {
-                        const { data } = await supabase.auth.getSession();
-                        user.value = data.session?.user || null;
-
-                        supabase.auth.onAuthStateChange((_event, session) => {
-                            user.value = session?.user || null;
-                        });
-                    }
-                });
 
                 const handleLogin = async () => {
                     if (!supabase) return;
@@ -2614,20 +2592,24 @@
                     } catch (e) { console.error(e); }
                 };
 
-                const fetchMarkets = async (append = false) => {
-                    if (!append) {
+                const fetchMarkets = async (append = false, isAutoRefresh = false) => {
+                    if (isAutoRefresh) {
+                        // Silent refresh: reset to start but don't show full loading spinner
+                        offset.value = 0;
+                    } else if (!append) {
                         console.log("fetchMarkets: Starting new fetch. Setting loading=true, offset=0");
                         offset.value = 0;
                         if (abortController) {
                             abortController.abort();
                             abortController = null;
                         }
+                        loading.value = true;
                     } else if (loading.value) {
                         console.log("fetchMarkets: Appending, but already loading. Skipping.");
                         return;
                     }
 
-                    loading.value = true;
+                    if (!isAutoRefresh) loading.value = true;
                     abortController = new AbortController();
 
                     try {
@@ -2768,8 +2750,9 @@
                     window.addEventListener("keydown", onKeyDown);
                     maybeAutoOpenMobileFilters();
 
+                    if (refreshInterval) clearInterval(refreshInterval);
                     refreshInterval = setInterval(() => {
-                        fetchMarkets(true); // silent update
+                        fetchMarkets(false, true); // silent update (replace, don't append)
                         fetchStatus();
                     }, 30000);
 

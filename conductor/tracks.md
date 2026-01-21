@@ -26,5 +26,18 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
+
+
 ## [x] Track: Smart Money Legacy Revert & Robust Retry
+
 *Link: [./conductor/tracks/smart_money_legacy_revert_20260120/](./conductor/tracks/smart_money_legacy_revert_20260120/)*
+
+
+
+---
+
+
+
+## [x] Track: Frontend Freeze & Memory Leak Fix
+
+*Link: [./tracks/frontend_leak_fix_20260121/](./tracks/frontend_leak_fix_20260121/)*
