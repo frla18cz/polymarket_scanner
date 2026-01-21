@@ -1,245 +1,245 @@
 {
-  "market_question": "Will Trump deport 250,000-500,000 people?",
+  "market_question": "Will Tetairoa McMillan be the 2025-2026 NFL Offensive Rookie of the Year?",
   "holders": [
     {
       "wallet_address": "0xa5ef39c3d3e10d0b270233af41cac69796b12966",
-      "position_size": 70453.415091,
+      "position_size": 45998.402594,
       "outcome_index": 1,
       "total_pnl": 0.0
     },
     {
-      "wallet_address": "0x92669a96dab74e0017dd2bc40d2fda5071d87562",
-      "position_size": 11385.619055,
+      "wallet_address": "0xde0463ea7f611b065e8ab06bbfbddad75e6dfa37",
+      "position_size": 8553.002099,
       "outcome_index": 0,
-      "total_pnl": 12441.47
+      "total_pnl": 11309.765
     },
     {
-      "wallet_address": "0x3069c1002bd0bb6aec054c7a27722919df95f8ef",
-      "position_size": 10145.348969,
+      "wallet_address": "0x0dd60a6ddeea6f93659789cac7af6a9d12835f62",
+      "position_size": 7730.44,
       "outcome_index": 0,
-      "total_pnl": 13921.462
+      "total_pnl": 566.41785
     },
     {
-      "wallet_address": "0x2b6cccfed4d70fa921b07044fd4416e7e506d4fd",
-      "position_size": 6578.432893,
+      "wallet_address": "0x17a89c0a76b163276b77a7a85ef5079f7e20e61f",
+      "position_size": 7561.68346,
       "outcome_index": 0,
-      "total_pnl": -200.90814
+      "total_pnl": 12356.131
     },
     {
-      "wallet_address": "0xf2aa8381a08ec33467fbcdd0843aa31cb8d521fb",
-      "position_size": 6000.469774,
+      "wallet_address": "0x6337c83d2239369f52c63bb1c9c86c7c31ea1ebb",
+      "position_size": 4437.179897,
       "outcome_index": 0,
-      "total_pnl": 22897.553
+      "total_pnl": 10204.826
     },
     {
-      "wallet_address": "0x76bdbf9a22fff5d2f1768fb6b1e0b71073a7f258",
-      "position_size": 4553.016,
+      "wallet_address": "0xe379d426fe43acba6e59e20892d9c3d82eac3c98",
+      "position_size": 3993.15,
       "outcome_index": 0,
-      "total_pnl": 6510.4575
+      "total_pnl": 3339.0942
     },
     {
-      "wallet_address": "0x21f90e5ff30c12f52fbb2fb220aa268f22faed12",
-      "position_size": 4256.20072,
+      "wallet_address": "0xdfc16898a5e2bc722486e23083a98e29b861818d",
+      "position_size": 3429.99577,
       "outcome_index": 0,
-      "total_pnl": 11361.545
+      "total_pnl": -39802.066
     },
     {
-      "wallet_address": "0xbacd00c9080a82ded56f504ee8810af732b0ab35",
-      "position_size": 3986.212148,
+      "wallet_address": "0x4f9ca2195ccbb8dc65050ccb59ecb19a6225fe9d",
+      "position_size": 3349.664966,
       "outcome_index": 0,
-      "total_pnl": 356230.34
+      "total_pnl": 669.96515
     },
     {
-      "wallet_address": "0xa4da7cb218c5dcb36666815c6aa043890fa82db1",
-      "position_size": 3290.490078,
+      "wallet_address": "0x3e04fbc51adb75418129f6ce2091ae633070564d",
+      "position_size": 3038.190896,
       "outcome_index": 0,
-      "total_pnl": 21370.6
+      "total_pnl": 130179.7
     },
     {
-      "wallet_address": "0xc550e5ee1011afb6d37c7fbb18fea32e03f9272d",
-      "position_size": 2545.71,
-      "outcome_index": 0,
-      "total_pnl": 12329.203
-    },
-    {
-      "wallet_address": "0xf42f4a4211d058cd109d503cf13f7bcdfc82a6a7",
-      "position_size": 2188.28,
-      "outcome_index": 0,
-      "total_pnl": 19084.639
-    },
-    {
-      "wallet_address": "0x81525952f172646a4104030e9a9ef1e769c7bfda",
-      "position_size": 2158.546175,
-      "outcome_index": 0,
-      "total_pnl": 66922.42
-    },
-    {
-      "wallet_address": "0x6cf833cd47e3cc3c6a5dd993b8ec362ec09f042f",
-      "position_size": 1943.408051,
-      "outcome_index": 0,
-      "total_pnl": 4691.0063
-    },
-    {
-      "wallet_address": "0x4bbe10ba5b7f6df147c0dae17b46c44a6e562cf3",
-      "position_size": 1637.122237,
+      "wallet_address": "0x8f73711ac46f9e9c7d97196889603a52bc42bb9e",
+      "position_size": 2565.41346,
       "outcome_index": 1,
-      "total_pnl": 157890.38
+      "total_pnl": 1254.7507
     },
     {
-      "wallet_address": "0xa3d7da511f8fa63aa79d0c36dba9533729f845f2",
-      "position_size": 1606.396782,
+      "wallet_address": "0x7a8885c8dc075f0578b648f29fa233408a7d41cc",
+      "position_size": 2169.955368,
+      "outcome_index": 0,
+      "total_pnl": 51897.402
+    },
+    {
+      "wallet_address": "0x9cdda449d7cedf1072d74982a5dc2349df3d3e97",
+      "position_size": 2040.21,
+      "outcome_index": 0,
+      "total_pnl": 30612.19
+    },
+    {
+      "wallet_address": "0xe8dd7741ccb12350957ec71e9ee332e0d1e6ec86",
+      "position_size": 1042.188139,
       "outcome_index": 1,
-      "total_pnl": 58.08479
+      "total_pnl": 392031.3
     },
     {
-      "wallet_address": "0x49cbfa7ecf04de15546539f4ebdbc38c898d3caa",
-      "position_size": 1452.441502,
-      "outcome_index": 0,
-      "total_pnl": -161.35661
+      "wallet_address": "0x5d189e816b4149be00977c1a3c8840374aec4972",
+      "position_size": 803.59,
+      "outcome_index": 1,
+      "total_pnl": -38455.234
     },
     {
-      "wallet_address": "0x010395e426e2df31b2cb0a4e1dd0e5af792c067b",
-      "position_size": 1323.588121,
+      "wallet_address": "0xc72dced055032de79c9940cc21a29d38ed8b320f",
+      "position_size": 798.9911,
       "outcome_index": 0,
-      "total_pnl": -21871.512
+      "total_pnl": -2050.6829
+    },
+    {
+      "wallet_address": "0xe3726a1b9c6ba2f06585d1c9e01d00afaedaeb38",
+      "position_size": 657.574028,
+      "outcome_index": 0,
+      "total_pnl": 151348.72
+    },
+    {
+      "wallet_address": "0x9d84ce0306f8551e02efef1680475fc0f1dc1344",
+      "position_size": 652.686034,
+      "outcome_index": 0,
+      "total_pnl": 2744674.5
+    },
+    {
+      "wallet_address": "0x908dbf0890987ada82b35ce0af3409c8979a1d99",
+      "position_size": 607.65281,
+      "outcome_index": 0,
+      "total_pnl": 11228.175
+    },
+    {
+      "wallet_address": "0x8929a63143fba9416c8e0d3c96388b429c47733e",
+      "position_size": 599.427238,
+      "outcome_index": 1,
+      "total_pnl": 624.0495
+    },
+    {
+      "wallet_address": "0x5ecde7348ea5100af4360dd7a6e0a3fb1d420787",
+      "position_size": 500.552628,
+      "outcome_index": 0,
+      "total_pnl": 130388.91
+    },
+    {
+      "wallet_address": "0x5b30fdea8850761f614f3f0d6619b05d248029a4",
+      "position_size": 500.0,
+      "outcome_index": 0,
+      "total_pnl": 8247.314
+    },
+    {
+      "wallet_address": "0x02988e03673a3f31d269c8ae735971dcd7a993c4",
+      "position_size": 500.0,
+      "outcome_index": 1,
+      "total_pnl": 6248.512
+    },
+    {
+      "wallet_address": "0x59761bc76f4d33887a8b90501a60b0342e72b3d4",
+      "position_size": 476.183861,
+      "outcome_index": 1,
+      "total_pnl": 13205.8545
+    },
+    {
+      "wallet_address": "0x53ecc53e7a69aad0e6dda60264cc2e363092df91",
+      "position_size": 454.264677,
+      "outcome_index": 0,
+      "total_pnl": 213623.83
+    },
+    {
+      "wallet_address": "0x39d561249b32c7f6b4786986adac0b2f631e173d",
+      "position_size": 453.9,
+      "outcome_index": 0,
+      "total_pnl": 1679.748
+    },
+    {
+      "wallet_address": "0x7ab6ac0f0d6ca5a15ec57abeaf413d31c8cdfa77",
+      "position_size": 441.35,
+      "outcome_index": 1,
+      "total_pnl": 48251.51
+    },
+    {
+      "wallet_address": "0x4ed7aa9b5c35130bd7ee098e9bc11c8351ad767e",
+      "position_size": 429.128737,
+      "outcome_index": 0,
+      "total_pnl": -166.64363
+    },
+    {
+      "wallet_address": "0x724db3c436dcc7b26fbe1ae0c0d6af538b588dea",
+      "position_size": 420.267046,
+      "outcome_index": 0,
+      "total_pnl": 62810.65
+    },
+    {
+      "wallet_address": "0x61497380e18b34c36491fba52b1e28277a938a58",
+      "position_size": 412.294939,
+      "outcome_index": 1,
+      "total_pnl": 4743.9966
+    },
+    {
+      "wallet_address": "0xa00f1bc11204fa21eee9e6780e0ac6a2a91f8e56",
+      "position_size": 374.856409,
+      "outcome_index": 1,
+      "total_pnl": 9438.2705
+    },
+    {
+      "wallet_address": "0x38e59b36aae31b164200d0cad7c3fe5e0ee795e7",
+      "position_size": 283.0,
+      "outcome_index": 1,
+      "total_pnl": 71797.375
+    },
+    {
+      "wallet_address": "0x0a6d26d31b28fd5a84c301f8b27296612f3b1d0a",
+      "position_size": 205.89202,
+      "outcome_index": 1,
+      "total_pnl": 13265.892
+    },
+    {
+      "wallet_address": "0x6335b3ad24f6fd814c9bd083e4ab79926904ca2b",
+      "position_size": 105.742899,
+      "outcome_index": 1,
+      "total_pnl": 4500.8833
+    },
+    {
+      "wallet_address": "0xd4932b0fa75ed34bbd4cf90183eb971d91d27f04",
+      "position_size": 100.001208,
+      "outcome_index": 1,
+      "total_pnl": 1626.7377
+    },
+    {
+      "wallet_address": "0x9dc2e5f6d8a88fd78d549d390918671282ef0727",
+      "position_size": 100.0,
+      "outcome_index": 1,
+      "total_pnl": 1471.9178
+    },
+    {
+      "wallet_address": "0x36bfcd8ab96dce2ddea30145ab749b59c6362864",
+      "position_size": 100.0,
+      "outcome_index": 1,
+      "total_pnl": 3384.688
+    },
+    {
+      "wallet_address": "0x0218c0a9bce8ce3e67d5b49550d3840c202d52c0",
+      "position_size": 100.0,
+      "outcome_index": 1,
+      "total_pnl": 179.00983
     },
     {
       "wallet_address": "0xd218e474776403a330142299f7796e8ba32eb5c9",
-      "position_size": 1276.356948,
-      "outcome_index": 0,
-      "total_pnl": 974046.4
-    },
-    {
-      "wallet_address": "0x47620f5fe2315fa9d7105d01ac9c46eb78f1dc1b",
-      "position_size": 1049.991076,
+      "position_size": 74.0,
       "outcome_index": 1,
-      "total_pnl": -36.33363
+      "total_pnl": 872620.25
     },
     {
-      "wallet_address": "0x6cbbdaf7e3e780ecbfa0048bf0e1f35c57db89ab",
-      "position_size": 1046.98,
-      "outcome_index": 0,
-      "total_pnl": -299396.38
-    },
-    {
-      "wallet_address": "0xfcfbf76b6f8a3787152e05f2bb70cd36f4ab1f69",
-      "position_size": 957.286771,
-      "outcome_index": 0,
-      "total_pnl": 5270.0215
-    },
-    {
-      "wallet_address": "0x56317f9b062cb4e002d3dfe3d6b26e65cd61a679",
-      "position_size": 938.380286,
-      "outcome_index": 0,
-      "total_pnl": 271.97012
-    },
-    {
-      "wallet_address": "0xcb8fbe47a3f41f140873d919368c30662848d7e3",
-      "position_size": 931.173324,
+      "wallet_address": "0x011f2d377e56119fb09196dffb0948ae55711122",
+      "position_size": 55.74,
       "outcome_index": 1,
-      "total_pnl": -946.5587
+      "total_pnl": 491227.25
     },
     {
-      "wallet_address": "0x7d37da220214b66b49e5ca654e6bd0f8abb8a680",
-      "position_size": 850.600893,
-      "outcome_index": 0,
-      "total_pnl": 1921.3381
-    },
-    {
-      "wallet_address": "0xbb015bb4009b6a48bfb9363d9c9b1d54e9ab02e5",
-      "position_size": 820.5,
-      "outcome_index": 0,
-      "total_pnl": 54286.984
-    },
-    {
-      "wallet_address": "0x506a8933b3800b0987bdd1c4d68b2a41e0211b43",
-      "position_size": 759.0,
+      "wallet_address": "0xc684828f6b03487759ced2ebdd975f91f3532228",
+      "position_size": 54.77941,
       "outcome_index": 1,
-      "total_pnl": 205.2257
-    },
-    {
-      "wallet_address": "0xdb7118f26824cfbc472aa512c798f31b665410cd",
-      "position_size": 699.98241,
-      "outcome_index": 1,
-      "total_pnl": 11826.312
-    },
-    {
-      "wallet_address": "0x6139c42e48cf190e67a0a85d492413b499336b7a",
-      "position_size": 575.26611,
-      "outcome_index": 1,
-      "total_pnl": 554155.06
-    },
-    {
-      "wallet_address": "0x98cbb3a6073fe5683346f9f87ab1e5e52820a127",
-      "position_size": 559.0,
-      "outcome_index": 1,
-      "total_pnl": 297.55014
-    },
-    {
-      "wallet_address": "0x2965b90c1191d6dd2c2909723e2fe3707e0f5afa",
-      "position_size": 514.28,
-      "outcome_index": 1,
-      "total_pnl": -131.73416
-    },
-    {
-      "wallet_address": "0xae43f317e8a6fabafc33eaa6934e4b4705348194",
-      "position_size": 495.062946,
-      "outcome_index": 1,
-      "total_pnl": -4583.0723
-    },
-    {
-      "wallet_address": "0x785386856456de26ac04ba1f5e3c49b92e7936d8",
-      "position_size": 437.092935,
-      "outcome_index": 1,
-      "total_pnl": -74633.02
-    },
-    {
-      "wallet_address": "0x098eddabb2d388f31e79aaf525e49588f22a6fa2",
-      "position_size": 300.0,
-      "outcome_index": 1,
-      "total_pnl": 60235.22
-    },
-    {
-      "wallet_address": "0x7a6192ea6815d3177e978dd3f8c38be5f575af24",
-      "position_size": 273.73,
-      "outcome_index": 1,
-      "total_pnl": 178827.77
-    },
-    {
-      "wallet_address": "0x54625ca71b4204f8d7f6349c45ec4514b69ffacd",
-      "position_size": 272.735375,
-      "outcome_index": 1,
-      "total_pnl": 3.195368
-    },
-    {
-      "wallet_address": "0x777fae71d2ff9ec48a1213d48ba1d9d91024a1bb",
-      "position_size": 228.5139,
-      "outcome_index": 1,
-      "total_pnl": 70820.766
-    },
-    {
-      "wallet_address": "0xe4ad8476eef71b072174e19b7ade1e2ff14a5647",
-      "position_size": 218.76516,
-      "outcome_index": 1,
-      "total_pnl": 44.857998
-    },
-    {
-      "wallet_address": "0xc3aecb24faa4ddbfa4bfda56800da7316e395833",
-      "position_size": 200.0,
-      "outcome_index": 1,
-      "total_pnl": -11.555469
-    },
-    {
-      "wallet_address": "0x772078a8ebc3f559fbcc8286cd0e36a604e29321",
-      "position_size": 157.286,
-      "outcome_index": 1,
-      "total_pnl": 4.855307
-    },
-    {
-      "wallet_address": "0x6b2cd2adaeae05ab4d1812d6231baac8c4cc02c8",
-      "position_size": 137.370704,
-      "outcome_index": 1,
-      "total_pnl": -24.833616
+      "total_pnl": 70631.8
     }
   ]
 }

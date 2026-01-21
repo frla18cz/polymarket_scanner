@@ -18,11 +18,11 @@ class TestAPIHoldersAlias(unittest.TestCase):
         # Setup DB schema and data
         conn = sqlite3.connect(self.test_db_path)
         conn.execute("CREATE TABLE holders (market_id TEXT, outcome_index INTEGER, wallet_address TEXT, position_size REAL, snapshot_at TEXT)")
-        conn.execute("CREATE TABLE wallets_stats (wallet_address TEXT PRIMARY KEY, total_pnl REAL, last_updated TEXT, alias TEXT)")
+        conn.execute("CREATE TABLE wallets_stats (wallet_address TEXT PRIMARY KEY, total_pnl REAL, last_updated TEXT, alias TEXT, wallet_tag TEXT)")
         
         # Data
         conn.execute("INSERT INTO holders VALUES ('m1', 0, '0x1', 100.0, '2024-01-01')")
-        conn.execute("INSERT INTO wallets_stats VALUES ('0x1', 500.0, '2024-01-01', 'Whale1')")
+        conn.execute("INSERT INTO wallets_stats VALUES ('0x1', 500.0, '2024-01-01', 'Whale1', NULL)")
         conn.commit()
         conn.close()
         

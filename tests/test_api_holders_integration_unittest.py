@@ -25,7 +25,8 @@ class TestApiHoldersIntegration(unittest.TestCase):
                 wallet_address TEXT PRIMARY KEY,
                 total_pnl REAL,
                 last_updated TEXT,
-                alias TEXT
+                alias TEXT,
+                wallet_tag TEXT
             );
             INSERT INTO holders (market_id, outcome_index, wallet_address, position_size) VALUES 
             ('m1', 0, '0x1', 100.0),

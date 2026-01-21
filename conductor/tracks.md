@@ -18,3 +18,13 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## [x] Track: Fetch Top 20 Holders Per Outcome
 *Link: [./conductor/tracks/fetch_top_20_per_outcome_20260120/](./conductor/tracks/fetch_top_20_per_outcome_20260120/)*
+
+---
+
+## [x] Track: Rewards Wallet Identification & UI Highlight
+*Link: [./conductor/tracks/rewards_wallet_highlight_20260120/](./conductor/tracks/rewards_wallet_highlight_20260120/)*
+
+---
+
+## [ ] Track: Smart Money Legacy Revert & Robust Retry
+*Link: [./conductor/tracks/smart_money_legacy_revert_20260120/](./conductor/tracks/smart_money_legacy_revert_20260120/)*

@@ -27,9 +27,6 @@ class TestSmartMoneyScraperIntegration(unittest.TestCase):
         self.mock_get_db.side_effect = lambda: self._get_conn()
 
         # Patch Clients
-        self.patcher_goldsky = patch('smart_money_scraper.GoldskyClient')
-        self.MockGoldsky = self.patcher_goldsky.start()
-        
         self.patcher_holders = patch('smart_money_scraper.HoldersClient')
         self.MockHolders = self.patcher_holders.start()
 
@@ -43,17 +40,13 @@ class TestSmartMoneyScraperIntegration(unittest.TestCase):
 
     def tearDown(self):
         self.patcher_db.stop()
-        self.patcher_goldsky.stop()
         self.patcher_holders.stop()
         self.patcher_pnl.stop()
         if os.path.exists(self.test_db_path):
             os.remove(self.test_db_path)
 
     def test_run_saves_alias_from_holders_client(self):
-        # Setup: Goldsky fails (so we use Legacy), Legacy returns alias
-        mock_goldsky_instance = self.MockGoldsky.return_value
-        mock_goldsky_instance.fetch_holders_subgraph.return_value = None # Force fallback
-
+        # Setup: Legacy returns alias
         mock_holders_instance = self.MockHolders.return_value
         mock_holders_instance.fetch_holders.return_value = [
             {"address": "0xWhale", "positionSize": 1000, "name": "BigWhale"}
@@ -75,10 +68,7 @@ class TestSmartMoneyScraperIntegration(unittest.TestCase):
         self.assertEqual(row[1], 500.0)
 
     def test_run_handles_missing_alias(self):
-        # Setup: Goldsky fails, Legacy returns alias as empty string
-        mock_goldsky_instance = self.MockGoldsky.return_value
-        mock_goldsky_instance.fetch_holders_subgraph.return_value = None
-
+        # Setup: Legacy returns alias as empty string
         mock_holders_instance = self.MockHolders.return_value
         mock_holders_instance.fetch_holders.return_value = [
             {"address": "0xAnon", "positionSize": 1000, "name": ""}
@@ -97,33 +87,33 @@ class TestSmartMoneyScraperIntegration(unittest.TestCase):
         
         self.assertIsNone(row[0])
 
-    def test_run_enrich_aliases_when_goldsky_succeeds(self):
-        # Setup: Goldsky succeeds (returns data without aliases)
-        mock_goldsky_instance = self.MockGoldsky.return_value
-        mock_goldsky_instance.fetch_holders_subgraph.return_value = [
-            {"address": "0xGoldUser", "positionSize": 500, "outcomeIndex": 1}
+    def test_run_second_pass_retry(self):
+        # Setup: First call fails (returns None), second call succeeds
+        mock_holders_instance = self.MockHolders.return_value
+        
+        # side_effect to return None first, then data
+        mock_holders_instance.fetch_holders.side_effect = [
+            None, # First pass failure
+            [{"address": "0xRetry", "positionSize": 100, "name": "RetrySuccess"}] # Second pass success
         ]
 
-        # Legacy also succeeds and returns alias
-        mock_holders_instance = self.MockHolders.return_value
-        mock_holders_instance.fetch_holders.return_value = [
-            {"address": "0xGoldUser", "positionSize": 500, "name": "GoldWhale"}
-        ]
-        
         mock_pnl_instance = self.MockPnL.return_value
-        mock_pnl_instance.fetch_user_pnl.return_value = 1000.0
+        mock_pnl_instance.fetch_user_pnl.return_value = 200.0
 
         # Execute
-        smart_money_scraper.run(args_list=[])
+        # We need to mock time.sleep to avoid waiting in tests
+        with patch('time.sleep'):
+            smart_money_scraper.run(args_list=[])
 
         # Verify
         conn = sqlite3.connect(self.test_db_path)
-        row = conn.execute("SELECT alias, total_pnl FROM wallets_stats WHERE wallet_address='0xGoldUser'").fetchone()
+        row = conn.execute("SELECT alias FROM wallets_stats WHERE wallet_address='0xRetry'").fetchone()
         conn.close()
         
         self.assertIsNotNone(row)
-        self.assertEqual(row[0], "GoldWhale")
-        self.assertEqual(row[1], 1000.0)
+        self.assertEqual(row[0], "RetrySuccess")
+        # Check that fetch_holders was called twice for 'fake_cid'
+        self.assertEqual(mock_holders_instance.fetch_holders.call_count, 2)
 
 if __name__ == '__main__':
     unittest.main()

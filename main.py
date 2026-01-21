@@ -73,19 +73,33 @@ class WalletStats(BaseModel):
     alias: Optional[str] = None
 
 class HolderDetail(BaseModel):
+
     wallet_address: str
+
     position_size: float
+
     outcome_index: int
+
     total_pnl: Optional[float] = None
+
     alias: Optional[str] = None
+
+    wallet_tag: Optional[str] = None
+
+
+
 
 
 
 
 class PerfScenarioResult(BaseModel):
+
     name: str
+
     seconds: float
+
     rows: int
+
     params: dict[str, Any]
 
 
@@ -137,6 +151,16 @@ def ensure_indices():
                 if "alias" not in cols:
                     conn.execute("ALTER TABLE wallets_stats ADD COLUMN alias TEXT;")
                     conn.commit()
+                if "wallet_tag" not in cols:
+                    conn.execute("ALTER TABLE wallets_stats ADD COLUMN wallet_tag TEXT;")
+                    conn.commit()
+            
+            # Identify known system/rewards wallet
+            REWARDS_WALLET = "0xa5ef39c3d3e10d0b270233af41cac69796b12966"
+            now_iso = datetime.now(timezone.utc).isoformat()
+            conn.execute("INSERT OR IGNORE INTO wallets_stats (wallet_address, total_pnl, last_updated) VALUES (?, 0, ?)", (REWARDS_WALLET, now_iso))
+            conn.execute("UPDATE wallets_stats SET wallet_tag = 'SYSTEM' WHERE wallet_address = ?", (REWARDS_WALLET,))
+            conn.commit()
 
             cols = [r["name"] for r in conn.execute("PRAGMA table_info(active_market_outcomes)").fetchall()]
             if "apr" not in cols:
@@ -186,7 +210,8 @@ def ensure_indices():
                 wallet_address TEXT PRIMARY KEY,
                 total_pnl REAL,
                 last_updated TEXT,
-                alias TEXT
+                alias TEXT,
+                wallet_tag TEXT
             );
 
             CREATE INDEX IF NOT EXISTS idx_holders_market ON holders(market_id);
@@ -336,14 +361,15 @@ async def measure_execution_time(request: Request, call_next):
 def get_market_holders(market_id: str):
     conn = get_db_connection()
     try:
-        # Join holders with wallets_stats to get PnL and alias
+        # Join holders with wallets_stats to get PnL, alias and wallet_tag
         sql = """
             SELECT 
                 h.wallet_address, 
                 h.position_size, 
                 h.outcome_index,
                 ws.total_pnl,
-                ws.alias
+                ws.alias,
+                ws.wallet_tag
             FROM holders h
             LEFT JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
             WHERE h.market_id = ?
@@ -356,7 +382,8 @@ def get_market_holders(market_id: str):
                 position_size=r["position_size"],
                 outcome_index=r["outcome_index"],
                 total_pnl=r["total_pnl"],
-                alias=r["alias"]
+                alias=r["alias"],
+                wallet_tag=r["wallet_tag"]
             )
             for r in rows
         ]

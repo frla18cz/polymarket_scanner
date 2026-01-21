@@ -1,0 +1,8 @@
+{
+    "track_id": "rewards_wallet_highlight_20260120",
+    "title": "Rewards Wallet Identification & UI Highlight",
+    "description": "Identify known system/rewards wallets (e.g. 0xa5ef...) and highlight them in the UI with a tooltip to avoid confusing users.",
+    "status": "planned",
+    "created_at": "2026-01-20",
+    "priority": "medium"
+}

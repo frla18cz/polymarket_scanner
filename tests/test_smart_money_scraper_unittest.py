@@ -8,10 +8,9 @@ import os
 
 class TestSmartMoneyScraper(unittest.TestCase):
     @patch('smart_money_scraper.get_db_connection')
-    @patch('smart_money_scraper.GoldskyClient')
     @patch('smart_money_scraper.HoldersClient')
     @patch('smart_money_scraper.PnLClient')
-    def test_run_flow(self, MockPnL, MockHolders, MockGoldsky, mock_db_conn):
+    def test_run_flow(self, MockPnL, MockHolders, mock_db_conn):
         import smart_money_scraper
         
         # Mock DB
@@ -19,15 +18,10 @@ class TestSmartMoneyScraper(unittest.TestCase):
         mock_db_conn.return_value = mock_conn
         
         # Mock active markets
-        # mock_conn.execute(...).fetchall(...)
         mock_cursor = MagicMock()
         mock_conn.execute.return_value = mock_cursor
         mock_cursor.fetchall.return_value = [{"condition_id": "m1"}]
         
-        # Mock Goldsky to fail (return None) so we test fallback
-        mock_g_instance = MockGoldsky.return_value
-        mock_g_instance.fetch_holders_subgraph.return_value = None
-
         # Mock Holders Client
         mock_h_instance = MockHolders.return_value
         mock_h_instance.fetch_holders.return_value = [
@@ -42,10 +36,8 @@ class TestSmartMoneyScraper(unittest.TestCase):
         smart_money_scraper.run([])
         
         # Verify
-        # It should call with limit 1000 (fallback)
-        # And potentially limit 100 (enrichment) if alias is missing
-        from unittest.mock import call
-        mock_h_instance.fetch_holders.assert_has_calls([call("m1", limit=1000)])
+        # It should call with limit 1000
+        mock_h_instance.fetch_holders.assert_called_with("m1", limit=1000)
         
         # Verify PnL fetched 
         # Since it runs in threads, timing is tricky but run() waits for threads.

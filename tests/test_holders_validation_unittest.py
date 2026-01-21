@@ -15,9 +15,9 @@ class TestHoldersValidation(unittest.TestCase):
         
         client.fetch_holders("market_123", limit=1000)
         
-        # Verify limit is capped at 20 for the API
+        # Verify limit is capped at 40 (20 per outcome * 2 outcomes) for the API
         args, kwargs = mock_get.call_args
-        self.assertEqual(kwargs['params']['limit'], 20)
+        self.assertEqual(kwargs['params']['limit'], 40)
 
     @patch('requests.get')
     @patch('time.sleep', return_value=None)
@@ -38,6 +38,7 @@ class TestHoldersValidation(unittest.TestCase):
         result = client.fetch_holders("market_123")
         
         self.assertIsNotNone(result)
+        # Should return all 20 per outcome as they are under limit
         self.assertEqual(len(result), 20)
 
     @patch('requests.get')

@@ -1,0 +1,8 @@
+{
+  "track_id": "smart_money_legacy_revert_20260120",
+  "type": "refactor",
+  "status": "new",
+  "created_at": "2026-01-20T00:00:00Z",
+  "updated_at": "2026-01-20T00:00:00Z",
+  "description": "Návrat k Legacy API pro stahování dat o držitelích a aliasech, odstranění Goldsky z aktivního kódu a implementace mechanismu 'Second Pass' pro robustnější stahování dat."
+}

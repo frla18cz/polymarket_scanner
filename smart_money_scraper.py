@@ -6,7 +6,7 @@ import concurrent.futures
 from datetime import datetime, timezone
 from typing import List, Set, Dict, Tuple, Optional
 
-from holders_client import HoldersClient, PnLClient, GoldskyClient
+from holders_client import HoldersClient, PnLClient
 from main import get_db_connection
 from logging_setup import setup_logging
 
@@ -68,10 +68,11 @@ def save_wallet_stats(conn: sqlite3.Connection, wallet: str, pnl: float, alias: 
             alias = COALESCE(excluded.alias, wallets_stats.alias)
     """, (wallet, pnl, last_updated, alias))
 
-def process_market_holders_worker(condition_id: str) -> Dict[str, Optional[str]]:
+def process_market_holders_worker(condition_id: str) -> Optional[Dict[str, Optional[str]]]:
     """
-    Worker function to fetch holders for a single market.
-    Returns a dict mapping wallet_address -> alias (or None).
+    Worker function to fetch holders for a single market using Legacy API.
+    Returns a dict mapping wallet_address -> alias (or None) if successful,
+    or None if the fetch failed (to be retried in second pass).
     """
     # Small sleep to distribute load
     time.sleep(0.3)
@@ -79,39 +80,14 @@ def process_market_holders_worker(condition_id: str) -> Dict[str, Optional[str]]
     unique_wallets = {} # address -> alias
     data = None
 
-    # 1. Try Goldsky Subgraph
     try:
-        goldsky_client = GoldskyClient()
-        data = goldsky_client.fetch_holders_subgraph(condition_id)
+        holders_client = HoldersClient()
+        # Request 1000 to be safe and get as many holders as possible for win rate accuracy
+        data = holders_client.fetch_holders(condition_id, limit=1000)
         if data is not None:
-            logger.info(f"Fetched {len(data)} holders from Goldsky for {condition_id}")
-
-            if data:
-                # Try to fetch aliases from Legacy API (best effort)
-                try:
-                    holders_client = HoldersClient()
-                    legacy_data = holders_client.fetch_holders(condition_id, limit=100)
-                    if legacy_data:
-                        for h in legacy_data:
-                            addr = h.get("address")
-                            alias = h.get("name")
-                            if addr and alias:
-                                 unique_wallets[addr] = alias
-                except Exception as e:
-                    logger.debug(f"Failed to fetch aliases from Legacy API for {condition_id}: {e}")
-
+            logger.info(f"Fetched {len(data)} holders from Legacy API for {condition_id}")
     except Exception as e:
-        logger.warning(f"Goldsky fetch failed for {condition_id}: {e}")
-
-    # 2. Fallback to Legacy API
-    if data is None:
-        try:
-            holders_client = HoldersClient()
-            data = holders_client.fetch_holders(condition_id, limit=1000)
-            if data is not None:
-                logger.info(f"Fetched {len(data)} holders from Legacy API for {condition_id}")
-        except Exception as e:
-            logger.error(f"Legacy API fetch failed for {condition_id}: {e}")
+        logger.error(f"Legacy API fetch failed for {condition_id}: {e}")
 
     if data is not None:
         try:
@@ -127,7 +103,6 @@ def process_market_holders_worker(condition_id: str) -> Dict[str, Optional[str]]
             for h in data:
                 addr = h.get("address") or h.get("user")
                 if addr:
-                    # Prefer existing alias if we already found one (though specific to this batch)
                     # Legacy API provides 'name' which is the alias
                     alias = h.get("name") 
                     # If alias is empty string, treat as None
@@ -135,27 +110,14 @@ def process_market_holders_worker(condition_id: str) -> Dict[str, Optional[str]]
                         alias = None
                     unique_wallets[addr] = alias
             
-            # Try to enrich missing aliases using Legacy API (best effort)
-            missing_aliases = [addr for addr, alias in unique_wallets.items() if alias is None]
-            if missing_aliases:
-                 try:
-                    holders_client = HoldersClient()
-                    legacy_data = holders_client.fetch_holders(condition_id, limit=100)
-                    if legacy_data:
-                        for h in legacy_data:
-                            addr = h.get("address")
-                            alias = h.get("name")
-                            if addr and alias and addr in unique_wallets:
-                                 unique_wallets[addr] = alias
-                 except Exception as e:
-                    logger.debug(f"Failed to enrich aliases from Legacy API for {condition_id}: {e}")
+            return unique_wallets
 
         except Exception as e:
             logger.error(f"Failed to save holders for {condition_id}: {e}")
+            return None # Treat save failure as something that might need retry or investigation
     else:
-        logger.warning(f"No holders data found for market {condition_id} (both Goldsky and Legacy failed).")
-    
-    return unique_wallets
+        logger.warning(f"No holders data found for market {condition_id} (Legacy API failed).")
+        return None
 
 def fetch_pnl_worker(wallet: str) -> Tuple[str, float]:
     """
@@ -206,24 +168,46 @@ def run(args_list: Optional[List[str]] = None):
         
         # 1. Fetch Holders (Parallelized)
         logger.info("Faze 1: Stahování holderů pro trhy...")
-        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-            future_to_cid = {executor.submit(process_market_holders_worker, cid): cid for cid in condition_ids}
+        
+        def run_holders_batch(cids: List[str]) -> List[str]:
+            failed_cids = []
+            with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+                future_to_cid = {executor.submit(process_market_holders_worker, cid): cid for cid in cids}
+                
+                count = 0
+                for future in concurrent.futures.as_completed(future_to_cid):
+                    cid = future_to_cid[future]
+                    wallets_dict = future.result()
+                    
+                    if wallets_dict is None:
+                        failed_cids.append(cid)
+                    else:
+                        # Update our master dict. If we find an alias later, it overwrites None.
+                        # If we have an alias and new one is None, we should keep the alias.
+                        for addr, alias in wallets_dict.items():
+                            if addr not in all_unique_wallets:
+                                all_unique_wallets[addr] = alias
+                            elif all_unique_wallets[addr] is None and alias is not None:
+                                all_unique_wallets[addr] = alias
+                                
+                    count += 1
+                    if count % 100 == 0:
+                        logger.info(f"Zpracováno držitelů pro {count}/{len(cids)} trhů.")
+            return failed_cids
+
+        # First pass
+        failed_markets = run_holders_batch(condition_ids)
+        
+        # Second pass (Retry)
+        if failed_markets:
+            logger.info(f"Faze 1b: Druhý průchod (Retry) pro {len(failed_markets)} selhaných trhů...")
+            # Wait a bit before second pass to let rate limits settle
+            time.sleep(5)
+            still_failed = run_holders_batch(failed_markets)
             
-            count = 0
-            for future in concurrent.futures.as_completed(future_to_cid):
-                wallets_dict = future.result()
-                # Update our master dict. If we find an alias later, it overwrites None.
-                # If we have an alias and new one is None, we should keep the alias.
-                for addr, alias in wallets_dict.items():
-                    if addr not in all_unique_wallets:
-                        all_unique_wallets[addr] = alias
-                    elif all_unique_wallets[addr] is None and alias is not None:
-                        all_unique_wallets[addr] = alias
+            recovered = len(failed_markets) - len(still_failed)
+            logger.info(f"Druhý průchod dokončen. Zachráněno {recovered} trhů, stále selhává {len(still_failed)}.")
                         
-                count += 1
-                if count % 100 == 0:
-                    logger.info(f"Zpracováno držitelů pro {count}/{len(condition_ids)} trhů.")
-            
     logger.info(f"Nalezeno {len(all_unique_wallets)} unikátních peněženek k analýze.")
     
     # 2. Fetch PnL (Parallelized with robust Retry)

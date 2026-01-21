@@ -1041,7 +1041,12 @@
                                                                     :key="`${holder.wallet_address}-yes`"
                                                                     class="border-t border-poly-accent/10">
                                                                     <td class="py-1.5 font-mono text-gray-300" :title="holder.wallet_address">
-                                                                        {{ holder.alias || formatWalletAddress(holder.wallet_address) }}
+                                                                        <div class="flex items-center gap-1.5">
+                                                                            <span>{{ holder.alias || formatWalletAddress(holder.wallet_address) }}</span>
+                                                                            <i v-if="holder.wallet_tag === 'SYSTEM'" 
+                                                                               class="ph ph-bank text-poly-blue/80 cursor-help" 
+                                                                               title="This appears to be a system wallet (Liquidity Provider or Rewards Contract), not an individual trader."></i>
+                                                                        </div>
                                                                     </td>
                                                                     <td class="py-1.5 text-right font-mono text-gray-200">
                                                                         {{ formatNumberCompact(holder.position_size) }}
@@ -1077,7 +1082,12 @@
                                                                     :key="`${holder.wallet_address}-no`"
                                                                     class="border-t border-poly-accent/10">
                                                                     <td class="py-1.5 font-mono text-gray-300" :title="holder.wallet_address">
-                                                                        {{ holder.alias || formatWalletAddress(holder.wallet_address) }}
+                                                                        <div class="flex items-center gap-1.5">
+                                                                            <span>{{ holder.alias || formatWalletAddress(holder.wallet_address) }}</span>
+                                                                            <i v-if="holder.wallet_tag === 'SYSTEM'" 
+                                                                               class="ph ph-bank text-poly-blue/80 cursor-help" 
+                                                                               title="This appears to be a system wallet (Liquidity Provider or Rewards Contract), not an individual trader."></i>
+                                                                        </div>
                                                                     </td>
                                                                     <td class="py-1.5 text-right font-mono text-gray-200">
                                                                         {{ formatNumberCompact(holder.position_size) }}
@@ -1353,6 +1363,9 @@
                                                                     <div class="flex items-center gap-2">
                                                                         <i class="ph ph-user text-gray-600"></i>
                                                                         <span>{{ holder.alias || formatWalletAddress(holder.wallet_address) }}</span>
+                                                                        <i v-if="holder.wallet_tag === 'SYSTEM'" 
+                                                                           class="ph ph-bank text-poly-blue/80 ml-0.5 cursor-help" 
+                                                                           title="This appears to be a system wallet (Liquidity Provider or Rewards Contract), not an individual trader."></i>
                                                                     </div>
                                                                 </td>
                                                                 <td class="px-3 py-2 text-right font-mono text-gray-200">
@@ -1396,6 +1409,9 @@
                                                                     <div class="flex items-center gap-2">
                                                                         <i class="ph ph-user text-gray-600"></i>
                                                                         <span>{{ holder.alias || formatWalletAddress(holder.wallet_address) }}</span>
+                                                                        <i v-if="holder.wallet_tag === 'SYSTEM'" 
+                                                                           class="ph ph-bank text-poly-blue/80 ml-0.5 cursor-help" 
+                                                                           title="This appears to be a system wallet (Liquidity Provider or Rewards Contract), not an individual trader."></i>
                                                                     </div>
                                                                 </td>
                                                                 <td class="px-3 py-2 text-right font-mono text-gray-200">
