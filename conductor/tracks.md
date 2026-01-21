@@ -26,5 +26,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [ ] Track: Smart Money Legacy Revert & Robust Retry
+## [x] Track: Smart Money Legacy Revert & Robust Retry
 *Link: [./conductor/tracks/smart_money_legacy_revert_20260120/](./conductor/tracks/smart_money_legacy_revert_20260120/)*
