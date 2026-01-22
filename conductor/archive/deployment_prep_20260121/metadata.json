@@ -1,0 +1,8 @@
+{
+  "track_id": "deployment_prep_20260121",
+  "type": "chore",
+  "status": "new",
+  "created_at": "2026-01-21T14:30:00Z",
+  "updated_at": "2026-01-21T14:30:00Z",
+  "description": "Prepare code for production, ensure Docker readiness, configure non-colliding schedules for Smart Money analysis, and implement UI freshness indicators."
+}
