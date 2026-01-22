@@ -4,6 +4,7 @@
 *   **Language:** Python 3.12+
 *   **Framework:** **FastAPI** for high-performance API endpoints and static file serving.
 *   **Server:** **Uvicorn** as the ASGI web server.
+*   **Scheduler:** **APScheduler** for robust background task management.
 *   **Data Validation:** **Pydantic** for schema enforcement and type safety.
 
 ## 2. Frontend

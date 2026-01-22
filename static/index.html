@@ -198,8 +198,15 @@
                         class="bg-gradient-to-r from-poly-blue to-poly-green bg-clip-text text-transparent">Lab</span>
                 </h1>
                 <span
-                    class="text-[10px] md:text-xs text-gray-500 ml-1 md:ml-2 bg-poly-bg px-2 py-1 rounded border border-poly-accent whitespace-nowrap">
+                    class="text-[10px] md:text-xs text-gray-500 ml-1 md:ml-2 bg-poly-bg px-2 py-1 rounded border border-poly-accent whitespace-nowrap"
+                    :title="'Markets: ' + lastUpdatedTime + (smLastUpdatedTime ? ' | Smart Money: ' + smLastUpdatedTime : '')">
+                    <i class="ph ph-clock-counter-clockwise mr-1"></i>
                     {{ lastUpdatedTime }}
+                </span>
+                <span v-if="smLastUpdatedTime"
+                    class="hidden sm:inline text-[10px] md:text-xs text-gray-500 ml-1 bg-poly-bg px-2 py-1 rounded border border-poly-accent whitespace-nowrap">
+                    <i class="ph ph-brain mr-1 text-poly-blue"></i>
+                    SM: {{ smLastUpdatedTime }}
                 </span>
             </div>
             <div class="flex gap-4 text-sm font-medium items-center">
@@ -1532,6 +1539,7 @@
                 const offset = ref(0);
                 const limit = 100; // Load 100 at a time
                 const serverLastUpdated = ref(null);
+                const serverSmLastUpdated = ref(null);
                 const holdersByMarket = ref({}); // { marketId: { yes: [], no: [] } }
                 const holdersLoading = ref({});
                 const holdersError = ref({});
@@ -2227,6 +2235,24 @@
                     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " (" + d.toLocaleDateString() + ")";
                 });
 
+                const smLastUpdatedTime = Vue.computed(() => {
+                    if (!serverSmLastUpdated.value) return null;
+                    let dateStr = serverSmLastUpdated.value;
+                    if (!dateStr.endsWith("Z") && !dateStr.includes("+")) {
+                        dateStr += "Z";
+                    }
+                    const d = new Date(dateStr);
+                    if (isNaN(d.getTime())) return null;
+                    
+                    const now = new Date();
+                    const diffMs = now - d;
+                    const diffHours = Math.floor(diffMs / 3600000);
+                    
+                    if (diffHours < 1) return "Just now";
+                    if (diffHours < 24) return `${diffHours}h ago`;
+                    return d.toLocaleDateString();
+                });
+
                 const fetchHolders = async (marketId, conditionId) => {
                     if (!marketId || !conditionId) return;
                     const key = String(marketId);
@@ -2589,6 +2615,9 @@
                         if (data.last_updated) {
                             serverLastUpdated.value = data.last_updated;
                         }
+                        if (data.smart_money_last_updated) {
+                            serverSmLastUpdated.value = data.smart_money_last_updated;
+                        }
                     } catch (e) { console.error(e); }
                 };
 
@@ -2802,6 +2831,7 @@
 	                    selectedIndex,
 	                    compactMode,
                     lastUpdatedTime,
+                    smLastUpdatedTime,
                     // New Autocomplete State
                     includeSearch,
                     excludeSearch,

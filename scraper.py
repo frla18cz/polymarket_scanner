@@ -49,8 +49,7 @@ def setup_db():
             start_date TEXT,
             end_date TEXT,
             category TEXT,
-            icon_url TEXT,
-            smart_money_win_rate REAL
+            icon_url TEXT
         )
     ''')
     
@@ -191,12 +190,12 @@ def run_scrape(limit_count: Optional[int] = None):
                 INSERT INTO active_market_outcomes (
                     snapshot_at, market_id, condition_id, event_slug, question, url, outcome_name, 
                     price, apr, spread, volume_usd, liquidity_usd, start_date, end_date, 
-                    category, icon_url, smart_money_win_rate
-                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    category, icon_url
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             ''', (
                 snapshot_at, m_id, m.get("conditionId"), event_slug, question, url, str(outcome_name),
                 price, apr, float(m.get("spread") or 0), float(m.get("volume") or 0), float(m.get("liquidity") or 0),
-                m.get("startDate"), m.get("endDate"), primary_category, icon_url, None
+                m.get("startDate"), m.get("endDate"), primary_category, icon_url
             ))
             count_outcomes += 1
             

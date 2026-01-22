@@ -167,10 +167,6 @@ def ensure_indices():
                 conn.execute("ALTER TABLE active_market_outcomes ADD COLUMN apr REAL;")
                 conn.commit()
             
-            if "smart_money_win_rate" not in cols:
-                conn.execute("ALTER TABLE active_market_outcomes ADD COLUMN smart_money_win_rate REAL;")
-                conn.commit()
-
             if "condition_id" not in cols:
                 conn.execute("ALTER TABLE active_market_outcomes ADD COLUMN condition_id TEXT;")
                 conn.commit()
@@ -214,6 +210,12 @@ def ensure_indices():
                 wallet_tag TEXT
             );
 
+            CREATE TABLE IF NOT EXISTS market_smart_money_stats (
+                condition_id TEXT PRIMARY KEY,
+                smart_money_win_rate REAL,
+                last_updated_at TEXT
+            );
+
             CREATE INDEX IF NOT EXISTS idx_holders_market ON holders(market_id);
             CREATE INDEX IF NOT EXISTS idx_holders_wallet ON holders(wallet_address);
             CREATE INDEX IF NOT EXISTS idx_wallets_stats_address ON wallets_stats(wallet_address);
@@ -229,7 +231,6 @@ def ensure_indices():
             CREATE INDEX IF NOT EXISTS idx_amo_spread ON active_market_outcomes(spread);
             CREATE INDEX IF NOT EXISTS idx_amo_liquidity ON active_market_outcomes(liquidity_usd);
             CREATE INDEX IF NOT EXISTS idx_amo_apr ON active_market_outcomes(apr);
-            CREATE INDEX IF NOT EXISTS idx_amo_smart_money ON active_market_outcomes(smart_money_win_rate);
             
             -- Text Search Indices (helps with sorting/exact match)
             CREATE INDEX IF NOT EXISTS idx_amo_question ON active_market_outcomes(question);
@@ -409,10 +410,17 @@ def get_status(response: Response):
     try:
         row = cursor.execute("SELECT MAX(snapshot_at) as last_updated FROM active_market_outcomes").fetchone()
         last_updated = row["last_updated"] if row else None
+        
+        row_sm = cursor.execute("SELECT MAX(last_updated_at) as sm_last_updated FROM market_smart_money_stats").fetchone()
+        sm_last_updated = row_sm["sm_last_updated"] if row_sm else None
     except:
         last_updated = None
+        sm_last_updated = None
     conn.close()
-    return {"last_updated": last_updated}
+    return {
+        "last_updated": last_updated,
+        "smart_money_last_updated": sm_last_updated
+    }
 
 @app.get("/api/markets")
 def get_markets(
@@ -466,17 +474,17 @@ def get_markets(
     has_apr_col = "apr" in amo_cols
     apr_expr = (
         "CASE "
-        "WHEN price IS NOT NULL "
-        " AND price > 0.0 "
-        " AND price < 1.0 "
-        " AND end_date IS NOT NULL "
-        " AND snapshot_at IS NOT NULL "
-        " AND julianday(datetime(end_date)) > julianday(datetime(snapshot_at)) "
-        "THEN ((1.0 / price) - 1.0) * (365.0 / (julianday(datetime(end_date)) - julianday(datetime(snapshot_at)))) "
+        "WHEN amo.price IS NOT NULL "
+        " AND amo.price > 0.0 "
+        " AND amo.price < 1.0 "
+        " AND amo.end_date IS NOT NULL "
+        " AND amo.snapshot_at IS NOT NULL "
+        " AND julianday(datetime(amo.end_date)) > julianday(datetime(amo.snapshot_at)) "
+        "THEN ((1.0 / amo.price) - 1.0) * (365.0 / (julianday(datetime(amo.end_date)) - julianday(datetime(amo.snapshot_at)))) "
         "ELSE NULL "
         "END"
     )
-    apr_sql = "apr" if has_apr_col else f"({apr_expr})"
+    apr_sql = "amo.apr" if has_apr_col else f"({apr_expr})"
 
     # Disable caching
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
@@ -487,23 +495,23 @@ def get_markets(
     params = []
     
     if min_volume:
-        where_clauses.append("volume_usd >= ?")
+        where_clauses.append("amo.volume_usd >= ?")
         params.append(min_volume)
         
     if min_liquidity:
-        where_clauses.append("liquidity_usd >= ?")
+        where_clauses.append("amo.liquidity_usd >= ?")
         params.append(min_liquidity)
 
     if min_price is not None:
-        where_clauses.append("price >= ?")
+        where_clauses.append("amo.price >= ?")
         params.append(min_price)
     
     if max_price is not None:
-        where_clauses.append("price <= ?")
+        where_clauses.append("amo.price <= ?")
         params.append(max_price)
 
     if max_spread is not None:
-        where_clauses.append("spread <= ?")
+        where_clauses.append("amo.spread <= ?")
         params.append(max_spread)
 
     if min_apr is not None and float(min_apr) > 0:
@@ -513,11 +521,11 @@ def get_markets(
         params.append(float(min_apr))
 
     if min_smart_money_win_rate is not None and float(min_smart_money_win_rate) > 0:
-        where_clauses.append("smart_money_win_rate >= ?")
+        where_clauses.append("sm.smart_money_win_rate >= ?")
         params.append(float(min_smart_money_win_rate))
 
     if search:
-        where_clauses.append("(question LIKE ? OR outcome_name LIKE ?)")
+        where_clauses.append("(amo.question LIKE ? OR amo.outcome_name LIKE ?)")
         params.append(f"%{search}%")
         params.append(f"%{search}%")
 
@@ -536,18 +544,18 @@ def get_markets(
     if min_hours_to_expire is not None:
         min_dt = datetime.now(timezone.utc) + timedelta(hours=int(min_hours_to_expire))
         min_str = min_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
-        where_clauses.append("datetime(end_date) >= datetime(?)")
+        where_clauses.append("datetime(amo.end_date) >= datetime(?)")
         params.append(min_str)
 
     if max_hours_to_expire is not None:
         cutoff_dt = datetime.now(timezone.utc) + timedelta(hours=int(max_hours_to_expire))
         cutoff_str = cutoff_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
-        where_clauses.append("datetime(end_date) <= datetime(?)")
+        where_clauses.append("datetime(amo.end_date) <= datetime(?)")
         params.append(cutoff_str)
 
     if (min_hours_to_expire is not None or max_hours_to_expire is not None) and not include_expired:
         now_str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-        where_clauses.append("datetime(end_date) >= datetime(?)")
+        where_clauses.append("datetime(amo.end_date) >= datetime(?)")
         params.append(now_str)
 
     # Tag Logic
@@ -555,13 +563,13 @@ def get_markets(
         uniq_included = list(dict.fromkeys(included_tags))
         placeholders = ",".join("?" * len(uniq_included))
         # ANY: at least one of selected tags
-        where_clauses.append(f"market_id IN (SELECT market_id FROM market_tags WHERE tag_label IN ({placeholders}))")
+        where_clauses.append(f"amo.market_id IN (SELECT market_id FROM market_tags WHERE tag_label IN ({placeholders}))")
         params.extend(uniq_included)
 
     if excluded_tags:
         placeholders = ",".join("?" * len(excluded_tags))
         # Optimized: Use NOT IN (SELECT...) instead of correlated NOT EXISTS.
-        where_clauses.append(f"market_id NOT IN (SELECT market_id FROM market_tags WHERE tag_label IN ({placeholders}))")
+        where_clauses.append(f"amo.market_id NOT IN (SELECT market_id FROM market_tags WHERE tag_label IN ({placeholders}))")
         params.extend(excluded_tags)
 
     where_str = " AND ".join(where_clauses)
@@ -571,16 +579,20 @@ def get_markets(
     if sort_by not in valid_sorts:
         sort_by = "volume_usd"
 
-    sort_sql = sort_by
+    sort_sql = f"amo.{sort_by}"
     if sort_by == "apr":
         sort_sql = apr_sql
     elif sort_by == "question":
-        sort_sql = "question COLLATE NOCASE"
+        sort_sql = "amo.question COLLATE NOCASE"
+    elif sort_by == "smart_money_win_rate":
+        sort_sql = "sm.smart_money_win_rate"
 
-    select_sql = "SELECT *" if has_apr_col else f"SELECT *, {apr_sql} AS apr"
+    select_sql = "SELECT amo.*" if has_apr_col else f"SELECT amo.*, {apr_sql} AS apr"
 
     sql = f"""
-        {select_sql} FROM active_market_outcomes
+        {select_sql}, sm.smart_money_win_rate 
+        FROM active_market_outcomes amo
+        LEFT JOIN market_smart_money_stats sm ON amo.condition_id = sm.condition_id
         WHERE {where_str}
         ORDER BY {sort_sql} {'ASC' if sort_dir == 'asc' else 'DESC'}
         LIMIT {limit} OFFSET {offset}

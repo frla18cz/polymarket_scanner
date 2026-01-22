@@ -500,13 +500,14 @@ class TestMarketsFilters(unittest.TestCase):
     def test_smart_money_null_visibility(self):
         """Verify that markets with NULL smart_money_win_rate are visible by default (min_rate=0)."""
         # Inject a NULL record if none exists to ensure test robustness
+        # Note: smart_money_win_rate is now in market_smart_money_stats joined by condition_id
         self._conn.execute("""
             INSERT INTO active_market_outcomes (
-                market_id, outcome_name, question, price, volume_usd, liquidity_usd, 
-                smart_money_win_rate, end_date, snapshot_at
+                market_id, condition_id, outcome_name, question, price, volume_usd, liquidity_usd, 
+                end_date, snapshot_at
             ) VALUES (
-                'test_null_visibility', 'Yes', 'Visibility test?', 0.5, 1000, 500,
-                NULL, '2026-12-31T23:59:59Z', '2026-01-20T00:00:00Z'
+                'test_null_visibility', 'cond_null_visibility', 'Yes', 'Visibility test?', 0.5, 1000, 500,
+                '2026-12-31T23:59:59Z', '2026-01-20T00:00:00Z'
             )
         """)
         self._conn.commit()
@@ -523,10 +524,10 @@ class TestMarketsFilters(unittest.TestCase):
         """Verify that markets with NULL APR are visible by default (min_apr=0)."""
         self._conn.execute("""
             INSERT INTO active_market_outcomes (
-                market_id, outcome_name, question, price, volume_usd, liquidity_usd, 
+                market_id, condition_id, outcome_name, question, price, volume_usd, liquidity_usd, 
                 apr, end_date, snapshot_at
             ) VALUES (
-                'test_apr_null', 'Yes', 'APR test?', 0.5, 1000, 500,
+                'test_apr_null', 'cond_apr_null', 'Yes', 'APR test?', 0.5, 1000, 500,
                 NULL, '2026-12-31T23:59:59Z', '2026-01-20T00:00:00Z'
             )
         """)

@@ -240,21 +240,22 @@ def run(args_list: Optional[List[str]] = None):
         
         # 3. Calculate and Update Metrics
         logger.info("Faze 3: Výpočet a aktualizace Smart Money metrik...")
+        now_iso = datetime.now(timezone.utc).isoformat()
         conn.execute("""
-            UPDATE active_market_outcomes
-            SET smart_money_win_rate = (
-                SELECT CAST(SUM(CASE WHEN ws.total_pnl > 0 THEN 1 ELSE 0 END) AS REAL) / COUNT(*)
-                FROM holders h
-                JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
-                WHERE h.market_id = active_market_outcomes.condition_id
-            )
-            WHERE EXISTS (
-                SELECT 1 FROM holders h 
-                WHERE h.market_id = active_market_outcomes.condition_id
-            );
-        """)
+            INSERT INTO market_smart_money_stats (condition_id, smart_money_win_rate, last_updated_at)
+            SELECT 
+                h.market_id as condition_id,
+                CAST(SUM(CASE WHEN ws.total_pnl > 0 THEN 1 ELSE 0 END) AS REAL) / COUNT(*) as smart_money_win_rate,
+                ? as last_updated_at
+            FROM holders h
+            JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
+            GROUP BY h.market_id
+            ON CONFLICT(condition_id) DO UPDATE SET
+                smart_money_win_rate = excluded.smart_money_win_rate,
+                last_updated_at = excluded.last_updated_at
+        """, (now_iso,))
         conn.commit()
-        logger.info("Všechny metriky byly úspěšně aktualizovány.")
+        logger.info("Všechny metriky byly úspěšně aktualizovány v tabulce market_smart_money_stats.")
 
     finally:
         conn.close()
