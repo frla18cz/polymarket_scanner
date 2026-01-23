@@ -32,5 +32,10 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 *Link: [./conductor/tracks/smart_money_legacy_revert_20260120/](./conductor/tracks/smart_money_legacy_revert_20260120/)*
 
+---
+
+- [~] **Track: UI Stability, Performance & Metric Cleanup**
+*Link: [./conductor/tracks/ui_stability_perf_cleanup_20260123/](./conductor/tracks/ui_stability_perf_cleanup_20260123/)*
+
 
 

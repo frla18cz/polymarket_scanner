@@ -497,29 +497,6 @@ class TestMarketsFilters(unittest.TestCase):
         tol = max(1e-9, expected * 1e-4)
         self.assertLess(abs(apr - expected), tol)
 
-    def test_smart_money_null_visibility(self):
-        """Verify that markets with NULL smart_money_win_rate are visible by default (min_rate=0)."""
-        # Inject a NULL record if none exists to ensure test robustness
-        # Note: smart_money_win_rate is now in market_smart_money_stats joined by condition_id
-        self._conn.execute("""
-            INSERT INTO active_market_outcomes (
-                market_id, condition_id, outcome_name, question, price, volume_usd, liquidity_usd, 
-                end_date, snapshot_at
-            ) VALUES (
-                'test_null_visibility', 'cond_null_visibility', 'Yes', 'Visibility test?', 0.5, 1000, 500,
-                '2026-12-31T23:59:59Z', '2026-01-20T00:00:00Z'
-            )
-        """)
-        self._conn.commit()
-
-        response = Response()
-        # Default behavior (min_smart_money_win_rate=0 from frontend)
-        markets = self.app_main.get_markets(response=response, min_smart_money_win_rate=0.0)
-        
-        null_market = next((m for m in markets if m["market_id"] == 'test_null_visibility'), None)
-        self.assertIsNotNone(null_market, "Market with NULL win rate should be visible when filter is 0.0")
-        self.assertIsNone(null_market.get("smart_money_win_rate"))
-
     def test_apr_null_visibility(self):
         """Verify that markets with NULL APR are visible by default (min_apr=0)."""
         self._conn.execute("""

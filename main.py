@@ -437,7 +437,6 @@ def get_markets(
     max_price: Optional[float] = 1.0,
     max_spread: Optional[float] = None,
     min_apr: Optional[float] = None,
-    min_smart_money_win_rate: Optional[float] = None,
     min_hours_to_expire: Optional[int] = None,
     max_hours_to_expire: Optional[int] = None,
     include_expired: bool = True,
@@ -520,10 +519,6 @@ def get_markets(
         where_clauses.append(f"({apr_sql} IS NOT NULL AND {apr_sql} >= ?)")
         params.append(float(min_apr))
 
-    if min_smart_money_win_rate is not None and float(min_smart_money_win_rate) > 0:
-        where_clauses.append("sm.smart_money_win_rate >= ?")
-        params.append(float(min_smart_money_win_rate))
-
     if search:
         where_clauses.append("(amo.question LIKE ? OR amo.outcome_name LIKE ?)")
         params.append(f"%{search}%")
@@ -575,7 +570,7 @@ def get_markets(
     where_str = " AND ".join(where_clauses)
     
     # Sorting
-    valid_sorts = ["volume_usd", "liquidity_usd", "end_date", "price", "spread", "apr", "question", "smart_money_win_rate"]
+    valid_sorts = ["volume_usd", "liquidity_usd", "end_date", "price", "spread", "apr", "question"]
     if sort_by not in valid_sorts:
         sort_by = "volume_usd"
 
@@ -584,15 +579,12 @@ def get_markets(
         sort_sql = apr_sql
     elif sort_by == "question":
         sort_sql = "amo.question COLLATE NOCASE"
-    elif sort_by == "smart_money_win_rate":
-        sort_sql = "sm.smart_money_win_rate"
 
     select_sql = "SELECT amo.*" if has_apr_col else f"SELECT amo.*, {apr_sql} AS apr"
 
     sql = f"""
-        {select_sql}, sm.smart_money_win_rate 
+        {select_sql}
         FROM active_market_outcomes amo
-        LEFT JOIN market_smart_money_stats sm ON amo.condition_id = sm.condition_id
         WHERE {where_str}
         ORDER BY {sort_sql} {'ASC' if sort_dir == 'asc' else 'DESC'}
         LIMIT {limit} OFFSET {offset}
