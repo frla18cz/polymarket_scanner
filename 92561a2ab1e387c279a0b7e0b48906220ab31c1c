@@ -1,0 +1,3 @@
+Task: Backend - Remove Smart Money Win Rate from main.py
+Changes: Removed logic for filtering, sorting, and fetching smart_money_win_rate in main.py. Removed related tests in test_api_markets_unittest.py and deleted test_api_smart_money_filter_unittest.py.
+Reason: Simplification of metrics as requested by user.
