@@ -1,0 +1,8 @@
+{
+  "track_id": "ui_stability_perf_cleanup_20260123",
+  "type": "bug",
+  "status": "new",
+  "created_at": "2026-01-23T14:35:00Z",
+  "updated_at": "2026-01-23T14:35:00Z",
+  "description": "UI stability fixes (auto-refresh reset), performance optimization (indices/query), and removal of Smart Money Win Rate metric."
+}
