@@ -223,7 +223,9 @@ def ensure_indices():
             CREATE INDEX IF NOT EXISTS idx_market_tags_label ON market_tags(tag_label);
             CREATE INDEX IF NOT EXISTS idx_market_tags_market_id ON market_tags(market_id);
             CREATE INDEX IF NOT EXISTS idx_amo_market_id ON active_market_outcomes(market_id);
+            CREATE INDEX IF NOT EXISTS idx_amo_condition_id ON active_market_outcomes(condition_id);
             CREATE INDEX IF NOT EXISTS idx_amo_volume ON active_market_outcomes(volume_usd DESC);
+            CREATE INDEX IF NOT EXISTS idx_amo_liquidity ON active_market_outcomes(liquidity_usd DESC);
             CREATE INDEX IF NOT EXISTS idx_amo_end_date ON active_market_outcomes(end_date);
             
             -- Missing indices for sliders (Critical for performance)
@@ -539,18 +541,18 @@ def get_markets(
     if min_hours_to_expire is not None:
         min_dt = datetime.now(timezone.utc) + timedelta(hours=int(min_hours_to_expire))
         min_str = min_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
-        where_clauses.append("datetime(amo.end_date) >= datetime(?)")
+        where_clauses.append("amo.end_date >= ?")
         params.append(min_str)
 
     if max_hours_to_expire is not None:
         cutoff_dt = datetime.now(timezone.utc) + timedelta(hours=int(max_hours_to_expire))
         cutoff_str = cutoff_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
-        where_clauses.append("datetime(amo.end_date) <= datetime(?)")
+        where_clauses.append("amo.end_date <= ?")
         params.append(cutoff_str)
 
     if (min_hours_to_expire is not None or max_hours_to_expire is not None) and not include_expired:
         now_str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-        where_clauses.append("datetime(amo.end_date) >= datetime(?)")
+        where_clauses.append("amo.end_date >= ?")
         params.append(now_str)
 
     # Tag Logic
@@ -691,6 +693,10 @@ def diagnostics_perf(request: Request, mode: str = "fast"):
         ("spread_max", {"included_tags": None, "excluded_tags": None, "max_spread": max_spread, "sort_by": "volume_usd", "sort_dir": "desc", "limit": 100}),
         ("volume_liquidity_min", {"included_tags": None, "excluded_tags": None, "min_volume": min_volume, "min_liquidity": min_liquidity, "sort_by": "volume_usd", "sort_dir": "desc", "limit": 100}),
         ("expiring_soon", {"included_tags": None, "excluded_tags": None, "max_hours_to_expire": hours_to_expire, "include_expired": False, "sort_by": "end_date", "sort_dir": "asc", "limit": 100}),
+        ("text_search_like", {"search": "Trump", "sort_by": "volume_usd", "sort_dir": "desc", "limit": 100}),
+        ("sort_by_apr", {"min_apr": 0.05, "sort_by": "apr", "sort_dir": "desc", "limit": 100}),
+        ("deep_pagination", {"sort_by": "volume_usd", "limit": 100, "offset": 5000}),
+        ("kitchen_sink_complex", {"search": "a", "min_volume": 1000, "max_spread": 0.1, "min_price": 0.1, "max_price": 0.9, "sort_by": "liquidity_usd", "limit": 50}),
     ]
 
     results: list[PerfScenarioResult] = []

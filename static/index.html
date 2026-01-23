@@ -731,26 +731,6 @@
 
                     <div class="border-t border-poly-accent/30 my-3"></div>
 
-                    <!-- Smart Money Win Rate -->
-                    <div>
-                        <label class="text-xs text-gray-400 font-semibold mb-2 block flex justify-between">
-                            <span>Smart Money Win Rate</span>
-                            <span
-                                class="px-2 py-0.5 rounded-full text-xs border border-poly-accent/70 bg-poly-card/30 text-gray-200 font-mono tabular-nums">
-                                {{ filters.min_smart_money_win_rate.toFixed(0) }}%
-                            </span>
-                        </label>
-                        <input type="range" min="0" max="100" step="1"
-                            v-model.number="filters.min_smart_money_win_rate" @change="resetAndFetch"
-                            class="w-full h-1 bg-poly-accent/70 rounded-lg appearance-none cursor-pointer">
-                        <div class="flex justify-between text-[10px] text-gray-500 mt-1">
-                            <span>0%</span>
-                            <span>100%</span>
-                        </div>
-                    </div>
-
-                    <div class="border-t border-poly-accent/30 my-3"></div>
-
                     <!-- Min Liquidity -->
                     <div>
                         <label class="text-xs text-gray-400 font-semibold mb-2 block flex justify-between">
@@ -823,8 +803,6 @@
                                 @click="setSort('spread')">Spread</div>
                             <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('apr')">
                                 APR</div>
-                            <div class="col-span-1 text-right cursor-pointer hover:text-white"
-                                @click="setSort('smart_money_win_rate')">Smart Win</div>
                             <div class="col-span-2 text-right cursor-pointer hover:text-white"
                                 @click="setSort('volume_usd')">Volume</div>
                             <div class="col-span-1 text-right cursor-pointer hover:text-white"
@@ -1165,11 +1143,6 @@
                                     <!-- APR -->
                                     <div class="col-span-1 text-right text-gray-300 text-xs font-mono">
                                         {{ formatAprPercent(m.apr, m.price, m.end_date) }}
-                                    </div>
-
-                                    <!-- Smart Win -->
-                                    <div class="col-span-1 text-right text-gray-300 text-xs font-mono">
-                                        {{ formatSmartWinRate(m.smart_money_win_rate) }}
                                     </div>
 
                                     <!-- Volume -->
@@ -1740,7 +1713,6 @@
 	                    max_price: 1.00,
 	                    max_spread: 0.05,
 	                    min_apr_percent: 0,
-                        min_smart_money_win_rate: 0,
 	                    min_hours_to_expire: 0,
 	                    max_hours_to_expire: 0,
 	                    expiry_index: 0,
@@ -2332,7 +2304,6 @@
 	                    filters.value.max_price = 1.00;
 	                    filters.value.max_spread = 0.05;
 	                    filters.value.min_apr_percent = 0;
-                        filters.value.min_smart_money_win_rate = 0;
 	                    filters.value.min_hours_to_expire = 0;
 	                    setExpiryHours(0);
 	                    filters.value.include_expired = true;
@@ -2364,7 +2335,6 @@
 	                    filters.value.max_price = 1.00;
 	                    filters.value.max_spread = 0.05;
 	                    filters.value.min_apr_percent = 0;
-                        filters.value.min_smart_money_win_rate = 0;
 	                    filters.value.min_hours_to_expire = 0;
 	                    setExpiryHours(0);
 	                    filters.value.include_expired = true;
@@ -2412,12 +2382,6 @@
                     return `${s.slice(0, 6)}...${s.slice(-4)}`;
                 };
 
-                const formatSmartWinRate = (rateFraction) => {
-                    if (rateFraction === null || rateFraction === undefined) return "-";
-                    const v = Number(rateFraction);
-                    if (!isFinite(v) || v < 0) return "-";
-                    return `${(v * 100).toFixed(1)}%`;
-                };
 
 	                const DEFAULT_FILTERS = {
 	                    min_volume: 5000,
@@ -2426,7 +2390,6 @@
 	                    max_price: 1.00,
 	                    max_spread: 0.05,
 	                    min_apr_percent: 0,
-                        min_smart_money_win_rate: 0,
 	                    min_hours_to_expire: 0,
 	                    max_hours_to_expire: 0,
 	                    expiry_index: 0,
@@ -2451,7 +2414,6 @@
                         price: "Price",
                         spread: "Spread",
                         apr: "APR",
-                        smart_money_win_rate: "Smart Win",
                         question: "Market",
                     };
                     return map[sortBy] || String(sortBy || "");
@@ -2484,9 +2446,6 @@
                     }
                     if (f.min_apr_percent !== DEFAULT_FILTERS.min_apr_percent) {
                         chips.push(`APR ≥ ${aprLabel.value}`);
-                    }
-                    if (f.min_smart_money_win_rate !== DEFAULT_FILTERS.min_smart_money_win_rate) {
-                        chips.push(`Smart Win ≥ ${Number(f.min_smart_money_win_rate || 0).toFixed(0)}%`);
                     }
                     if (f.min_volume !== DEFAULT_FILTERS.min_volume) {
                         chips.push(`Vol ≥ ${formatCompact(f.min_volume)}`);
@@ -2623,8 +2582,8 @@
 
                 const fetchMarkets = async (append = false, isAutoRefresh = false) => {
                     if (isAutoRefresh) {
-                        // Silent refresh: reset to start but don't show full loading spinner
-                        offset.value = 0;
+                        // Silent background refresh: preserve current offset and expandedId
+                        console.log("fetchMarkets: Silent background refresh.");
                     } else if (!append) {
                         console.log("fetchMarkets: Starting new fetch. Setting loading=true, offset=0");
                         offset.value = 0;
@@ -2656,7 +2615,6 @@
                         if (filters.value.min_apr_percent > 0) {
                             params.append("min_apr", String(filters.value.min_apr_percent / 100));
                         }
-                        params.append("min_smart_money_win_rate", String(filters.value.min_smart_money_win_rate / 100));
                         params.append("include_expired", filters.value.include_expired);
                         if (filters.value.search) params.append("search", filters.value.search);
                         params.append("sort_by", filters.value.sort_by);
@@ -2679,8 +2637,13 @@
 	                        }
 
                         // Pagination
-                        params.append("limit", limit);
-                        params.append("offset", offset.value);
+                        // During auto-refresh, we fetch all markets up to the current offset + limit
+                        // to ensure the user's current view remains consistent.
+                        const fetchLimit = isAutoRefresh ? (offset.value + limit) : limit;
+                        const fetchOffset = isAutoRefresh ? 0 : offset.value;
+
+                        params.append("limit", fetchLimit);
+                        params.append("offset", fetchOffset);
 
                         console.log("fetchMarkets: Fetching with params", params.toString());
                         const res = await fetch(`${API_BASE_URL}/api/markets?${params}`, { signal: abortController.signal });
@@ -2688,6 +2651,9 @@
 
                         if (append) {
                             markets.value = [...markets.value, ...newMarkets];
+                        } else if (isAutoRefresh) {
+                            // Replace everything but keep the expanded item if it still exists
+                            markets.value = newMarkets;
                         } else {
                             markets.value = newMarkets;
                             expandedId.value = null;
@@ -2864,7 +2830,6 @@
                     formatPnl,
                     formatDate,
                     formatAprPercent,
-                    formatSmartWinRate,
                     timeFromNow,
                     formatImpliedOdds,
                     formatWalletAddress,

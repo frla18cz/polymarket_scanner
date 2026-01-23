@@ -14,14 +14,18 @@
 *   **Strategy:** Direct serving by FastAPI to minimize deployment complexity.
 
 ## 3. Database & Storage
-*   **Database:** **SQLite** (`data/markets.db`).
-*   **Mode:** **Write-Ahead Logging (WAL)** enabled to support concurrent read/write operations (Scraper vs. API).
+*   **Primary Data:** **SQLite** (`data/markets.db`).
+    *   Stores: All market data, outcomes, tags, and history.
+    *   Mode: **Write-Ahead Logging (WAL)** enabled for high-performance concurrent read/write.
 *   **Telemetry:** SQLite (`data/metrics.db`) for tracking request logs and performance.
+*   **Note:** The backend relies *exclusively* on local SQLite for market queries. It does NOT connect to external databases for read operations.
 
 ## 4. External Integrations
 *   **Core Data API:** **Polymarket Gamma API** used via a custom client (`gamma_client.py`).
 *   **Blockchain Indexing:** **Goldsky Subgraph** for robust and low-latency holder data retrieval.
-*   **Authentication:** Supabase Auth (Email/Google) integration planned for premium features.
+*   **Authentication:** **Supabase Auth** (Email/Google).
+    *   Role: Strictly handles user identity and session management on the Frontend.
+    *   Backend Interaction: The Python backend does not directly query Supabase. User features (like saved filters) are managed client-side or verified via tokens if needed in the future.
 
 ## 5. Development & Deployment
 *   **Containerization:** **Docker** and **Docker Compose** for environment consistency.

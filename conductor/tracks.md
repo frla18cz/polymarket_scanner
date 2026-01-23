@@ -37,5 +37,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [~] **Track: UI Stability, Performance & Metric Cleanup**
 *Link: [./conductor/tracks/ui_stability_perf_cleanup_20260123/](./conductor/tracks/ui_stability_perf_cleanup_20260123/)*
 
+---
 
-
+- [ ] **Track: Mobile UI improvements, address shortening, and deep linking.**
+*Link: [./conductor/tracks/ui_mobile_deep_linking_20260123/](./conductor/tracks/ui_mobile_deep_linking_20260123/)*

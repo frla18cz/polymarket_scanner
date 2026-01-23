@@ -5,7 +5,7 @@ This document provides essential context, architectural details, and operational
 ## 1. Project Overview
 **PolyLab** is a high-performance scanner and analytics tool for [Polymarket](https://polymarket.com/). It aggregates market data, calculates metrics (APR, spread, liquidity), and provides a fast, filterable interface for finding betting opportunities.
 
-**Authentication:** Users can sign in via Supabase Auth (Google/Email) to access premium filters and presets.
+**Authentication:** Users can sign in via Supabase Auth (Google/Email) to access premium filters and presets. Note: Supabase is used strictly for authentication on the frontend; the Python backend does not query Supabase for market data.
 
 ## 2. Architecture & Tech Stack
 
@@ -14,7 +14,7 @@ This document provides essential context, architectural details, and operational
 *   **Framework**: FastAPI (API + Static File Serving)
 *   **Server**: Uvicorn
 *   **Database**: SQLite (local file, WAL mode enabled for concurrency)
-    *   `data/markets.db`: Main market data.
+    *   `data/markets.db`: Main market data (Markets, Outcomes, Tags). Source of truth for API.
     *   `data/metrics.db`: Request logs and performance metrics.
 *   **Data Ingestion**: `scraper.py` fetches data from Gamma/Polymarket APIs and rebuilds the DB.
 
