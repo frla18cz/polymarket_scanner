@@ -1,0 +1,3 @@
+Task: Frontend - Remove Smart Money Win Rate UI from index.html
+Changes: Removed slider, table column, mobile view metric, and JS logic for Smart Money Win Rate from frontend_deploy/index.html. Added verification test.
+Reason: Metric removal as requested.
