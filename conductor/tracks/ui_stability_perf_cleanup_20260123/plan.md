@@ -9,7 +9,7 @@ Goal: Clean up the codebase by removing the Smart Money Win Rate metric from the
     - Remove the `LEFT JOIN market_smart_money_stats` from the `get_markets` query.
     - Remove `min_smart_money_win_rate` filter parameter from `get_markets`.
     - Update the API response model to exclude the win rate field.
-- [ ] Task: Frontend - Remove Smart Money Win Rate UI from `index.html`
+- [x] Task: Frontend - Remove Smart Money Win Rate UI from `index.html` [05d6f13]
     - Remove the "Smart Money Win Rate" slider filter from the sidebar.
     - Remove the "Smart Win" column from the desktop table header and rows.
     - Remove the Win Rate display from the mobile card view.
