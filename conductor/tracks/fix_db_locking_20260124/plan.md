@@ -21,8 +21,8 @@ This plan refactors `auto_refresh.py` to eliminate race conditions between the m
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Implementation of Chained Execution' (Protocol in workflow.md)
 
 ## Phase 3: Final Verification & Cleanup
-- [ ] Task: Verify stats logging integrity
-    - [ ] Run a manual cycle and check `logs/scrape_stats.csv`
-- [ ] Task: Final code review and linting
-    - [ ] Ensure no side effects or deadlocks remain
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Final Verification & Cleanup' (Protocol in workflow.md)
+- [x] Task: Verify stats logging integrity a55ab6a
+    - [x] Run a manual cycle and check `logs/scrape_stats.csv`
+- [x] Task: Final code review and linting a55ab6a
+    - [x] Ensure no side effects or deadlocks remain
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Final Verification & Cleanup' (Protocol in workflow.md) [checkpoint: a55ab6a]

@@ -31,3 +31,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 ## [x] Track: Smart Money Legacy Revert & Robust Retry
 
 *Link: [./conductor/tracks/smart_money_legacy_revert_20260120/](./conductor/tracks/smart_money_legacy_revert_20260120/)*
+
+---
+
+- [x] **Track: Fix Database Locking (Scraper Race Condition)**
+*Link: [./tracks/fix_db_locking_20260124/](./tracks/fix_db_locking_20260124/)*
