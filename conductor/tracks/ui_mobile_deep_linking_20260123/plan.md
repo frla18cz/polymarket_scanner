@@ -13,12 +13,12 @@
 [checkpoint: f86fa8c]
 
 ## Phase 2: Mobile Polish & Holders Profile Links
-- [ ] Task: Create new test file `tests/test_ui_mobile_polish_contract_unittest.py`
+- [~] Task: Create new test file `tests/test_ui_mobile_polish_contract_unittest.py`
     - [ ] Create test class `TestMobilePolishContract`
     - [ ] Add test `test_address_shortening_logic_exists` (Expects function `shortenAddress`)
     - [ ] Add test `test_profile_link_exists` (Expects link to `polymarket.com/profile/`)
     - [ ] Add test `test_tooltip_attribute_exists` (Expects `title="..."` binding on address)
-- [ ] Task: Implement Address Shortening & Profile Links
+- [~] Task: Implement Address Shortening & Profile Links
     - [ ] Create `shortenAddress` function in `frontend_deploy/index.html`.
     - [ ] Update Holders table/list to use it.
     - [ ] Add link to Polymarket profile with an external link icon.

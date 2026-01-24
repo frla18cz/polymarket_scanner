@@ -1027,7 +1027,12 @@
                                                                     class="border-t border-poly-accent/10">
                                                                     <td class="py-1.5 font-mono text-gray-300" :title="holder.wallet_address">
                                                                         <div class="flex items-center gap-1.5">
-                                                                            <span>{{ holder.alias || formatWalletAddress(holder.wallet_address) }}</span>
+                                                                            <a :href="'https://polymarket.com/profile/' + holder.wallet_address" 
+                                                                               target="_blank" 
+                                                                               class="hover:text-poly-blue transition-colors flex items-center gap-1">
+                                                                                <span>{{ holder.alias || formatWalletAddress(holder.wallet_address) }}</span>
+                                                                                <i class="ph ph-arrow-square-out text-[10px] opacity-50"></i>
+                                                                            </a>
                                                                             <i v-if="holder.wallet_tag === 'SYSTEM'" 
                                                                                class="ph ph-bank text-poly-blue/80 cursor-help" 
                                                                                title="This appears to be a system wallet (Liquidity Provider or Rewards Contract), not an individual trader."></i>
@@ -1068,7 +1073,12 @@
                                                                     class="border-t border-poly-accent/10">
                                                                     <td class="py-1.5 font-mono text-gray-300" :title="holder.wallet_address">
                                                                         <div class="flex items-center gap-1.5">
-                                                                            <span>{{ holder.alias || formatWalletAddress(holder.wallet_address) }}</span>
+                                                                            <a :href="'https://polymarket.com/profile/' + holder.wallet_address" 
+                                                                               target="_blank" 
+                                                                               class="hover:text-poly-blue transition-colors flex items-center gap-1">
+                                                                                <span>{{ holder.alias || formatWalletAddress(holder.wallet_address) }}</span>
+                                                                                <i class="ph ph-arrow-square-out text-[10px] opacity-50"></i>
+                                                                            </a>
                                                                             <i v-if="holder.wallet_tag === 'SYSTEM'" 
                                                                                class="ph ph-bank text-poly-blue/80 cursor-help" 
                                                                                title="This appears to be a system wallet (Liquidity Provider or Rewards Contract), not an individual trader."></i>
@@ -1342,7 +1352,12 @@
                                                                 <td class="px-3 py-2 font-medium text-gray-300" :title="holder.wallet_address">
                                                                     <div class="flex items-center gap-2">
                                                                         <i class="ph ph-user text-gray-600"></i>
-                                                                        <span>{{ holder.alias || formatWalletAddress(holder.wallet_address) }}</span>
+                                                                        <a :href="'https://polymarket.com/profile/' + holder.wallet_address" 
+                                                                           target="_blank" 
+                                                                           class="hover:text-poly-blue transition-colors flex items-center gap-1.5">
+                                                                            <span>{{ holder.alias || formatWalletAddress(holder.wallet_address) }}</span>
+                                                                            <i class="ph ph-arrow-square-out text-[10px] opacity-50"></i>
+                                                                        </a>
                                                                         <i v-if="holder.wallet_tag === 'SYSTEM'" 
                                                                            class="ph ph-bank text-poly-blue/80 ml-0.5 cursor-help" 
                                                                            title="This appears to be a system wallet (Liquidity Provider or Rewards Contract), not an individual trader."></i>
@@ -1388,7 +1403,12 @@
                                                                 <td class="px-3 py-2 font-medium text-gray-300" :title="holder.wallet_address">
                                                                     <div class="flex items-center gap-2">
                                                                         <i class="ph ph-user text-gray-600"></i>
-                                                                        <span>{{ holder.alias || formatWalletAddress(holder.wallet_address) }}</span>
+                                                                        <a :href="'https://polymarket.com/profile/' + holder.wallet_address" 
+                                                                           target="_blank" 
+                                                                           class="hover:text-poly-blue transition-colors flex items-center gap-1.5">
+                                                                            <span>{{ holder.alias || formatWalletAddress(holder.wallet_address) }}</span>
+                                                                            <i class="ph ph-arrow-square-out text-[10px] opacity-50"></i>
+                                                                        </a>
                                                                         <i v-if="holder.wallet_tag === 'SYSTEM'" 
                                                                            class="ph ph-bank text-poly-blue/80 ml-0.5 cursor-help" 
                                                                            title="This appears to be a system wallet (Liquidity Provider or Rewards Contract), not an individual trader."></i>
