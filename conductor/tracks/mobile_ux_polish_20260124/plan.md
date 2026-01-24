@@ -13,11 +13,11 @@ Goal: Ensure the app loads results immediately on mobile and prepare the state f
 ## Phase 2: Mobile Filter Modal (Bottom Sheet)
 Goal: Implement the custom Tailwind bottom-sheet component.
 
-- [ ] Task: Create the `MobileFilterModal` template structure inside `index.html`.
-- [ ] Task: Implement the slide-up animation using Tailwind transition classes and Vue `v-if`/`v-show`.
-- [ ] Task: Implement the "Primary" vs "Advanced" section logic within the modal.
-- [ ] Task: Implement the sticky footer with the "Show N Results" button.
-- [ ] Task: Write tests to verify the modal opens/closes and toggles the advanced section correctly.
+- [x] Task: Create the `MobileFilterModal` template structure inside `index.html`.
+- [x] Task: Implement the slide-up animation using Tailwind transition classes and Vue `v-if`/`v-show`.
+- [x] Task: Implement the "Primary" vs "Advanced" section logic within the modal.
+- [x] Task: Implement the sticky footer with the "Show N Results" button.
+- [x] Task: Write tests to verify the modal opens/closes and toggles the advanced section correctly.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Bottom Sheet' (Protocol in workflow.md)
 
 ## Phase 3: Active Filter Chips

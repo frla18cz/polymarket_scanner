@@ -55,3 +55,28 @@ class TestUiMobilePolishContract(unittest.TestCase):
         # It should NOT condition the fetch on showMobileFilters
         self.assertNotIn("if (showMobileFilters.value)", on_mounted_body, 
                          "Fetching should not be conditional on filter visibility")
+
+    def test_mobile_filter_modal_structure(self):
+        """
+        Verifies the structure of the new bottom-sheet filter modal.
+        """
+        html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
+        
+        # Pull handle
+        self.assertIn('w-12 h-1.5 bg-gray-700 rounded-full mx-auto my-3', html, 
+                      "Mobile pull handle missing from filter modal")
+        
+        # Show Results sticky button
+        self.assertIn('Show Results', html, "Sticky 'Show Results' button missing")
+        self.assertIn('markets.length', html, "Results counter missing from sticky button")
+        
+        # Advanced section toggle
+        self.assertIn('showAdvancedFilters = !showAdvancedFilters', html, 
+                      "Advanced filters toggle logic missing")
+        self.assertIn('v-show="!isNarrowScreen || showAdvancedFilters"', html, 
+                      "Advanced filters visibility logic missing")
+
+    def test_show_advanced_filters_state_exists(self):
+        html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
+        self.assertRegex(html, r"const\s+showAdvancedFilters\s*=\s*ref\s*\(\s*false\s*\)", 
+                         "showAdvancedFilters should be initialized to false")

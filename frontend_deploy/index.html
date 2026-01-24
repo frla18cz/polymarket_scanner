@@ -316,43 +316,60 @@
         <!-- Main Content (Sidebar + Grid) -->
         <div class="flex flex-col md:flex-row flex-1 overflow-hidden relative">
 
-            <!-- Sidebar Filters (Desktop: Normal, Mobile: Fixed Overlay) -->
-            <div v-if="showMobileFilters" class="fixed inset-0 bg-black/80 z-40 md:hidden backdrop-blur-sm"
+            <!-- Sidebar Filters (Desktop: Normal, Mobile: Fixed Bottom Sheet Overlay) -->
+            <div v-if="showMobileFilters" class="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm"
                 @click="showMobileFilters = false"></div>
 
-            <aside class="w-64 bg-poly-card border-r border-poly-accent p-3 md:p-4 flex flex-col gap-4 overflow-y-auto shrink-0 z-50 transition-transform duration-300 transform
-                        fixed md:relative top-0 bottom-0 left-0 h-full shadow-2xl md:shadow-none bg-poly-card"
-                :class="showMobileFilters ? 'translate-x-0' : '-translate-x-full md:translate-x-0'">
+            <aside class="bg-poly-card border-poly-accent flex flex-col transition-all duration-300 z-50
+                        fixed md:relative inset-x-0 bottom-0 md:inset-auto md:top-0 md:bottom-0 md:left-0 md:w-64 
+                        h-[85vh] md:h-full rounded-t-3xl md:rounded-none shadow-2xl md:shadow-none border-t md:border-t-0 md:border-r"
+                :class="[
+                    showMobileFilters ? 'translate-y-0' : 'translate-y-full md:translate-y-0',
+                    isNarrowScreen ? 'overflow-hidden' : 'overflow-y-auto'
+                ]">
 
-                <!-- Mobile specific header inside sidebar -->
-                <div class="flex justify-between items-center md:hidden mb-2">
-                    <h3 class="text-white font-bold text-lg">Filters</h3>
-                    <div class="flex items-center -mr-2">
+                <!-- Mobile Pull Handle -->
+                <div class="md:hidden w-12 h-1.5 bg-gray-700 rounded-full mx-auto my-3 shrink-0" @click="showMobileFilters = false"></div>
+
+                <!-- Header -->
+                <div class="px-4 pb-2 flex justify-between items-center shrink-0">
+                    <h3 class="text-white font-bold text-lg md:text-sm md:text-gray-400 md:uppercase md:tracking-wider">Filters</h3>
+                    <div class="flex items-center gap-1">
                         <button v-if="activeFiltersCount > 0" type="button" @click="resetAllFilters"
-                            class="p-3 text-gray-400 hover:text-white active:bg-poly-accent/50 rounded-full transition-colors"
-                            aria-label="Reset all filters">
-                            <i class="ph ph-arrow-counter-clockwise text-xl"></i>
+                            class="p-2 text-gray-400 hover:text-white transition-colors flex items-center gap-1"
+                            title="Reset all filters">
+                            <i class="ph ph-arrow-counter-clockwise text-lg"></i>
+                            <span class="text-xs font-bold md:hidden">Reset</span>
                         </button>
                         <button @click="showMobileFilters = false"
-                            class="p-3 text-gray-400 hover:text-white active:bg-poly-accent/50 rounded-full transition-colors"
+                            class="md:hidden p-2 text-gray-400 hover:text-white transition-colors"
                             aria-label="Close filters">
                             <i class="ph ph-x text-2xl"></i>
                         </button>
                     </div>
                 </div>
 
-                <div v-if="activeFiltersCount > 0" class="px-1">
-                    <div class="flex items-center justify-between">
-                        <div class="text-xs text-gray-500">Active filters</div>
-                        <div class="text-xs font-mono text-gray-400 tabular-nums">{{ activeFiltersCount }}</div>
+                <!-- Scrollable Content -->
+                <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-6 md:gap-4 pb-32 md:pb-4 custom-scrollbar">
+                    
+                    <!-- Mobile Results Counter (Small) -->
+                    <div class="md:hidden flex justify-between items-center bg-poly-bg/50 px-3 py-2 rounded-xl border border-poly-accent/30">
+                        <span class="text-[10px] uppercase text-gray-500 font-bold">Matching Markets</span>
+                        <span class="text-xs font-mono text-white">{{ markets.length }}</span>
                     </div>
-                    <div class="flex flex-wrap gap-1.5 mt-2">
-                        <span v-for="(chip, idx) in activeFilterChips" :key="`chip-${idx}`"
-                            class="px-2 py-0.5 rounded-full text-[10px] border border-poly-accent/70 bg-poly-card/30 text-gray-300">
-                            {{ chip }}
-                        </span>
+                    
+                    <div v-if="activeFiltersCount > 0 && !isNarrowScreen" class="px-1">
+                        <div class="flex items-center justify-between">
+                            <div class="text-xs text-gray-500">Active filters</div>
+                            <div class="text-xs font-mono text-gray-400 tabular-nums">{{ activeFiltersCount }}</div>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5 mt-2">
+                            <span v-for="(chip, idx) in activeFilterChips" :key="`chip-${idx}`"
+                                class="px-2 py-0.5 rounded-full text-[10px] border border-poly-accent/70 bg-poly-card/30 text-gray-300">
+                                {{ chip }}
+                            </span>
+                        </div>
                     </div>
-                </div>
 
                 <!-- Presets -->
                 <div class="rounded-xl border border-poly-accent/50 bg-poly-bg/30 p-3">
@@ -672,8 +689,16 @@
                     </div>
                 </div>
 
-                <div class="rounded-xl border border-poly-accent/50 bg-poly-bg/30 p-3">
-                    <div class="text-xs text-gray-300 font-semibold mb-3">Constraints</div>
+                <!-- Advanced Filters Toggle (Mobile Only) -->
+                <button v-if="isNarrowScreen" @click="showAdvancedFilters = !showAdvancedFilters" 
+                    class="w-full py-4 flex justify-between items-center border-t border-poly-accent/50 mt-2">
+                    <span class="text-sm font-bold text-gray-300">Advanced Constraints</span>
+                    <i :class="['ph text-lg text-gray-500', showAdvancedFilters ? 'ph-caret-up' : 'ph-caret-down']"></i>
+                </button>
+
+                <div v-show="!isNarrowScreen || showAdvancedFilters" class="flex flex-col gap-6 md:gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div class="rounded-xl border border-poly-accent/50 bg-poly-bg/30 p-3">
+                        <div class="text-xs text-gray-300 font-semibold mb-3">Constraints</div>
 
                     <!-- Max Spread -->
                     <div>
@@ -759,10 +784,20 @@
                     </label>
                     <div class="text-[10px] text-gray-600 mt-2 text-center">Keys: j/k (or ↑/↓), Enter, Esc</div>
                 </div>
+                </div>
 
-                <div class="mt-auto pt-4 border-t border-poly-accent text-xs text-center text-gray-500">
+                <div class="mt-auto pt-4 border-t border-poly-accent text-xs text-center text-gray-500 pb-8">
                     <p>Showing {{ markets.length }} markets</p>
                     <p class="mt-1 opacity-50">Scraped Data from Gamma API</p>
+                </div>
+
+                <!-- Sticky Mobile Footer -->
+                <div class="md:hidden absolute bottom-0 left-0 right-0 p-4 bg-poly-card border-t border-poly-accent/50 backdrop-blur-md">
+                    <button @click="showMobileFilters = false" 
+                        class="w-full bg-poly-blue hover:bg-blue-600 text-white font-bold py-3.5 rounded-2xl shadow-xl flex justify-between items-center px-6 active:scale-[0.98] transition-all">
+                        <span>Show Results</span>
+                        <span class="bg-white/20 px-2.5 py-0.5 rounded-lg text-xs font-mono tabular-nums">{{ markets.length }}</span>
+                    </button>
                 </div>
             </aside>
 
@@ -1691,6 +1726,7 @@
                 // Presets State
                 const showAllPresets = ref(false);
                 const showMobileFilters = ref(false);
+                const showAdvancedFilters = ref(false);
 
                 // View mode (mobile)
                 const VIEW_MODE_KEY = "polylab_view_mode";
@@ -2823,6 +2859,7 @@
                     tags,
                     loading,
                     showMobileFilters,
+                    showAdvancedFilters,
                     effectiveViewMode,
                     filters,
                     holdersByMarket,
