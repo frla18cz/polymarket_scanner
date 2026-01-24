@@ -1,0 +1,4 @@
+Task: Fix Database Locking via Sequential Chaining (Phase 1 & 2)
+Summary: Refactored auto_refresh.py to execute scrape and smart money jobs sequentially in a single scheduled job. This prevents SQLite database locking issues. Added regression tests covering success, failure, and scheduling logic.
+Files: auto_refresh.py, tests/test_auto_refresh_logic_unittest.py
+Why: Concurrent writes to SQLite from overlapping jobs caused frequent database locks and corruption.
