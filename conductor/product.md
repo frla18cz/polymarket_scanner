@@ -29,6 +29,7 @@ The project is currently free-to-use, with potential future plans for premium fe
     *   **Identity Resolution:** Integration of Polymarket aliases to identify known traders and entities behind wallet addresses.
     *   **Win Rate Metrics:** Calculation of "Smart Money Win Rate" for market outcomes based on the historical PnL of their top holders.
     *   **Freshness Indicators:** Real-time visibility into when market data and Smart Money analysis were last updated.
+    *   **Direct Access:** Integration of deep links for individual markets and direct profile lookup on Polymarket for top traders.
 *   **Data Aggregation:** Hourly snapshots of market data to provide a stable analysis baseline.
 
 ## 4. Technical Foundation
