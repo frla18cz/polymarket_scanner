@@ -10,6 +10,8 @@
     - [ ] Ensure `frontend_deploy/index.html` is copied to `static/index.html`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Deep Linking & URL Updates' (Protocol in workflow.md)
 
+[checkpoint: f86fa8c]
+
 ## Phase 2: Mobile Polish & Holders Profile Links
 - [ ] Task: Create new test file `tests/test_ui_mobile_polish_contract_unittest.py`
     - [ ] Create test class `TestMobilePolishContract`
