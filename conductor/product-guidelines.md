@@ -18,7 +18,7 @@
 
 ## 4. User Experience (UX)
 *   **Frictionless Exploration:** Users should be able to apply and clear multiple filters with single clicks.
-*   **Mobile Research:** While the desktop view is for "power scanning," the interface must remain functional and readable on mobile devices for bettors checking markets on the move.
+*   **Mobile Research (Results-First):** On mobile, users should immediately see data results. Filters are secondary and tucked into a modern bottom-sheet modal. Active filter "chips" provide persistent context and one-tap removal.
 *   **Persistent State:** Where possible, remember user filter preferences or provide "Shareable URLs" that encode the current filter state.
 
 ## 5. Quality Standards

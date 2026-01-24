@@ -8,7 +8,7 @@ PolyLab is a high-performance market scanner and analytics tool designed for **P
 
 Unlike the standard interface, PolyLab prioritizes **speed of discovery** and **analytical depth**, enabling users to quickly identify betting opportunities based on calculated metrics like APR, spread, and liquidity. While currently operating on an hourly update cycle, it serves as a powerful companion tool for research and position scouting, specifically excluding high-frequency arbitrage strategies.
 
-The project is currently free-to-use, with potential future plans for premium features. The immediate goal is to establish utility and value to support a grant application or partnership with Polymarket.
+The project is currently free-to-use, with potential future plans for premium features. The immediate goal is to establish utility and value to support a grant application or partnership with Polymarket. The mobile experience is optimized for "results-first" exploration with a modern, bottom-sheet driven filter interface.
 
 ## 2. Target Audience
 *   **Bettors & Traders:** Users looking for high-value positions based on fundamental analysis and market inefficiencies (excluding pure arbitrage).
