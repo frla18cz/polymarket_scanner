@@ -10,7 +10,7 @@ Goal: Ensure the app loads results immediately on mobile and prepare the state f
 - [x] Task: Write a test in `tests/test_ui_mobile_polish_contract_unittest.py` to verify that markets are visible on a simulated mobile viewport without opening filters.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Results-First' (Protocol in workflow.md)
 
-## Phase 2: Mobile Filter Modal (Bottom Sheet)
+## Phase 2: Mobile Filter Modal (Bottom Sheet) [checkpoint: d39429c]
 Goal: Implement the custom Tailwind bottom-sheet component.
 
 - [x] Task: Create the `MobileFilterModal` template structure inside `index.html`.
@@ -18,7 +18,7 @@ Goal: Implement the custom Tailwind bottom-sheet component.
 - [x] Task: Implement the "Primary" vs "Advanced" section logic within the modal.
 - [x] Task: Implement the sticky footer with the "Show N Results" button.
 - [x] Task: Write tests to verify the modal opens/closes and toggles the advanced section correctly.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Bottom Sheet' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Bottom Sheet' (Protocol in workflow.md)
 
 ## Phase 3: Active Filter Chips
 Goal: Provide immediate feedback and quick removal of filters.
