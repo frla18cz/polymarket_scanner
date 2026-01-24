@@ -20,14 +20,14 @@ Goal: Implement the custom Tailwind bottom-sheet component.
 - [x] Task: Write tests to verify the modal opens/closes and toggles the advanced section correctly.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Bottom Sheet' (Protocol in workflow.md)
 
-## Phase 3: Active Filter Chips
+## Phase 3: Active Filter Chips [checkpoint: 214c8d7]
 Goal: Provide immediate feedback and quick removal of filters.
 
 - [x] Task: Implement the `activeFilterChips` computed property to generate labels for current filters.
 - [x] Task: Create the horizontal scrollable chips UI above the market list.
 - [x] Task: Bind click events on chips to reset specific filter values in the Vue state.
 - [x] Task: Write tests to verify that removing a chip correctly resets the corresponding filter and triggers a re-fetch.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Active Chips' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Active Chips' (Protocol in workflow.md)
 
 ## Phase 4: UX Polish & Cleanup
 Goal: Final touches on transitions, hints, and mobile-specific styling.
