@@ -1,0 +1,4 @@
+Task: Verify and Fix Mobile Layouts (Update)
+Summary: Forced the mobile holders table to use 'table-fixed' with explicit percentage widths. Added 'truncate' to the User name span and wrapped it in a 'min-w-0' flex container to ensure the P/L column is always visible.
+Files: frontend_deploy/index.html, static/index.html
+Why: To fix the issue where long aliases or addresses pushed the P/L column off-screen on mobile.
