@@ -24,11 +24,11 @@
     - [x] Add link to Polymarket profile with an external link icon. [f9bf3d1]
     - [x] Add `title` attribute for desktop tooltip. [f9bf3d1]
     - [x] Ensure `frontend_deploy/index.html` is copied to `static/index.html`. [f9bf3d1]
-- [~] Task: Verify and Fix Mobile Layouts
-    - [ ] Check Filter Panel (CSS adjustments if needed).
-    - [ ] Check Market Details Modal (CSS adjustments).
-    - [ ] Check Holders View (CSS adjustments for scrolling/wrapping).
-    - [ ] Ensure `frontend_deploy/index.html` is copied to `static/index.html`.
+- [x] Task: Verify and Fix Mobile Layouts [3d7028d]
+    - [x] Check Filter Panel (CSS adjustments if needed).
+    - [x] Check Market Details Modal (CSS adjustments).
+    - [x] Check Holders View (CSS adjustments for scrolling/wrapping).
+    - [x] Ensure `frontend_deploy/index.html` is copied to `static/index.html`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Mobile Polish & Holders Profile Links' (Protocol in workflow.md)
 
 ## Phase 3: Final Integration & Cleanup
