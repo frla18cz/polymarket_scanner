@@ -28,6 +28,10 @@ def _default_stats_path() -> Path:
 
 STATS_FILE = Path(os.environ.get("SCRAPE_STATS_PATH") or _default_stats_path())
 
+# State for scheduling
+_last_smart_money_run = 0
+SMART_MONEY_INTERVAL_SECONDS = 6 * 3600  # 6 hours
+
 def log_stats(job_name, duration):
     file_exists = STATS_FILE.exists()
     try:
@@ -39,52 +43,74 @@ def log_stats(job_name, duration):
     except Exception as e:
         logger.warning("Failed to log stats: %s", e)
 
-def job_scrape():
-    logger.info("Starting scheduled job: SCRAPE")
-    t0 = time.time()
+def job_coordinated_refresh():
+    """
+    Executes scraper and smart money analysis sequentially to prevent DB locking.
+    """
+    global _last_smart_money_run
+    logger.info("Starting COORDINATED REFRESH cycle")
+    
+    # 1. Scrape (Market Data)
+    logger.info("Step 1/2: Market Data Scrape")
+    t0_scrape = time.time()
+    scrape_success = False
     try:
         run_scrape()
-        duration = time.time() - t0
-        log_stats("scrape", duration)
-        logger.info("Job SCRAPE finished in %.2fs", duration)
+        duration_scrape = time.time() - t0_scrape
+        log_stats("scrape", duration_scrape)
+        logger.info("Job SCRAPE finished in %.2fs", duration_scrape)
+        scrape_success = True
     except Exception as e:
-        logger.exception("Error during SCRAPE: %s", e)
+        logger.exception("Error during SCRAPE: %s. Aborting Smart Money step.", e)
+        # We do NOT run smart money if scrape failed to ensure data consistency
+        return
 
-def job_smart_money():
-    logger.info("Starting scheduled job: SMART_MONEY")
-    t0 = time.time()
-    try:
-        run_smart_money()
-        duration = time.time() - t0
-        log_stats("smart_money", duration)
-        logger.info("Job SMART_MONEY finished in %.2fs", duration)
-    except Exception as e:
-        logger.exception("Error during SMART_MONEY: %s", e)
+    # 2. Smart Money (Holders)
+    # Check interval
+    now = time.time()
+    time_since_last = now - _last_smart_money_run
+    
+    # We run smart money if interval passed OR if it's the first run (huge time_since_last)
+    if time_since_last >= SMART_MONEY_INTERVAL_SECONDS:
+        logger.info("Step 2/2: Smart Money Analysis (Interval reached: %.1fh >= 6.0h)", time_since_last / 3600)
+        t0_sm = time.time()
+        try:
+            run_smart_money()
+            duration_sm = time.time() - t0_sm
+            log_stats("smart_money", duration_sm)
+            logger.info("Job SMART_MONEY finished in %.2fs", duration_sm)
+            # Only update timestamp if successful? Or always?
+            # To avoid retry loops on failure, we update timestamp even if it fails?
+            # No, if it fails, maybe we want to retry next hour.
+            # But the spec says "Error should be logged".
+            # For robustness, let's update timestamp only on success or partial success.
+            # But if it fails consistently, we might want to back off.
+            # Given "Simple" requirement, let's update timestamp to prevent running it every hour if it fails.
+            _last_smart_money_run = time.time() 
+        except Exception as e:
+            logger.exception("Error during SMART_MONEY: %s", e)
+            # We still update timestamp to avoid hammering if it's broken?
+            # Or should we try again next hour?
+            # Let's NOT update timestamp, so it retries next hour.
+            pass
+    else:
+        logger.info("Step 2/2: Skipping Smart Money (Next run in %.1fh)", (SMART_MONEY_INTERVAL_SECONDS - time_since_last) / 3600)
 
 def start_scheduler():
     scheduler = BlockingScheduler()
     
-    # Job 1: Market data every 1 hour
+    # Unified Job: Runs every 1 hour
+    # Replaces the previous separate jobs
     scheduler.add_job(
-        job_scrape,
+        job_coordinated_refresh,
         trigger=IntervalTrigger(minutes=60),
-        id='scrape_job',
-        name='Market Data Scrape',
+        id='coordinated_refresh',
+        name='Coordinated Refresh (Scrape + Smart Money)',
         replace_existing=True,
         next_run_time=datetime.now() # Start immediately
     )
     
-    # Job 2: Smart Money every 6 hours
-    scheduler.add_job(
-        job_smart_money,
-        trigger=IntervalTrigger(minutes=360),
-        id='smart_money_job',
-        name='Smart Money Analysis',
-        replace_existing=True,
-        next_run_time=datetime.now() # Start immediately
-    )
-    
-    logger.info("Starting scheduler (Scrape: 1h, Smart Money: 6h)...")
+    logger.info("Starting scheduler (Coordinated Refresh: 1h)...")
     try:
         scheduler.start()
     except (KeyboardInterrupt, SystemExit):
