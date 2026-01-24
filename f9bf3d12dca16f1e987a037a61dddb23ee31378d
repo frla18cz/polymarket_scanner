@@ -1,0 +1,4 @@
+Task: Implement Address Shortening & Profile Links
+Summary: Updated wallet address display to be shortened (0x... format) and added direct links to Polymarket profiles. Added 'title' attribute for full address tooltips.
+Files: frontend_deploy/index.html, static/index.html, tests/test_ui_mobile_polish_contract_unittest.py
+Why: Improved UI clarity on mobile and provided easier access to holder profiles.
