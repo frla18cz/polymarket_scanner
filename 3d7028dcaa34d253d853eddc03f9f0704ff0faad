@@ -1,0 +1,4 @@
+Task: Verify and Fix Mobile Layouts
+Summary: Improved horizontal scrolling for holder tables on mobile by adding negative margins and padding to the overflow container. Fixed a duplicate key issue in the template.
+Files: frontend_deploy/index.html, static/index.html
+Why: To prevent the UI from breaking on very narrow screens and ensure all data is accessible.
