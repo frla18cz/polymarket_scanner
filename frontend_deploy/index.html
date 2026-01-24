@@ -2279,12 +2279,44 @@
                     return sorted;
                 };
 
+                const updateUrlParams = (marketId) => {
+                    const url = new URL(window.location);
+                    if (marketId) {
+                        url.searchParams.set('market_id', marketId);
+                    } else {
+                        url.searchParams.delete('market_id');
+                    }
+                    window.history.replaceState({}, '', url);
+                };
+
+                const checkDeepLink = () => {
+                    const params = new URLSearchParams(window.location.search);
+                    const id = params.get('market_id');
+                    if (id && markets.value.length > 0) {
+                        const m = markets.value.find(m => String(m.market_id) === id);
+                        if (m) {
+                            expandedId.value = m.market_id + m.outcome_name;
+                            fetchHolders(m.market_id, m.condition_id);
+                            setTimeout(() => {
+                                const idx = markets.value.indexOf(m);
+                                if (idx >= 0) {
+                                    selectedIndex.value = idx;
+                                    document.getElementById(`row-${idx}`)?.scrollIntoView?.({ block: "center" });
+                                }
+                            }, 500);
+                        }
+                    }
+                };
+
                 // Toggle Details
                 const toggleDetails = (market, idx = null) => {
                     const id = market.market_id + market.outcome_name;
                     if (typeof idx === "number") selectedIndex.value = idx;
                     const next = expandedId.value === id ? null : id;
                     expandedId.value = next;
+                    
+                    updateUrlParams(next ? market.market_id : null);
+
                     if (next) fetchHolders(market.market_id, market.condition_id);
                 };
 
@@ -2739,7 +2771,8 @@
                 onMounted(async () => {
                     fetchTags();
                     fetchStatus();
-                    fetchMarkets();
+                    await fetchMarkets();
+                    checkDeepLink();
                     updateScreenFlags();
                     window.addEventListener('resize', updateScreenFlags);
                     window.addEventListener("keydown", onKeyDown);

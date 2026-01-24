@@ -1,10 +1,10 @@
 # Implementation Plan - UI Stability, Mobile Perf & Deep Linking
 
 ## Phase 1: Deep Linking & URL Updates
-- [ ] Task: Create/Update test file `tests/test_ui_deep_linking_contract_unittest.py`
+- [x] Task: Create/Update test file `tests/test_ui_deep_linking_contract_unittest.py`
     - [ ] Create test class `TestDeepLinkingContract`
     - [ ] Add test `test_url_update_logic_exists` (Expects `window.history.pushState` or `replaceState` calls when selecting/deselecting market)
-- [ ] Task: Implement URL Synchronization in `frontend_deploy/index.html`
+- [x] Task: Implement URL Synchronization in `frontend_deploy/index.html`
     - [ ] Add `watch` or method to update URL when `selectedMarket` changes.
     - [ ] Ensure URL is cleaned up when modal is closed.
     - [ ] Ensure `frontend_deploy/index.html` is copied to `static/index.html`.
