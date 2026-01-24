@@ -31,8 +31,3 @@ This file tracks all major tracks for the project. Each track has its own detail
 ## [x] Track: Smart Money Legacy Revert & Robust Retry
 
 *Link: [./conductor/tracks/smart_money_legacy_revert_20260120/](./conductor/tracks/smart_money_legacy_revert_20260120/)*
-
----
-
-- [x] **Track: Mobile UI improvements, address shortening, and deep linking.**
-*Link: [./conductor/tracks/ui_mobile_deep_linking_20260123/](./conductor/tracks/ui_mobile_deep_linking_20260123/)*
