@@ -1,4 +1,4 @@
-# Track ui_mobile_deep_linking_20260123 Context
+# Track mobile_ux_polish_20260124 Context
 
 - [Specification](./spec.md)
 - [Implementation Plan](./plan.md)

@@ -5,9 +5,9 @@ This plan details the transition from a "filters-first" mobile UI to a "results-
 ## Phase 1: Foundation & "Results-First" Logic
 Goal: Ensure the app loads results immediately on mobile and prepare the state for modal control.
 
-- [~] Task: Update `index.html` state to default `showMobileFilters` to `false`.
-- [ ] Task: Ensure the market fetching logic handles the initial load correctly without requiring user interaction on mobile.
-- [ ] Task: Write a test in `tests/test_ui_mobile_polish_contract_unittest.py` to verify that markets are visible on a simulated mobile viewport without opening filters.
+- [x] Task: Update `index.html` state to default `showMobileFilters` to `false`.
+- [x] Task: Ensure the market fetching logic handles the initial load correctly without requiring user interaction on mobile.
+- [x] Task: Write a test in `tests/test_ui_mobile_polish_contract_unittest.py` to verify that markets are visible on a simulated mobile viewport without opening filters.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Results-First' (Protocol in workflow.md)
 
 ## Phase 2: Mobile Filter Modal (Bottom Sheet)
