@@ -1007,9 +1007,8 @@
                                             <div v-else class="space-y-6">
                                                 <!-- YES HOLDERS -->
                                                 <div v-if="holdersByMarket[m.market_id].yes.length">
-                                                    <div class="text-[10px] font-bold text-poly-green uppercase mb-2">Holders: YES</div>
-                                                    <div class="overflow-x-auto">
-                                                        <table class="min-w-full text-[11px]" :key="`mob-table-no-${holdersSortBy}-${holdersSortDir}`">
+                                                    <div class="overflow-x-auto -mx-1 px-1">
+                                                        <table class="min-w-full text-[11px]" :key="`mob-table-yes-${holdersSortBy}-${holdersSortDir}`">
                                                             <thead class="text-[10px] uppercase text-gray-500 border-b border-poly-accent/30">
                                                                 <tr>
                                                                     <th class="text-left font-semibold py-1">User</th>
@@ -1054,7 +1053,7 @@
                                                 <!-- NO HOLDERS -->
                                                 <div v-if="holdersByMarket[m.market_id].no.length">
                                                     <div class="text-[10px] font-bold text-poly-red uppercase mb-2">Holders: NO</div>
-                                                    <div class="overflow-x-auto">
+                                                    <div class="overflow-x-auto -mx-1 px-1">
                                                         <table class="min-w-full text-[11px]" :key="`mob-table-no-${holdersSortBy}-${holdersSortDir}`">
                                                             <thead class="text-[10px] uppercase text-gray-500 border-b border-poly-accent/30">
                                                                 <tr>
