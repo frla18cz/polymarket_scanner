@@ -99,3 +99,14 @@ class TestUiMobilePolishContract(unittest.TestCase):
         html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
         self.assertIn('const removeFilterChip = (key) =>', html, "removeFilterChip method missing from script")
         self.assertIn('resetAndFetch()', html, "removeFilterChip should trigger re-fetch")
+
+    def test_mobile_filter_hint_exists(self):
+        """
+        Verifies that the first-visit hint tooltip is implemented.
+        """
+        html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
+        
+        self.assertRegex(html, r"const\s+showMobileFilterHint\s*=\s*ref\s*\(\s*false\s*\)", 
+                         "showMobileFilterHint state missing")
+        self.assertIn('Tip: Tap here to adjust filters!', html, "Hint tooltip text missing")
+        self.assertIn('dismissMobileFilterHint()', html, "dismissMobileFilterHint call missing")

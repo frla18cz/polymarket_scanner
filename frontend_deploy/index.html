@@ -295,10 +295,25 @@
 
         <!-- Mobile Filter Toggle Bar (Visible only on mobile) -->
         <div class="md:hidden bg-poly-card border-b border-poly-accent p-3 flex justify-between items-center shrink-0">
-            <button @click="showMobileFilters = true"
-                class="flex items-center gap-2 px-4 py-2 rounded border border-poly-accent bg-poly-bg text-gray-300 text-xs font-bold uppercase tracking-wider active:bg-poly-accent transition-colors">
-                <i class="ph ph-faders text-lg"></i> Filters
-            </button>
+            <div class="relative">
+                <button @click="showMobileFilters = true; dismissMobileFilterHint()"
+                    class="flex items-center gap-2 px-4 py-2 rounded border border-poly-accent bg-poly-bg text-gray-300 text-xs font-bold uppercase tracking-wider active:bg-poly-accent transition-colors">
+                    <i class="ph ph-faders text-lg"></i> Filters
+                </button>
+
+                <!-- Tooltip Hint -->
+                <div v-if="showMobileFilterHint" 
+                    class="absolute top-full left-0 mt-3 w-48 bg-poly-blue text-white p-3 rounded-xl shadow-2xl z-50 animate-bounce"
+                    @click="showMobileFilters = true; dismissMobileFilterHint()">
+                    <div class="absolute -top-1 left-6 w-3 h-3 bg-poly-blue rotate-45"></div>
+                    <div class="flex justify-between items-start gap-2">
+                        <p class="text-[11px] font-bold leading-tight">Tip: Tap here to adjust filters!</p>
+                        <button @click.stop="dismissMobileFilterHint" class="text-white/70 hover:text-white">
+                            <i class="ph ph-x text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
             <div class="flex items-center gap-2">
                 <button @click="toggleViewMode"
                     class="flex items-center gap-2 px-4 py-2 rounded border border-poly-accent bg-poly-bg text-gray-300 text-xs font-bold uppercase tracking-wider active:bg-poly-accent transition-colors"
@@ -757,7 +772,7 @@
                 <!-- Sticky Mobile Footer -->
                 <div class="md:hidden absolute bottom-0 left-0 right-0 p-4 bg-poly-card border-t border-poly-accent/50 backdrop-blur-md">
                     <button @click="showMobileFilters = false" 
-                        class="w-full bg-poly-blue hover:bg-blue-600 text-white font-bold py-3.5 rounded-2xl shadow-xl flex justify-between items-center px-6 active:scale-[0.98] transition-all">
+                        class="w-full bg-poly-blue hover:bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-xl flex justify-between items-center px-6 active:scale-[0.98] transition-all">
                         <span>Show Results</span>
                         <span class="bg-white/20 px-2.5 py-0.5 rounded-lg text-xs font-mono tabular-nums">{{ markets.length }}</span>
                     </button>
@@ -1704,6 +1719,7 @@
                 const showAllPresets = ref(false);
                 const showMobileFilters = ref(false);
                 const showAdvancedFilters = ref(false);
+                const showMobileFilterHint = ref(false);
 
                 // View mode (mobile)
                 const VIEW_MODE_KEY = "polylab_view_mode";
@@ -1727,8 +1743,16 @@
                 };
 
                 const maybeAutoOpenMobileFilters = () => {
-                    // Disabled: Results-first experience.
-                    // We might use MOBILE_FILTERS_SEEN_KEY for a tooltip hint later.
+                    if (!isNarrowScreen.value) return;
+                    const seen = _safeGetLocalStorage(MOBILE_FILTERS_SEEN_KEY);
+                    if (seen !== "1") {
+                        showMobileFilterHint.value = true;
+                    }
+                };
+
+                const dismissMobileFilterHint = () => {
+                    showMobileFilterHint.value = false;
+                    _safeSetLocalStorage(MOBILE_FILTERS_SEEN_KEY, "1");
                 };
 
                 // Default Filters (User Request: 5c spread, 5k vol, 1k liq, 0-100 prob)
@@ -2868,6 +2892,8 @@
                     loading,
                     showMobileFilters,
                     showAdvancedFilters,
+                    showMobileFilterHint,
+                    dismissMobileFilterHint,
                     effectiveViewMode,
                     filters,
                     holdersByMarket,
