@@ -29,11 +29,11 @@ Goal: Provide immediate feedback and quick removal of filters.
 - [x] Task: Write tests to verify that removing a chip correctly resets the corresponding filter and triggers a re-fetch.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Active Chips' (Protocol in workflow.md)
 
-## Phase 4: UX Polish & Cleanup
+## Phase 4: UX Polish & Cleanup [checkpoint: 1352c3f]
 Goal: Final touches on transitions, hints, and mobile-specific styling.
 
 - [x] Task: Implement the "First Visit Hint" (tooltip) pointing to the filter button using `localStorage` to track if seen.
 - [x] Task: Refine the "Show N Results" feedback logic to update as user changes filters inside the modal.
 - [x] Task: Final CSS cleanup for touch targets (ensure buttons are at least 44x44px per guidelines).
 - [x] Task: Verify overall mobile performance and accessibility.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Final Polish' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Final Polish' (Protocol in workflow.md)
