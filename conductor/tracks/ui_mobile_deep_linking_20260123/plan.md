@@ -13,17 +13,17 @@
 [checkpoint: f86fa8c]
 
 ## Phase 2: Mobile Polish & Holders Profile Links
-- [~] Task: Create new test file `tests/test_ui_mobile_polish_contract_unittest.py`
-    - [ ] Create test class `TestMobilePolishContract`
-    - [ ] Add test `test_address_shortening_logic_exists` (Expects function `shortenAddress`)
-    - [ ] Add test `test_profile_link_exists` (Expects link to `polymarket.com/profile/`)
-    - [ ] Add test `test_tooltip_attribute_exists` (Expects `title="..."` binding on address)
-- [~] Task: Implement Address Shortening & Profile Links
-    - [ ] Create `shortenAddress` function in `frontend_deploy/index.html`.
-    - [ ] Update Holders table/list to use it.
-    - [ ] Add link to Polymarket profile with an external link icon.
-    - [ ] Add `title` attribute for desktop tooltip.
-    - [ ] Ensure `frontend_deploy/index.html` is copied to `static/index.html`.
+- [x] Task: Create new test file `tests/test_ui_mobile_polish_contract_unittest.py` [f9bf3d1]
+    - [x] Create test class `TestMobilePolishContract` [f9bf3d1]
+    - [x] Add test `test_address_shortening_logic_exists` (Expects function `shortenAddress`) [f9bf3d1]
+    - [x] Add test `test_profile_link_exists` (Expects link to `polymarket.com/profile/`) [f9bf3d1]
+    - [x] Add test `test_tooltip_attribute_exists` (Expects `title="..."` binding on address) [f9bf3d1]
+- [x] Task: Implement Address Shortening & Profile Links [f9bf3d1]
+    - [x] Create `shortenAddress` function in `frontend_deploy/index.html`. [f9bf3d1]
+    - [x] Update Holders table/list to use it. [f9bf3d1]
+    - [x] Add link to Polymarket profile with an external link icon. [f9bf3d1]
+    - [x] Add `title` attribute for desktop tooltip. [f9bf3d1]
+    - [x] Ensure `frontend_deploy/index.html` is copied to `static/index.html`. [f9bf3d1]
 - [ ] Task: Verify and Fix Mobile Layouts
     - [ ] Check Filter Panel (CSS adjustments if needed).
     - [ ] Check Market Details Modal (CSS adjustments).
