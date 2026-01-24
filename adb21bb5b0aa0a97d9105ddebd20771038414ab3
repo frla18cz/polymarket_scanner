@@ -1,0 +1,4 @@
+Task: Deep Linking & URL Updates
+Summary: Implemented deep linking logic in frontend. Added URL parameter handling for market_id on load and during navigation.
+Files: frontend_deploy/index.html, static/index.html, tests/test_ui_deep_linking_contract_unittest.py
+Why: To allow users to share direct links to specific markets.
