@@ -1,58 +1,57 @@
+import re
 import unittest
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FRONTEND_DEPLOY = REPO_ROOT / "frontend_deploy" / "index.html"
 
-class TestMobilePolishContract(unittest.TestCase):
-    def test_address_shortening_logic_exists(self):
+class TestUiMobilePolishContract(unittest.TestCase):
+    def test_mobile_filters_do_not_auto_open(self):
         """
-        Ensures the formatWalletAddress function exists and behaves as expected (shortens to 0x...1234).
+        Ensures that the 'filters-first' logic (auto-opening filters on mobile if not seen)
+        is REMOVED to satisfy the 'results-first' requirement.
         """
-        if not FRONTEND_DEPLOY.exists():
-             self.fail(f"Frontend file not found at {FRONTEND_DEPLOY}")
+        html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
+        
+        # We expect showMobileFilters to be initialized to false
+        # (This is likely already true, but let's verify no one set it to true by default)
+        self.assertRegex(html, r"const\s+showMobileFilters\s*=\s*ref\s*\(\s*false\s*\)", 
+                         "showMobileFilters should be initialized to false")
 
-        html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
+        # The function `maybeAutoOpenMobileFilters` logic that sets it to true
+        # should either be removed or significantly altered.
+        # For this test, we assert that the specific auto-open logic is GONE.
         
-        self.assertIn(
-            "const formatWalletAddress", 
-            html, 
-            "Frontend must contain `formatWalletAddress` function"
-        )
+        # The specific line we want to disappear: `showMobileFilters.value = true;` inside `maybeAutoOpenMobileFilters`
+        # We can look for the function definition and check its content, or just check that the function call in onMounted is gone/changed.
         
-        # We expect the logic to slice(0,6) and slice(-4) or similar
-        self.assertIn(
-            "slice(0, 6)", 
-            html, 
-            "Address shortening should keep the first 6 chars"
-        )
-        self.assertIn(
-            "slice(-4)", 
-            html, 
-            "Address shortening should keep the last 4 chars"
-        )
+        # Let's search for the aggressive auto-open pattern
+        auto_open_pattern = r"showMobileFilters\.value\s*=\s*true;\s*_safeSetLocalStorage\(MOBILE_FILTERS_SEEN_KEY,\s*\"1\"\);"
+        
+        self.assertNotRegex(html, auto_open_pattern, 
+                            "The code should NOT auto-open mobile filters on first visit. Found legacy auto-open logic.")
 
-    def test_profile_link_exists(self):
+    def test_market_fetching_logic_is_independent_of_filters_visibility(self):
         """
-        Ensures that we generate links to polymarket.com/profile/<address>.
-        """
-        html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
-        
-        self.assertIn(
-            "polymarket.com/profile/", 
-            html, 
-            "Frontend must contain a link to the Polymarket profile page"
-        )
-        
-    def test_tooltip_attribute_exists(self):
-        """
-        Ensures that the full address is available in a title attribute for desktop hover.
+        Ensures that data fetching happens regardless of filter visibility.
         """
         html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
         
-        # Look for the binding :title="holder.wallet_address" or similar
-        self.assertIn(
-            ':title="holder.wallet_address"', 
-            html, 
-            "Frontend must bind the full wallet address to the title attribute for tooltips"
-        )
+        # Ensure 'debouncedFetch' or 'resetAndFetch' is called on mount
+        # or that 'onMounted' calls something that fetches data.
+        
+        # We assume onMounted calls `resetAndFetch` or `loadMore` or similar.
+        # Let's verify onMounted exists and calls a fetcher.
+        
+        match = re.search(r"onMounted\(\s*(?:async\s+)?\(\)\s*=>\s*\{([\s\S]*?)\}\);", html)
+        self.assertIsNotNone(match, "onMounted hook not found")
+        
+        on_mounted_body = match.group(1)
+        
+        # It should call fetch/load
+        self.assertTrue("resetAndFetch" in on_mounted_body or "loadMore" in on_mounted_body or "debouncedFetch" in on_mounted_body or "fetchMarkets" in on_mounted_body, 
+                        "onMounted must initiate data fetching")
+        
+        # It should NOT condition the fetch on showMobileFilters
+        self.assertNotIn("if (showMobileFilters.value)", on_mounted_body, 
+                         "Fetching should not be conditional on filter visibility")

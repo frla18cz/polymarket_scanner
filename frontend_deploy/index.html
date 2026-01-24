@@ -1714,12 +1714,8 @@
                 };
 
                 const maybeAutoOpenMobileFilters = () => {
-                    if (!isNarrowScreen.value) return;
-                    const seen = _safeGetLocalStorage(MOBILE_FILTERS_SEEN_KEY);
-                    if (seen !== "1") {
-                        showMobileFilters.value = true;
-                        _safeSetLocalStorage(MOBILE_FILTERS_SEEN_KEY, "1");
-                    }
+                    // Disabled: Results-first experience.
+                    // We might use MOBILE_FILTERS_SEEN_KEY for a tooltip hint later.
                 };
 
                 // Default Filters (User Request: 5c spread, 5k vol, 1k liq, 0-100 prob)
