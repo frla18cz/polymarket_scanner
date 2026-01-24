@@ -357,47 +357,10 @@
                         <span class="text-[10px] uppercase text-gray-500 font-bold">Matching Markets</span>
                         <span class="text-xs font-mono text-white">{{ markets.length }}</span>
                     </div>
-                    
-                    <div v-if="activeFiltersCount > 0 && !isNarrowScreen" class="px-1">
-                        <div class="flex items-center justify-between">
-                            <div class="text-xs text-gray-500">Active filters</div>
-                            <div class="text-xs font-mono text-gray-400 tabular-nums">{{ activeFiltersCount }}</div>
-                        </div>
-                        <div class="flex flex-wrap gap-1.5 mt-2">
-                            <span v-for="(chip, idx) in activeFilterChips" :key="`chip-${idx}`"
-                                class="px-2 py-0.5 rounded-full text-[10px] border border-poly-accent/70 bg-poly-card/30 text-gray-300">
-                                {{ chip }}
-                            </span>
-                        </div>
-                    </div>
 
-                <!-- Presets -->
-                <div class="rounded-xl border border-poly-accent/50 bg-poly-bg/30 p-3">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="text-xs text-gray-300 font-semibold">Presets</div>
-                        <button v-if="activeFiltersCount > 0" type="button" @click="resetAllFilters"
-                            class="hidden md:inline-flex items-center px-2.5 py-1 rounded-full border border-poly-accent/70 bg-poly-card/30 hover:bg-poly-accent text-gray-200 text-xs font-medium transition">
-                            Reset
-                        </button>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2">
-                        <button v-for="preset in displayedPresets" :key="preset.id" @click="applyPreset(preset)"
-                            class="border rounded-xl py-2.5 px-1.5 text-xs transition flex flex-col items-center gap-1 text-center h-full justify-center relative overflow-hidden"
-                            :class="preset.class" :title="preset.description || preset.label" type="button">
-                            <div v-if="(preset.id === 'buffett' || preset.id === 'sniper') && !user" class="absolute top-1 right-1 text-poly-red bg-poly-bg/80 rounded-full w-4 h-4 flex items-center justify-center shadow-sm z-10">
-                                <i class="ph ph-lock-key text-[10px]"></i>
-                            </div>
-                            <i :class="['ph text-xl', preset.icon]"></i>
-                            <span class="leading-tight">{{ preset.label }}</span>
-                        </button>
-
-                        <!-- Show More / Less -->
-                        <button v-if="presetDefinitions.length > 4" @click="showAllPresets = !showAllPresets"
-                            class="col-span-2 text-xs text-gray-500 hover:text-white mt-2 flex items-center justify-center gap-1 transition font-medium py-1"
-                            type="button">
-                            <span>{{ showAllPresets ? 'Show Less' : 'Show More' }}</span>
-                            <i :class="showAllPresets ? 'ph-caret-up' : 'ph-caret-down'"></i>
+                    <!-- Primary Filters (Presets, Search, Tags, Expiry, Price) -->
+                    <div class="flex flex-col gap-6 md:gap-4">
+                        <!-- Presets -->
                         </button>
                     </div>
                 </div>
@@ -817,6 +780,20 @@
                             <h3 class="text-white font-bold text-xl">Updating Markets</h3>
                             <p class="text-gray-400 text-sm mt-2">Fetching fresh data...</p>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Active Filters Chips (Horizontal Scroll) -->
+                <div v-if="activeFiltersCount > 0" class="bg-poly-bg border-b border-poly-accent/30 px-4 py-2 flex items-center gap-3 overflow-x-auto shrink-0 scrollbar-hide">
+                    <span class="text-[10px] uppercase text-gray-500 font-bold whitespace-nowrap">Active:</span>
+                    <div class="flex items-center gap-2">
+                        <button v-for="chip in activeFilterChips" :key="chip.key" 
+                            @click="removeFilterChip(chip.key)"
+                            class="px-2.5 py-1 rounded-full text-[10px] font-medium border border-poly-accent bg-poly-card/50 text-gray-300 hover:text-white hover:border-poly-blue transition-colors flex items-center gap-1.5 whitespace-nowrap group">
+                            {{ chip.label }}
+                            <i class="ph ph-x text-[8px] opacity-50 group-hover:opacity-100"></i>
+                        </button>
+                        <button @click="resetAllFilters" class="text-[10px] text-poly-red hover:underline whitespace-nowrap px-2">Clear All</button>
                     </div>
                 </div>
 
@@ -2507,42 +2484,73 @@
                     const chips = [];
 
                     if (activePreset.value && activePreset.value.label) {
-                        chips.push(`Preset: ${activePreset.value.label}`);
+                        chips.push({ label: `Preset: ${activePreset.value.label}`, key: 'preset' });
                     }
-	                    if (f.search) chips.push(`Search: ${_shortText(f.search)}`);
-	                    if (f.includedTags && f.includedTags.length) chips.push(`+${f.includedTags.length} include`);
-	                    if (f.excludedTags && f.excludedTags.length) chips.push(`-${f.excludedTags.length} exclude`);
-	                    const minH = Number(f.min_hours_to_expire || 0);
+	                    if (f.search) chips.push({ label: `Search: ${_shortText(f.search)}`, key: 'search' });
+	                    if (f.includedTags && f.includedTags.length) chips.push({ label: `+${f.includedTags.length} include`, key: 'includedTags' });
+	                    if (f.excludedTags && f.excludedTags.length) chips.push({ label: `-${f.excludedTags.length} exclude`, key: 'excludedTags' });
+	                    
+                        const minH = Number(f.min_hours_to_expire || 0);
 	                    const maxH = Number(f.max_hours_to_expire || 0);
-	                    if (minH > 0 && maxH > 0) chips.push(`Expiry: ${formatExpiryHours(minH)}–${expiryDisplay.value}`);
-	                    else if (maxH > 0) chips.push(`Expiry: ${expiryDisplay.value}`);
-	                    else if (minH > 0) chips.push(`Expiry: ≥ ${formatExpiryHours(minH)}`);
+	                    if (minH > 0 || maxH > 0) {
+                            let label = "";
+                            if (minH > 0 && maxH > 0) label = `Expiry: ${formatExpiryHours(minH)}–${expiryDisplay.value}`;
+	                        else if (maxH > 0) label = `Expiry: ${expiryDisplay.value}`;
+	                        else label = `Expiry: ≥ ${formatExpiryHours(minH)}`;
+                            chips.push({ label, key: 'expiry' });
+                        }
+
 	                    if (f.include_expired !== DEFAULT_FILTERS.include_expired) {
-	                        chips.push(f.include_expired ? "Show expired" : "Hide expired");
+	                        chips.push({ label: f.include_expired ? "Show expired" : "Hide expired", key: 'include_expired' });
 	                    }
                     if (f.min_price !== DEFAULT_FILTERS.min_price || f.max_price !== DEFAULT_FILTERS.max_price) {
-                        chips.push(`P: ${formatPct(minPricePct.value)}–${formatPct(maxPricePct.value)}%`);
+                        chips.push({ label: `P: ${formatPct(minPricePct.value)}–${formatPct(maxPricePct.value)}%`, key: 'price' });
                     }
                     if (f.max_spread !== DEFAULT_FILTERS.max_spread) {
                         const spreadCents = Number(f.max_spread) * 100;
-                        chips.push(`Spread ≤ ${spreadCents.toFixed(1)}¢`);
+                        chips.push({ label: `Spread ≤ ${spreadCents.toFixed(1)}¢`, key: 'max_spread' });
                     }
                     if (f.min_apr_percent !== DEFAULT_FILTERS.min_apr_percent) {
-                        chips.push(`APR ≥ ${aprLabel.value}`);
+                        chips.push({ label: `APR ≥ ${aprLabel.value}`, key: 'min_apr_percent' });
                     }
                     if (f.min_volume !== DEFAULT_FILTERS.min_volume) {
-                        chips.push(`Vol ≥ ${formatCompact(f.min_volume)}`);
+                        chips.push({ label: `Vol ≥ ${formatCompact(f.min_volume)}`, key: 'min_volume' });
                     }
                     if (f.min_liquidity !== DEFAULT_FILTERS.min_liquidity) {
-                        chips.push(`Liq ≥ ${formatCompact(f.min_liquidity)}`);
+                        chips.push({ label: `Liq ≥ ${formatCompact(f.min_liquidity)}`, key: 'min_liquidity' });
                     }
                     if (f.sort_by !== DEFAULT_FILTERS.sort_by || f.sort_dir !== DEFAULT_FILTERS.sort_dir) {
                         const arrow = f.sort_dir === "asc" ? "↑" : "↓";
-                        chips.push(`Sort: ${_sortLabel(f.sort_by)} ${arrow}`);
+                        chips.push({ label: `Sort: ${_sortLabel(f.sort_by)} ${arrow}`, key: 'sort' });
                     }
 
-                    return chips.slice(0, 6);
+                    return chips;
                 });
+
+                const removeFilterChip = (key) => {
+                    if (key === 'preset') activePresetId.value = null;
+                    else if (key === 'search') filters.value.search = "";
+                    else if (key === 'includedTags') filters.value.includedTags = [];
+                    else if (key === 'excludedTags') filters.value.excludedTags = [];
+                    else if (key === 'expiry') {
+                        filters.value.min_hours_to_expire = 0;
+                        setExpiryHours(0);
+                    }
+                    else if (key === 'include_expired') filters.value.include_expired = DEFAULT_FILTERS.include_expired;
+                    else if (key === 'price') {
+                        filters.value.min_price = DEFAULT_FILTERS.min_price;
+                        filters.value.max_price = DEFAULT_FILTERS.max_price;
+                    }
+                    else if (key === 'max_spread') filters.value.max_spread = DEFAULT_FILTERS.max_spread;
+                    else if (key === 'min_apr_percent') filters.value.min_apr_percent = DEFAULT_FILTERS.min_apr_percent;
+                    else if (key === 'min_volume') filters.value.min_volume = DEFAULT_FILTERS.min_volume;
+                    else if (key === 'min_liquidity') filters.value.min_liquidity = DEFAULT_FILTERS.min_liquidity;
+                    else if (key === 'sort') {
+                        filters.value.sort_by = DEFAULT_FILTERS.sort_by;
+                        filters.value.sort_dir = DEFAULT_FILTERS.sort_dir;
+                    }
+                    resetAndFetch();
+                };
 
                 const activeFiltersCount = Vue.computed(() => activeFilterChips.value.length);
 
@@ -2921,6 +2929,7 @@
                     copyToClipboard,
                     copiedKey,
                     resetAndFetch,
+                    removeFilterChip,
                     loadMore,
                     debouncedFetch,
                     setSort,

@@ -23,10 +23,10 @@ Goal: Implement the custom Tailwind bottom-sheet component.
 ## Phase 3: Active Filter Chips
 Goal: Provide immediate feedback and quick removal of filters.
 
-- [ ] Task: Implement the `activeFilterChips` computed property to generate labels for current filters.
-- [ ] Task: Create the horizontal scrollable chips UI above the market list.
-- [ ] Task: Bind click events on chips to reset specific filter values in the Vue state.
-- [ ] Task: Write tests to verify that removing a chip correctly resets the corresponding filter and triggers a re-fetch.
+- [x] Task: Implement the `activeFilterChips` computed property to generate labels for current filters.
+- [x] Task: Create the horizontal scrollable chips UI above the market list.
+- [x] Task: Bind click events on chips to reset specific filter values in the Vue state.
+- [x] Task: Write tests to verify that removing a chip correctly resets the corresponding filter and triggers a re-fetch.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Active Chips' (Protocol in workflow.md)
 
 ## Phase 4: UX Polish & Cleanup

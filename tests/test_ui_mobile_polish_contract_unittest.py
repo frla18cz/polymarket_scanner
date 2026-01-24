@@ -80,3 +80,22 @@ class TestUiMobilePolishContract(unittest.TestCase):
         html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
         self.assertRegex(html, r"const\s+showAdvancedFilters\s*=\s*ref\s*\(\s*false\s*\)", 
                          "showAdvancedFilters should be initialized to false")
+
+    def test_active_filter_chips_ui_exists(self):
+        """
+        Verifies that active filter chips are rendered above the market list.
+        """
+        html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
+        
+        # Check for the chips container
+        self.assertIn('activeFilterChips', html, "activeFilterChips v-for loop missing")
+        self.assertIn('removeFilterChip(chip.key)', html, "removeFilterChip click binding missing")
+        self.assertIn('Clear All', html, "Clear All button for chips missing")
+
+    def test_remove_filter_chip_method_exists(self):
+        """
+        Verifies that the removeFilterChip method is implemented in the script.
+        """
+        html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
+        self.assertIn('const removeFilterChip = (key) =>', html, "removeFilterChip method missing from script")
+        self.assertIn('resetAndFetch()', html, "removeFilterChip should trigger re-fetch")
