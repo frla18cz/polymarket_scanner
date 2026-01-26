@@ -1,4 +1,4 @@
-# Track mobile_ux_polish_20260124 Context
+# Track ui_precision_ux_fixes_20260126 Context
 
 - [Specification](./spec.md)
 - [Implementation Plan](./plan.md)

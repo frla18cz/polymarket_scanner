@@ -1,8 +1,0 @@
-{
-  "track_id": "mobile_ux_polish_20260124",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-01-24T16:00:00Z",
-  "updated_at": "2026-01-24T16:00:00Z",
-  "description": "Mobile UX Polish & Filter Overhaul: Transition to results-first experience with a bottom-sheet filter modal on mobile."
-}

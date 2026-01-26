@@ -1,0 +1,8 @@
+{
+  "track_id": "smart_money_view_20260126",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-01-26T14:30:00Z",
+  "updated_at": "2026-01-26T14:30:00Z",
+  "description": "Smart Money náhled jako samostatný view se sdílenými filtry scanneru, počítáním ziskových holderů a vizuálním zvýrazněním dominance."
+}
