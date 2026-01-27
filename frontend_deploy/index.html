@@ -1284,22 +1284,35 @@
                                         </div>
 
                                         <!-- Trader Quality Bar -->
-                                        <div class="col-span-4 flex flex-col justify-center px-4">
-                                            <div class="flex justify-between items-end mb-1">
-                                                <span class="text-xs font-bold" 
-                                                      :class="m.profitable_count > (m.holders_count / 2) ? 'text-poly-green' : 'text-gray-400'">
-                                                    {{ m.profitable_count }} of {{ m.holders_count }} <span class="text-[10px] font-normal text-gray-500">Profitable</span>
+                                        <div class="col-span-4 flex flex-col justify-center px-2">
+                                            <div class="flex justify-between items-center text-[10px] font-bold font-mono mb-1">
+                                                <!-- Profitable (Left) -->
+                                                <span :class="(m.profitable_count || 0) > 0 ? 'text-poly-green' : 'text-gray-600'">
+                                                    {{ m.profitable_count || 0 }} <span class="hidden xl:inline">Profi</span>
                                                 </span>
-                                                <span class="text-[10px] font-mono" :class="m.holders_count > 0 ? 'text-white' : 'text-gray-600'">
-                                                    {{ m.holders_count > 0 ? Math.round((m.profitable_count / m.holders_count) * 100) : 0 }}%
+                                                
+                                                <!-- Total (Center) -->
+                                                <span class="text-gray-600 text-[9px] font-normal tracking-wide">
+                                                    {{ m.holders_count || 0 }} <span class="hidden xl:inline">Holders</span>
+                                                </span>
+
+                                                <!-- Losing (Right) -->
+                                                <span :class="(m.losing_count || 0) > 0 ? 'text-poly-red' : 'text-gray-600'">
+                                                    {{ m.losing_count || 0 }} <span class="hidden xl:inline">Loss</span>
                                                 </span>
                                             </div>
-                                            <div class="w-full h-2 bg-poly-card rounded-full overflow-hidden border border-poly-accent/50 relative">
-                                                <!-- Background (Losing) -->
-                                                <div class="absolute inset-0 bg-poly-red/20"></div>
-                                                <!-- Foreground (Profitable) -->
-                                                <div class="h-full bg-gradient-to-r from-poly-green to-emerald-400 transition-all duration-500"
-                                                     :style="{ width: m.holders_count > 0 ? (m.profitable_count / m.holders_count * 100) + '%' : '0%' }"></div>
+
+                                            <div class="w-full h-1.5 bg-poly-card rounded-full overflow-hidden border border-poly-accent/50 flex">
+                                                <!-- Profitable Segment -->
+                                                <div class="h-full bg-poly-green"
+                                                     :style="{ width: (m.holders_count > 0 ? ((m.profitable_count || 0) / m.holders_count * 100) : 0) + '%' }"></div>
+                                                
+                                                <!-- Neutral/Unknown Segment (Gap) -->
+                                                <div class="h-full bg-transparent flex-1"></div>
+
+                                                <!-- Losing Segment -->
+                                                <div class="h-full bg-poly-red"
+                                                     :style="{ width: (m.holders_count > 0 ? ((m.losing_count || 0) / m.holders_count * 100) : 0) + '%' }"></div>
                                             </div>
                                         </div>
 

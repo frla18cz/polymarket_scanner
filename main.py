@@ -632,12 +632,12 @@ def get_markets(
              JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
              WHERE h.market_id = amo.condition_id 
              AND h.outcome_index = amo.outcome_index
-             AND ws.total_pnl >= {profit_threshold}) AS profitable_count,
+             AND ws.total_pnl > 0) AS profitable_count,
             (SELECT COUNT(*) FROM holders h 
              JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
              WHERE h.market_id = amo.condition_id 
              AND h.outcome_index = amo.outcome_index
-             AND ws.total_pnl <= -{profit_threshold}) AS losing_count
+             AND ws.total_pnl < 0) AS losing_count
     """
 
     sql = f"""
