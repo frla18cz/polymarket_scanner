@@ -619,26 +619,22 @@ def get_markets(
     elif sort_by == "question":
         sort_sql = "amo.question COLLATE NOCASE"
     elif sort_by == "smart_dominance":
-        # Sort by % of profitable holders
-        sort_sql = "(CAST(profitable_count AS REAL) / NULLIF(holders_count, 0))"
+        sort_sql = "(CAST(smart_profitable_count AS REAL) / NULLIF(smart_profitable_count + smart_losing_opposite_count, 0))"
 
     select_sql = f"""
         SELECT 
             amo.*, 
             {apr_sql} AS apr,
             (SELECT COUNT(*) FROM holders h 
-             WHERE h.market_id = amo.condition_id 
-             AND h.outcome_index = amo.outcome_index) AS holders_count,
-            (SELECT COUNT(*) FROM holders h 
              JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
              WHERE h.market_id = amo.condition_id 
              AND h.outcome_index = amo.outcome_index
-             AND ws.total_pnl > 0) AS profitable_count,
+             AND ws.total_pnl >= {profit_threshold}) AS smart_profitable_count,
             (SELECT COUNT(*) FROM holders h 
              JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
              WHERE h.market_id = amo.condition_id 
-             AND h.outcome_index = amo.outcome_index
-             AND ws.total_pnl < 0) AS losing_count
+             AND h.outcome_index = (1 - amo.outcome_index)
+             AND ws.total_pnl <= -{profit_threshold}) AS smart_losing_opposite_count
     """
 
     sql = f"""

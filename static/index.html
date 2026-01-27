@@ -905,9 +905,9 @@
                             <!-- Smart Money Headers -->
                             <template v-else>
                                 <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('price')">Price</div>
-                                <div class="col-span-4 text-center cursor-pointer hover:text-white" @click="setSort('smart_dominance')">
-                                    Trader Quality <span class="text-[9px] text-gray-500 font-normal">(Profitable vs Total)</span>
-                                </div>
+                                <div class="col-span-2 text-center text-poly-green cursor-pointer hover:text-white" @click="setSort('smart_profitable_count')">Smart (P)</div>
+                                <div class="col-span-2 text-center text-poly-red cursor-pointer hover:text-white" @click="setSort('smart_losing_opposite_count')">Dumb (L)</div>
+                                <div class="col-span-2 text-center cursor-pointer hover:text-white" @click="setSort('smart_dominance')">Dominance</div>
                                 <div class="col-span-2 text-right cursor-pointer hover:text-white" @click="setSort('end_date')">Expires</div>
                             </template>
                         </div>
@@ -1290,32 +1290,43 @@
                                             </span>
                                         </div>
 
-                                        <!-- Trader Quality Bar -->
-                                        <div class="col-span-4 flex flex-col justify-center px-2">
-                                            <div class="flex flex-col mb-1">
-                                                <div class="flex justify-between items-baseline">
-                                                    <span class="text-[11px] font-black tracking-tight" :class="(m.profitable_count || 0) > 0 ? 'text-poly-green' : 'text-gray-500'">
-                                                        {{ m.profitable_count || 0 }} ziskových <span class="text-[9px] font-normal text-gray-600">Z {{ m.holders_count || 0 }}</span>
-                                                    </span>
-                                                    <span class="text-[9px] font-bold uppercase" :class="m.outcome_name === 'No' ? 'text-poly-red/70' : 'text-poly-green/70'">
-                                                        pro {{ m.outcome_name }}
-                                                    </span>
-                                                </div>
-                                            </div>
+                                        <!-- Smart (P) -->
+                                        <div class="col-span-2 text-center">
+                                            <span class="px-3 py-1.5 rounded-lg bg-poly-green/10 border border-poly-green/30 text-poly-green font-bold font-mono text-sm shadow-sm"
+                                                  :class="m.smart_profitable_count > 0 ? 'opacity-100' : 'opacity-30'">
+                                                {{ m.smart_profitable_count }}P
+                                            </span>
+                                        </div>
 
-                                            <div class="w-full h-2 bg-poly-card rounded-sm overflow-hidden border border-poly-accent/30 flex relative">
-                                                <!-- Profitable Bar (Green) -->
-                                                <div class="h-full bg-poly-green shadow-[0_0_8px_rgba(0,195,136,0.4)] transition-all duration-700"
-                                                     :style="{ width: (m.holders_count > 0 ? ((m.profitable_count || 0) / m.holders_count * 100) : 0) + '%' }"></div>
-                                                
-                                                <!-- Loss Bar (Red - from right) -->
-                                                <div class="absolute right-0 top-0 bottom-0 bg-poly-red/40 transition-all duration-700"
-                                                     :style="{ width: (m.holders_count > 0 ? ((m.losing_count || 0) / m.holders_count * 100) : 0) + '%' }"></div>
+                                        <!-- Dumb (L) -->
+                                        <div class="col-span-2 text-center">
+                                            <span class="px-3 py-1.5 rounded-lg bg-poly-red/10 border border-poly-red/30 text-poly-red font-bold font-mono text-sm shadow-sm"
+                                                  :class="m.smart_losing_opposite_count > 0 ? 'opacity-100' : 'opacity-30'">
+                                                {{ m.smart_losing_opposite_count }}L
+                                            </span>
+                                        </div>
+
+                                        <!-- Dominance Bar -->
+                                        <div class="col-span-2 flex flex-col items-center justify-center gap-1.5 px-2">
+                                            <div class="w-full h-2 bg-poly-accent/50 rounded-full overflow-hidden flex border border-white/5">
+                                                <div class="h-full bg-poly-green transition-all duration-500" 
+                                                     :style="{ width: (m.smart_profitable_count + m.smart_losing_opposite_count > 0) ? (m.smart_profitable_count / (m.smart_profitable_count + m.smart_losing_opposite_count) * 100) + '%' : '50%' }"></div>
+                                                <div class="h-full bg-poly-red transition-all duration-500" 
+                                                     :style="{ width: (m.smart_profitable_count + m.smart_losing_opposite_count > 0) ? (m.smart_losing_opposite_count / (m.smart_profitable_count + m.smart_losing_opposite_count) * 100) + '%' : '50%' }"></div>
+                                            </div>
+                                            <div class="flex justify-between w-full text-[9px] font-bold font-mono tracking-tighter">
+                                                <span class="text-poly-green" v-if="m.smart_profitable_count + m.smart_losing_opposite_count > 0">
+                                                    {{ Math.round(m.smart_profitable_count / (m.smart_profitable_count + m.smart_losing_opposite_count) * 100) }}%
+                                                </span>
+                                                <span class="text-gray-600" v-else>NO DATA</span>
+                                                <span class="text-poly-red" v-if="m.smart_profitable_count + m.smart_losing_opposite_count > 0">
+                                                    {{ Math.round(m.smart_losing_opposite_count / (m.smart_profitable_count + m.smart_losing_opposite_count) * 100) }}%
+                                                </span>
                                             </div>
                                         </div>
 
                                         <!-- Expires -->
-                                        <div class="col-span-2 text-right text-xs text-gray-500 font-medium flex items-center justify-end">
+                                        <div class="col-span-2 text-right text-xs text-gray-500 font-medium">
                                             {{ timeFromNow(m.end_date) }}
                                         </div>
                                     </template>
