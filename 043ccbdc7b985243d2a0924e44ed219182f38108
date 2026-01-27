@@ -1,0 +1,17 @@
+Task: Update Smart Money PnL sign labels and counts
+
+Summary:
+- Switch Smart Money counts to PnL >0/<0 and add totals for x/y display.
+- Relabel UI to Profitable/Losing traders and polish Smart Money cards/filters.
+- Update UI contract and add/update unit tests for backend counts and UI labels.
+
+Files:
+- main.py
+- static/index.html
+- frontend_deploy/index.html
+- docs/UI_CONTRACT.md
+- tests/test_api_smart_money_filters_unittest.py
+- tests/test_ui_smart_money_labels_unittest.py
+
+Why:
+- Align Smart Money view with sign-based profitability and make the display clearer ("x of y").
