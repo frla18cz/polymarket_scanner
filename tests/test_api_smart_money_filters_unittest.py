@@ -67,6 +67,9 @@ class TestSmartMoneyFilters(unittest.TestCase):
         for w in profitable_wallets:
             conn.execute("INSERT INTO holders (market_id, outcome_index, wallet_address) VALUES (?, ?, ?)", ("c1", 0, w))
             conn.execute("INSERT OR REPLACE INTO wallets_stats (wallet_address, total_pnl) VALUES (?, ?)", (w, 5000))
+        # Neutral wallet (PnL == 0) should not be counted as profitable or losing
+        conn.execute("INSERT INTO holders (market_id, outcome_index, wallet_address) VALUES (?, ?, ?)", ("c1", 0, "w0"))
+        conn.execute("INSERT OR REPLACE INTO wallets_stats (wallet_address, total_pnl) VALUES (?, ?)", ("w0", 0))
             
         # Holders for c1 Outcome 1 (No)
         losing_wallets = ["w4", "w5"]
@@ -101,11 +104,19 @@ class TestSmartMoneyFilters(unittest.TestCase):
         self.assertEqual(res[0]["market_id"], "m1")
         self.assertEqual(res[0]["outcome_name"], "Yes")
 
-    def test_custom_profit_threshold(self):
-        res = self.app_main.get_markets(Response(), min_profitable=1, profit_threshold=100)
+    def test_profit_threshold_is_ignored_for_sign_logic(self):
+        # Large threshold should not change sign-based counts
+        res = self.app_main.get_markets(Response(), min_profitable=1, profit_threshold=100000)
         market_ids = [r["market_id"] for r in res]
         self.assertIn("m1", market_ids)
         self.assertIn("m2", market_ids)
+
+    def test_counts_use_positive_negative_pnl(self):
+        res = self.app_main.get_markets(Response(), limit=10)
+        target = next(r for r in res if r["market_id"] == "m1" and r["outcome_name"] == "Yes")
+        self.assertEqual(target["smart_profitable_count"], 3)
+        self.assertEqual(target["smart_losing_opposite_count"], 2)
+        self.assertEqual(target["smart_profitable_total"], 4)
 
     def test_no_results(self):
         res = self.app_main.get_markets(Response(), min_profitable=10)

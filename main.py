@@ -534,16 +534,15 @@ def get_markets(
         where_clauses.append(f"({apr_sql} IS NOT NULL AND {apr_sql} >= ?)")
         params.append(float(min_apr))
 
-    # Smart Money Dominance Filters
+    # Smart Money Dominance Filters (PnL sign-based)
     if min_profitable > 0:
         where_clauses.append(f"""
             (SELECT COUNT(*) FROM holders h 
              JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
              WHERE h.market_id = amo.condition_id 
              AND h.outcome_index = amo.outcome_index
-             AND ws.total_pnl >= ?) >= ?
+             AND ws.total_pnl > 0) >= ?
         """)
-        params.append(profit_threshold)
         params.append(min_profitable)
 
     if min_losing_opposite > 0:
@@ -553,9 +552,8 @@ def get_markets(
              JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
              WHERE h.market_id = amo.condition_id 
              AND h.outcome_index = (1 - amo.outcome_index)
-             AND ws.total_pnl <= ?) >= ?
+             AND ws.total_pnl < 0) >= ?
         """)
-        params.append(-profit_threshold) # Losing is negative profit
         params.append(min_losing_opposite)
 
     if search:
@@ -629,12 +627,20 @@ def get_markets(
              JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
              WHERE h.market_id = amo.condition_id 
              AND h.outcome_index = amo.outcome_index
-             AND ws.total_pnl >= {profit_threshold}) AS smart_profitable_count,
+             AND ws.total_pnl > 0) AS smart_profitable_count,
+            (SELECT COUNT(*) FROM holders h 
+             JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
+             WHERE h.market_id = amo.condition_id 
+             AND h.outcome_index = amo.outcome_index) AS smart_profitable_total,
             (SELECT COUNT(*) FROM holders h 
              JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
              WHERE h.market_id = amo.condition_id 
              AND h.outcome_index = (1 - amo.outcome_index)
-             AND ws.total_pnl <= -{profit_threshold}) AS smart_losing_opposite_count
+             AND ws.total_pnl < 0) AS smart_losing_opposite_count,
+            (SELECT COUNT(*) FROM holders h 
+             JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
+             WHERE h.market_id = amo.condition_id 
+             AND h.outcome_index = (1 - amo.outcome_index)) AS smart_losing_opposite_total
     """
 
     sql = f"""
