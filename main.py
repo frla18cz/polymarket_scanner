@@ -174,10 +174,11 @@ def ensure_indices():
             if "outcome_index" not in cols:
                 conn.execute("ALTER TABLE active_market_outcomes ADD COLUMN outcome_index INTEGER;")
                 conn.commit()
-                # Backfill logic: Yes = 0, No = 1 (most common)
-                conn.execute("UPDATE active_market_outcomes SET outcome_index = 0 WHERE outcome_name = 'Yes' OR outcome_name = 'YES';")
-                conn.execute("UPDATE active_market_outcomes SET outcome_index = 1 WHERE outcome_name = 'No' OR outcome_name = 'NO';")
-                conn.commit()
+            
+            # Always ensure outcome_index is backfilled for Yes/No if it is NULL
+            conn.execute("UPDATE active_market_outcomes SET outcome_index = 0 WHERE (outcome_index IS NULL) AND (outcome_name = 'Yes' OR outcome_name = 'YES');")
+            conn.execute("UPDATE active_market_outcomes SET outcome_index = 1 WHERE (outcome_index IS NULL) AND (outcome_name = 'No' OR outcome_name = 'NO');")
+            conn.commit()
 
             conn.execute(
                 """
