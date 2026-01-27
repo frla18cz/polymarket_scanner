@@ -171,6 +171,14 @@ def ensure_indices():
                 conn.execute("ALTER TABLE active_market_outcomes ADD COLUMN condition_id TEXT;")
                 conn.commit()
 
+            if "outcome_index" not in cols:
+                conn.execute("ALTER TABLE active_market_outcomes ADD COLUMN outcome_index INTEGER;")
+                conn.commit()
+                # Backfill logic: Yes = 0, No = 1 (most common)
+                conn.execute("UPDATE active_market_outcomes SET outcome_index = 0 WHERE outcome_name = 'Yes' OR outcome_name = 'YES';")
+                conn.execute("UPDATE active_market_outcomes SET outcome_index = 1 WHERE outcome_name = 'No' OR outcome_name = 'NO';")
+                conn.commit()
+
             conn.execute(
                 """
                 UPDATE active_market_outcomes
@@ -224,6 +232,7 @@ def ensure_indices():
             CREATE INDEX IF NOT EXISTS idx_market_tags_market_id ON market_tags(market_id);
             CREATE INDEX IF NOT EXISTS idx_amo_market_id ON active_market_outcomes(market_id);
             CREATE INDEX IF NOT EXISTS idx_amo_condition_id ON active_market_outcomes(condition_id);
+            CREATE INDEX IF NOT EXISTS idx_amo_outcome_index ON active_market_outcomes(outcome_index);
             CREATE INDEX IF NOT EXISTS idx_amo_volume ON active_market_outcomes(volume_usd DESC);
             CREATE INDEX IF NOT EXISTS idx_amo_liquidity ON active_market_outcomes(liquidity_usd DESC);
             CREATE INDEX IF NOT EXISTS idx_amo_end_date ON active_market_outcomes(end_date);
@@ -442,7 +451,10 @@ def get_markets(
     min_hours_to_expire: Optional[int] = None,
     max_hours_to_expire: Optional[int] = None,
     include_expired: bool = True,
-    search: Optional[str] = None
+    search: Optional[str] = None,
+    profit_threshold: float = 1000.0,
+    min_profitable: int = 0,
+    min_losing_opposite: int = 0
 ):
     # When calling endpoint functions directly (tests/tools), FastAPI's `Query(...)` defaults
     # are not resolved and can show up as `fastapi.params.Query` instances.
@@ -521,6 +533,30 @@ def get_markets(
         where_clauses.append(f"({apr_sql} IS NOT NULL AND {apr_sql} >= ?)")
         params.append(float(min_apr))
 
+    # Smart Money Dominance Filters
+    if min_profitable > 0:
+        where_clauses.append(f"""
+            (SELECT COUNT(*) FROM holders h 
+             JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
+             WHERE h.market_id = amo.condition_id 
+             AND h.outcome_index = amo.outcome_index
+             AND ws.total_pnl >= ?) >= ?
+        """)
+        params.append(profit_threshold)
+        params.append(min_profitable)
+
+    if min_losing_opposite > 0:
+        # Opposite outcome index: 0 -> 1, 1 -> 0
+        where_clauses.append(f"""
+            (SELECT COUNT(*) FROM holders h 
+             JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
+             WHERE h.market_id = amo.condition_id 
+             AND h.outcome_index = (1 - amo.outcome_index)
+             AND ws.total_pnl <= ?) >= ?
+        """)
+        params.append(-profit_threshold) # Losing is negative profit
+        params.append(min_losing_opposite)
+
     if search:
         where_clauses.append("(amo.question LIKE ? OR amo.outcome_name LIKE ?)")
         params.append(f"%{search}%")
@@ -572,7 +608,7 @@ def get_markets(
     where_str = " AND ".join(where_clauses)
     
     # Sorting
-    valid_sorts = ["volume_usd", "liquidity_usd", "end_date", "price", "spread", "apr", "question"]
+    valid_sorts = ["volume_usd", "liquidity_usd", "end_date", "price", "spread", "apr", "question", "smart_dominance"]
     if sort_by not in valid_sorts:
         sort_by = "volume_usd"
 
@@ -581,14 +617,36 @@ def get_markets(
         sort_sql = apr_sql
     elif sort_by == "question":
         sort_sql = "amo.question COLLATE NOCASE"
+    elif sort_by == "smart_dominance":
+        # Sort by % of profitable holders
+        sort_sql = "(CAST(profitable_count AS REAL) / NULLIF(holders_count, 0))"
 
-    select_sql = "SELECT amo.*" if has_apr_col else f"SELECT amo.*, {apr_sql} AS apr"
+    select_sql = f"""
+        SELECT 
+            amo.*, 
+            {apr_sql} AS apr,
+            (SELECT COUNT(*) FROM holders h 
+             WHERE h.market_id = amo.condition_id 
+             AND h.outcome_index = amo.outcome_index) AS holders_count,
+            (SELECT COUNT(*) FROM holders h 
+             JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
+             WHERE h.market_id = amo.condition_id 
+             AND h.outcome_index = amo.outcome_index
+             AND ws.total_pnl >= {profit_threshold}) AS profitable_count,
+            (SELECT COUNT(*) FROM holders h 
+             JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
+             WHERE h.market_id = amo.condition_id 
+             AND h.outcome_index = amo.outcome_index
+             AND ws.total_pnl <= -{profit_threshold}) AS losing_count
+    """
 
     sql = f"""
-        {select_sql}
-        FROM active_market_outcomes amo
-        WHERE {where_str}
-        ORDER BY {sort_sql} {'ASC' if sort_dir == 'asc' else 'DESC'}
+        SELECT * FROM (
+            {select_sql}
+            FROM active_market_outcomes amo
+        ) as t
+        WHERE {where_str.replace('amo.', 't.')}
+        ORDER BY {sort_sql.replace('amo.', 't.')} {'ASC' if sort_dir == 'asc' else 'DESC'}
         LIMIT {limit} OFFSET {offset}
     """
     

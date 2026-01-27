@@ -57,6 +57,13 @@ All filters must work the same on desktop and mobile because they share the same
 - **Min Smart Money Win Rate**
   - UI: `filters.min_smart_money_win_rate` (percentage, e.g. `50` = 50%)
   - API: `min_smart_money_win_rate` (fraction, e.g. `0.5` = 50%)
+- **Smart Money Analysis (Dominance)**
+  - UI: `filters.profit_threshold`, `filters.min_profitable`, `filters.min_losing_opposite`
+  - API:
+    - `profit_threshold` (float, USD): Min profit to count a holder as "Smart" (default 1000).
+    - `min_profitable` (int): Min number of profitable holders on THIS outcome.
+    - `min_losing_opposite` (int): Min number of losing holders on the OPPOSITE outcome.
+  - Semantics: Used to find markets where smart money is betting ON this outcome and dumb money is betting AGAINST it.
 - **Search**
   - UI: `filters.search`
   - API: `search=<string>` (omit when empty)

@@ -227,6 +227,28 @@
             </div>
         </header>
 
+        <!-- View Switcher (Sub-header) -->
+        <div class="bg-poly-bg border-b border-poly-accent/50 px-4 py-2 flex items-center justify-between shrink-0 z-20">
+            <div class="flex bg-poly-card p-1 rounded-xl border border-poly-accent shadow-inner">
+                <button @click="currentView = 'scanner'; resetAndFetch()" 
+                    :class="currentView === 'scanner' ? 'bg-poly-blue text-white shadow-lg' : 'text-gray-400 hover:text-gray-200'"
+                    class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2">
+                    <i class="ph ph-magnifying-glass"></i>
+                    Scanner
+                </button>
+                <button @click="currentView = 'smart'; resetAndFetch()" 
+                    :class="currentView === 'smart' ? 'bg-poly-blue text-white shadow-lg' : 'text-gray-400 hover:text-gray-200'"
+                    class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2">
+                    <i class="ph ph-brain"></i>
+                    Smart Money
+                </button>
+            </div>
+            <div v-if="currentView === 'smart'" class="hidden md:flex items-center gap-2 text-[10px] text-gray-500 font-mono uppercase tracking-wider">
+                <i class="ph ph-info mr-1"></i>
+                Analyzing holder dominance based on PnL
+            </div>
+        </div>
+
         <!-- Login Modal -->
         <div v-if="showLoginModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click.self="showLoginModal = false">
             <div class="bg-poly-card border border-poly-accent p-6 rounded-2xl shadow-2xl w-full max-w-sm relative">
@@ -734,6 +756,52 @@
 
                     <div class="border-t border-poly-accent/30 my-3"></div>
 
+                    <!-- Smart Money Specific Constraints -->
+                    <div v-if="currentView === 'smart'" class="space-y-4 animate-in fade-in slide-in-from-left-2 duration-300">
+                        <div class="text-[10px] font-bold text-poly-blue uppercase tracking-widest mb-2 flex items-center gap-2">
+                            <i class="ph ph-brain"></i> Smart Strategy
+                        </div>
+                        
+                        <!-- Profit Threshold -->
+                        <div>
+                            <label class="text-xs text-gray-400 font-semibold mb-2 block flex justify-between">
+                                <span>Min Profit to be "Smart"</span>
+                                <span class="text-poly-blue font-mono tabular-nums">${{ filters.profit_threshold }}</span>
+                            </label>
+                            <input type="range" min="100" max="50000" step="100" v-model.number="filters.profit_threshold"
+                                @change="resetAndFetch"
+                                class="w-full h-1 bg-poly-accent/70 rounded-lg appearance-none cursor-pointer">
+                        </div>
+
+                        <!-- Min Profitable Holders -->
+                        <div>
+                            <label class="text-xs text-gray-400 font-semibold mb-2 block flex justify-between">
+                                <span>Min Smart Holders (This Side)</span>
+                                <span class="text-white font-mono tabular-nums">{{ filters.min_profitable }}</span>
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <button @click="filters.min_profitable = Math.max(0, filters.min_profitable - 1); resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">-</button>
+                                <input type="number" v-model.number="filters.min_profitable" @change="resetAndFetch" class="flex-1 bg-poly-bg border border-poly-accent rounded h-8 text-center text-xs text-white outline-none focus:border-poly-blue">
+                                <button @click="filters.min_profitable++; resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+
+                        <!-- Min Losing Opposite -->
+                        <div>
+                            <label class="text-xs text-gray-400 font-semibold mb-2 block flex justify-between">
+                                <span>Min "Dumb" Holders (Opposite)</span>
+                                <span class="text-white font-mono tabular-nums">{{ filters.min_losing_opposite }}</span>
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <button @click="filters.min_losing_opposite = Math.max(0, filters.min_losing_opposite - 1); resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">-</button>
+                                <input type="number" v-model.number="filters.min_losing_opposite" @change="resetAndFetch" class="flex-1 bg-poly-bg border border-poly-accent rounded h-8 text-center text-xs text-white outline-none focus:border-poly-blue">
+                                <button @click="filters.min_losing_opposite++; resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-poly-accent/30 my-3"></div>
+                    </div>
+
                     <!-- Min Liquidity -->
                     <div>
                         <label class="text-xs text-gray-400 font-semibold mb-2 block flex justify-between">
@@ -822,20 +890,26 @@
                         <div class="grid grid-cols-12 gap-4 px-6 py-3 border-b border-poly-accent bg-poly-bg text-xs font-bold text-gray-400 uppercase tracking-wider z-10 sticky top-0 shadow-sm"
                             :class="effectiveViewMode === 'table' ? '' : 'hidden md:grid'">
                             <div class="col-span-1 text-center">Icon</div>
-                            <div class="col-span-2 cursor-pointer hover:text-white" @click="setSort('question')">Market
-                            </div>
-                            <div class="col-span-1 text-right cursor-pointer hover:text-white"
-                                @click="setSort('price')">Price</div>
-                            <div class="col-span-1 text-right cursor-pointer hover:text-white"
-                                @click="setSort('spread')">Spread</div>
-                            <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('apr')">
-                                APR</div>
-                            <div class="col-span-2 text-right cursor-pointer hover:text-white"
-                                @click="setSort('volume_usd')">Volume</div>
-                            <div class="col-span-1 text-right cursor-pointer hover:text-white"
-                                @click="setSort('liquidity_usd')">Liq</div>
-                            <div class="col-span-2 text-right cursor-pointer hover:text-white"
-                                @click="setSort('end_date')">Expires</div>
+                            <div class="col-span-2 cursor-pointer hover:text-white" @click="setSort('question')">Market</div>
+                            
+                            <!-- Scanner Headers -->
+                            <template v-if="currentView === 'scanner'">
+                                <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('price')">Price</div>
+                                <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('spread')">Spread</div>
+                                <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('apr')">APR</div>
+                                <div class="col-span-2 text-right cursor-pointer hover:text-white" @click="setSort('volume_usd')">Volume</div>
+                                <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('liquidity_usd')">Liq</div>
+                                <div class="col-span-2 text-right cursor-pointer hover:text-white" @click="setSort('end_date')">Expires</div>
+                            </template>
+
+                            <!-- Smart Money Headers -->
+                            <template v-else>
+                                <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('price')">Price</div>
+                                <div class="col-span-4 text-center cursor-pointer hover:text-white" @click="setSort('smart_dominance')">
+                                    Trader Quality <span class="text-[9px] text-gray-500 font-normal">(Profitable vs Total)</span>
+                                </div>
+                                <div class="col-span-2 text-right cursor-pointer hover:text-white" @click="setSort('end_date')">Expires</div>
+                            </template>
                         </div>
 
                         <!-- Empty State -->
@@ -1158,44 +1232,82 @@
                                         </div>
                                     </div>
 
-                                    <!-- Price -->
-                                    <div class="col-span-1 text-right">
-                                        <div class="flex flex-col items-end">
-                                            <span
-                                                class="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5 truncate max-w-full">{{
-                                                m.outcome_name }}</span>
-                                            <span class="font-mono font-bold text-base"
-                                                :class="m.outcome_name === 'No' ? 'text-poly-red' : 'text-poly-green'">
+                                    <!-- Scanner Columns -->
+                                    <template v-if="currentView === 'scanner'">
+                                        <!-- Price -->
+                                        <div class="col-span-1 text-right">
+                                            <div class="flex flex-col items-end">
+                                                <span
+                                                    class="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5 truncate max-w-full">{{
+                                                    m.outcome_name }}</span>
+                                                <span class="font-mono font-bold text-base"
+                                                    :class="m.outcome_name === 'No' ? 'text-poly-red' : 'text-poly-green'">
+                                                    {{ (m.price * 100).toFixed(1) }}¢
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Spread -->
+                                        <div class="col-span-1 text-right text-gray-400 text-xs">
+                                            {{ (m.spread * 100).toFixed(1) }}¢
+                                        </div>
+
+                                        <!-- APR -->
+                                        <div class="col-span-1 text-right text-gray-300 text-xs font-mono">
+                                            {{ formatAprPercent(m.apr, m.price, m.end_date) }}
+                                        </div>
+
+                                        <!-- Volume -->
+                                        <div class="col-span-2 text-right font-mono text-gray-300">
+                                            {{ formatCurrency(m.volume_usd) }}
+                                        </div>
+
+                                        <!-- Liquidity -->
+                                        <div class="col-span-1 text-right font-mono text-gray-400 text-xs">
+                                            {{ formatCompact(m.liquidity_usd) }}
+                                        </div>
+
+                                        <!-- Expires -->
+                                        <div class="col-span-2 text-right text-xs text-gray-500 flex flex-col items-end">
+                                            <span>{{ formatDate(m.end_date) }}</span>
+                                            <span class="text-[10px]">{{ timeFromNow(m.end_date) }}</span>
+                                        </div>
+                                    </template>
+
+                                    <!-- Smart Money Columns -->
+                                    <template v-else>
+                                        <!-- Price -->
+                                        <div class="col-span-1 text-right">
+                                            <span class="font-mono font-bold text-base text-white">
                                                 {{ (m.price * 100).toFixed(1) }}¢
                                             </span>
                                         </div>
-                                    </div>
 
-                                    <!-- Spread -->
-                                    <div class="col-span-1 text-right text-gray-400 text-xs">
-                                        {{ (m.spread * 100).toFixed(1) }}¢
-                                    </div>
+                                        <!-- Trader Quality Bar -->
+                                        <div class="col-span-4 flex flex-col justify-center px-4">
+                                            <div class="flex justify-between items-end mb-1">
+                                                <span class="text-xs font-bold" 
+                                                      :class="m.profitable_count > (m.holders_count / 2) ? 'text-poly-green' : 'text-gray-400'">
+                                                    {{ m.profitable_count }} of {{ m.holders_count }} <span class="text-[10px] font-normal text-gray-500">Profitable</span>
+                                                </span>
+                                                <span class="text-[10px] font-mono" :class="m.holders_count > 0 ? 'text-white' : 'text-gray-600'">
+                                                    {{ m.holders_count > 0 ? Math.round((m.profitable_count / m.holders_count) * 100) : 0 }}%
+                                                </span>
+                                            </div>
+                                            <div class="w-full h-2 bg-poly-card rounded-full overflow-hidden border border-poly-accent/50 relative">
+                                                <!-- Background (Losing) -->
+                                                <div class="absolute inset-0 bg-poly-red/20"></div>
+                                                <!-- Foreground (Profitable) -->
+                                                <div class="h-full bg-gradient-to-r from-poly-green to-emerald-400 transition-all duration-500"
+                                                     :style="{ width: m.holders_count > 0 ? (m.profitable_count / m.holders_count * 100) + '%' : '0%' }"></div>
+                                            </div>
+                                        </div>
 
-                                    <!-- APR -->
-                                    <div class="col-span-1 text-right text-gray-300 text-xs font-mono">
-                                        {{ formatAprPercent(m.apr, m.price, m.end_date) }}
-                                    </div>
-
-                                    <!-- Volume -->
-                                    <div class="col-span-2 text-right font-mono text-gray-300">
-                                        {{ formatCurrency(m.volume_usd) }}
-                                    </div>
-
-                                    <!-- Liquidity -->
-                                    <div class="col-span-1 text-right font-mono text-gray-400 text-xs">
-                                        {{ formatCompact(m.liquidity_usd) }}
-                                    </div>
-
-                                    <!-- Expires -->
-                                    <div class="col-span-2 text-right text-xs text-gray-500 flex flex-col items-end">
-                                        <span>{{ formatDate(m.end_date) }}</span>
-                                        <span class="text-[10px]">{{ timeFromNow(m.end_date) }}</span>
-                                    </div>
+                                        <!-- Expires -->
+                                        <div class="col-span-2 text-right text-xs text-gray-500 font-medium flex items-center justify-end">
+                                            {{ timeFromNow(m.end_date) }}
+                                        </div>
+                                    </template>
                                 </div>
 
                                 <!-- Detail View (Desktop Only) -->
@@ -1552,228 +1664,232 @@
                 const markets = ref([]);
                 const tags = ref([]); // All available tags from API
                 const loading = ref(false);
-                const expandedId = ref(null);
-                const selectedIndex = ref(0);
-                const compactMode = ref(false);
-                const offset = ref(0);
-                const limit = 100; // Load 100 at a time
-                const serverLastUpdated = ref(null);
-                const serverSmLastUpdated = ref(null);
-                const holdersByMarket = ref({}); // { marketId: { yes: [], no: [] } }
-                const holdersLoading = ref({});
-                const holdersError = ref({});
-                const holdersSortBy = ref('position_size'); // 'position_size' | 'total_pnl'
-                const holdersSortDir = ref('desc');
-
-                // --- Supabase Auth ---
-                const supabaseUrl = 'https://wdwvmsrqepxvhkmodqks.supabase.co';
-                // Public Anon Key (Safe to expose)
-                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indkd3Ztc3JxZXB4dmhrbW9kcWtzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYxNDk1MjgsImV4cCI6MjA4MTcyNTUyOH0.f91s-hoa31u5LY29Xt-rTbt8n9sdOvPOzBW6R3IsC00';
+                                const expandedId = ref(null);
+                                const selectedIndex = ref(0);
+                                const compactMode = ref(false);
+                                const currentView = ref('scanner'); // 'scanner' | 'smart'
+                                const offset = ref(0);
+                                const limit = 100; // Load 100 at a time
+                                const serverLastUpdated = ref(null);
+                                const serverSmLastUpdated = ref(null);
+                                const holdersByMarket = ref({}); // { marketId: { yes: [], no: [] } }
+                                const holdersLoading = ref({});
+                                const holdersError = ref({});
+                                const holdersSortBy = ref('position_size'); // 'position_size' | 'total_pnl'
+                                const holdersSortDir = ref('desc');
                 
-                let supabase = null;
-                if (window.supabase) {
-                    supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-                }
-
-                const user = ref(null);
-                const showLoginModal = ref(false);
-                const loginEmail = ref('');
-                const loginPassword = ref('');
-                const loginLoading = ref(false);
-                const loginError = ref('');
-                const showEmailForm = ref(false);
-
-                // --- Info Modals (FAQ, Terms, Privacy) ---
-                const showInfoModal = ref(false);
-                const infoModalType = ref('faq'); // faq, terms, privacy
-                const activeFaqIndex = ref(null); // Accordion state
-
-                const toggleFaq = (index) => {
-                    activeFaqIndex.value = activeFaqIndex.value === index ? null : index;
-                };
+                                // --- Supabase Auth ---
+                                const supabaseUrl = 'https://wdwvmsrqepxvhkmodqks.supabase.co';
+                                // Public Anon Key (Safe to expose)
+                                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indkd3Ztc3JxZXB4dmhrbW9kcWtzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYxNDk1MjgsImV4cCI6MjA4MTcyNTUyOH0.f91s-hoa31u5LY29Xt-rTbt8n9sdOvPOzBW6R3IsC00';
+                                
+                                let supabase = null;
+                                if (window.supabase) {
+                                    supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+                                }
                 
-                const faqItems = [
-                    { 
-                        question: 'What is PolyLab?', 
-                        answer: 'PolyLab is an independent market scanner and analytics dashboard for Polymarket. It aggregates active prediction markets and enriches them with calculated metrics like APR, spread, and liquidity depth to help you find better betting opportunities.' 
-                    },
-                    {
-                        question: 'Is my account secure?',
-                        answer: 'Yes. Authentication is handled securely by Supabase. We do not store your password or personal credentials. Your data is encrypted, and we only retain the minimum information necessary to maintain your account preferences.'
-                    },
-                    { 
-                        question: 'How is APR calculated?', 
-                        answer: 'The Annualized Percentage Rate (APR) is an estimate based on the current outcome price and the time remaining until the market expires. It represents the potential return if the current odds hold true, extrapolated to a full year. Please note: These are estimates, not guaranteed returns.' 
-                    },
-                    { 
-                        question: 'Why is the data updated hourly?', 
-                        answer: 'PolyLab currently performs a full snapshot of the Gamma API every hour. This provides a stable baseline for research and position scouting without the volatility of second-by-second price fluctuations.' 
-                    },
-                    { 
-                        question: 'Is PolyLab affiliated with Polymarket?', 
-                        answer: 'No. PolyLab is an independent third-party tool. We are not officially affiliated with, endorsed by, or partnered with Polymarket.' 
-                    },
-                    { 
-                        question: 'How can I contact you?', 
-                        answer: 'You can reach us at hello@polylab.app for any questions, feedback, or partnership inquiries.' 
-                    }
-                ];
-
-                const termsItems = [
-                    'PolyLab is provided for informational and analytical purposes only. We do not provide financial, investment, or legal advice.',
-                    'The tool and all calculated metrics (APR, spread, etc.) are provided "as is" without any guarantees of accuracy. Always verify data on the official Polymarket website.',
-                    'Betting on prediction markets involves significant risk of capital loss. PolyLab is not responsible for any financial decisions or losses incurred.',
-                    'PolyLab is an independent tool and is not affiliated with, endorsed by, or partnered with Polymarket or Gamma API.'
-                ];
-
-                const privacyItems = [
-                    'Data Collection: We do not collect personal information from visitors browsing the scanner. If you contact us via email, we only use your address to respond to your inquiry.',
-                    'Authentication: If you use Supabase Auth (Google/Email), we only store the minimum necessary data provided by the provider to manage your account.',
-                    'Cookies: We use essential cookies to manage your session and authentication state.',
-                    'Third Parties: We do not sell or share your data with third parties. Market data is sourced from public APIs.'
-                ];
-
-                const openInfoModal = (type) => {
-                    infoModalType.value = type;
-                    showInfoModal.value = true;
-                };
-
-
-
-                const handleLogin = async () => {
-                    if (!supabase) return;
-                    loginLoading.value = true;
-                    loginError.value = '';
-                    const { error } = await supabase.auth.signInWithPassword({
-                        email: loginEmail.value,
-                        password: loginPassword.value,
-                    });
-                    if (error) {
-                        loginError.value = error.message;
-                    } else {
-                        showLoginModal.value = false;
-                        loginEmail.value = '';
-                        loginPassword.value = '';
-                    }
-                    loginLoading.value = false;
-                };
-
-                const handleSignUp = async () => {
-                    if (!supabase) return;
-                    loginLoading.value = true;
-                    loginError.value = '';
-                    const { error } = await supabase.auth.signUp({
-                        email: loginEmail.value,
-                        password: loginPassword.value,
-                    });
-                    if (error) {
-                        loginError.value = error.message;
-                    } else {
-                        loginError.value = 'Success! Check your email to confirm.';
-                    }
-                    loginLoading.value = false;
-                };
-
-                const handleOAuthLogin = async (provider) => {
-                    if (!supabase) return;
-                    const { error } = await supabase.auth.signInWithOAuth({
-                        provider: provider,
-                        options: {
-                            redirectTo: window.location.origin
-                        }
-                    });
-                    if (error) {
-                        console.error(error);
-                        loginError.value = error.message;
-                    }
-                };
-
-                const handleLogout = async () => {
-                    if (!supabase) return;
-                    await supabase.auth.signOut();
-                };
-
-                const _safeGetLocalStorage = (key) => {
-                    try {
-                        return localStorage.getItem(key);
-                    } catch (_) {
-                        return null;
-                    }
-                };
-
-                const _safeSetLocalStorage = (key, value) => {
-                    try {
-                        localStorage.setItem(key, value);
-                    } catch (_) {
-                        // ignore
-                    }
-                };
-
-                // Autocomplete State
-                const includeSearch = ref("");
-                const excludeSearch = ref("");
-                const showIncludeDropdown = ref(false);
-                const showExcludeDropdown = ref(false);
-
-                // Presets State
-                const showAllPresets = ref(false);
-                const showMobileFilters = ref(false);
-                const showAdvancedFilters = ref(false);
-                const showMobileFilterHint = ref(false);
-
-                // View mode (mobile)
-                const VIEW_MODE_KEY = "polylab_view_mode";
-                const MOBILE_FILTERS_SEEN_KEY = "polylab_mobile_filters_seen";
-                const isNarrowScreen = ref(false);
-                const viewMode = ref(_safeGetLocalStorage(VIEW_MODE_KEY) || "cards"); // 'cards' | 'table'
-
-                const updateScreenFlags = () => {
-                    isNarrowScreen.value = window.innerWidth < 768;
-                };
-
-                const effectiveViewMode = Vue.computed(() => (isNarrowScreen.value ? viewMode.value : "table"));
-
-                watch(viewMode, (v) => {
-                    _safeSetLocalStorage(VIEW_MODE_KEY, String(v || "cards"));
-                });
-
-                const toggleViewMode = () => {
-                    viewMode.value = effectiveViewMode.value === "cards" ? "table" : "cards";
-                    expandedId.value = null;
-                };
-
-                const maybeAutoOpenMobileFilters = () => {
-                    if (!isNarrowScreen.value) return;
-                    const seen = _safeGetLocalStorage(MOBILE_FILTERS_SEEN_KEY);
-                    if (seen !== "1") {
-                        showMobileFilterHint.value = true;
-                    }
-                };
-
-                const dismissMobileFilterHint = () => {
-                    showMobileFilterHint.value = false;
-                    _safeSetLocalStorage(MOBILE_FILTERS_SEEN_KEY, "1");
-                };
-
-                // Default Filters (User Request: 5c spread, 5k vol, 1k liq, 0-100 prob)
-	                const filters = ref({
-	                    includedTags: [],
-	                    excludedTags: [],
-	                    min_volume: 5000,
-	                    min_liquidity: 1000,
-	                    min_price: 0.00,
-	                    max_price: 1.00,
-	                    max_spread: 0.05,
-	                    min_apr_percent: 0,
-	                    min_hours_to_expire: 0,
-	                    max_hours_to_expire: 0,
-	                    expiry_index: 0,
-	                    include_expired: true,
-	                    search: "",
-	                    sort_by: "volume_usd",
-                    sort_dir: "desc"
-                });
-
+                                const user = ref(null);
+                                const showLoginModal = ref(false);
+                                const loginEmail = ref('');
+                                const loginPassword = ref('');
+                                const loginLoading = ref(false);
+                                const loginError = ref('');
+                                const showEmailForm = ref(false);
+                
+                                // --- Info Modals (FAQ, Terms, Privacy) ---
+                                const showInfoModal = ref(false);
+                                const infoModalType = ref('faq'); // faq, terms, privacy
+                                const activeFaqIndex = ref(null); // Accordion state
+                
+                                const toggleFaq = (index) => {
+                                    activeFaqIndex.value = activeFaqIndex.value === index ? null : index;
+                                };
+                                
+                                const faqItems = [
+                                    { 
+                                        question: 'What is PolyLab?', 
+                                        answer: 'PolyLab is an independent market scanner and analytics dashboard for Polymarket. It aggregates active prediction markets and enriches them with calculated metrics like APR, spread, and liquidity depth to help you find better betting opportunities.' 
+                                    },
+                                    {
+                                        question: 'Is my account secure?',
+                                        answer: 'Yes. Authentication is handled securely by Supabase. We do not store your password or personal credentials. Your data is encrypted, and we only retain the minimum information necessary to maintain your account preferences.'
+                                    },
+                                    { 
+                                        question: 'How is APR calculated?', 
+                                        answer: 'The Annualized Percentage Rate (APR) is an estimate based on the current outcome price and the time remaining until the market expires. It represents the potential return if the current odds hold true, extrapolated to a full year. Please note: These are estimates, not guaranteed returns.' 
+                                    },
+                                    { 
+                                        question: 'Why is the data updated hourly?', 
+                                        answer: 'PolyLab currently performs a full snapshot of the Gamma API every hour. This provides a stable baseline for research and position scouting without the volatility of second-by-second price fluctuations.' 
+                                    },
+                                    { 
+                                        question: 'Is PolyLab affiliated with Polymarket?', 
+                                        answer: 'No. PolyLab is an independent third-party tool. We are not officially affiliated with, endorsed by, or partnered with Polymarket.' 
+                                    },
+                                    { 
+                                        question: 'How can I contact you?', 
+                                        answer: 'You can reach us at hello@polylab.app for any questions, feedback, or partnership inquiries.' 
+                                    }
+                                ];
+                
+                                const termsItems = [
+                                    'PolyLab is provided for informational and analytical purposes only. We do not provide financial, investment, or legal advice.',
+                                    'The tool and all calculated metrics (APR, spread, etc.) are provided "as is" without any guarantees of accuracy. Always verify data on the official Polymarket website.',
+                                    'Betting on prediction markets involves significant risk of capital loss. PolyLab is not responsible for any financial decisions or losses incurred.',
+                                    'PolyLab is an independent tool and is not affiliated with, endorsed by, or partnered with Polymarket or Gamma API.'
+                                ];
+                
+                                const privacyItems = [
+                                    'Data Collection: We do not collect personal information from visitors browsing the scanner. If you contact us via email, we only use your address to respond to your inquiry.',
+                                    'Authentication: If you use Supabase Auth (Google/Email), we only store the minimum necessary data provided by the provider to manage your account.',
+                                    'Cookies: We use essential cookies to manage your session and authentication state.',
+                                    'Third Parties: We do not sell or share your data with third parties. Market data is sourced from public APIs.'
+                                ];
+                
+                                const openInfoModal = (type) => {
+                                    infoModalType.value = type;
+                                    showInfoModal.value = true;
+                                };
+                
+                
+                
+                                const handleLogin = async () => {
+                                    if (!supabase) return;
+                                    loginLoading.value = true;
+                                    loginError.value = '';
+                                    const { error } = await supabase.auth.signInWithPassword({
+                                        email: loginEmail.value,
+                                        password: loginPassword.value,
+                                    });
+                                    if (error) {
+                                        loginError.value = error.message;
+                                    } else {
+                                        showLoginModal.value = false;
+                                        loginEmail.value = '';
+                                        loginPassword.value = '';
+                                    }
+                                    loginLoading.value = false;
+                                };
+                
+                                const handleSignUp = async () => {
+                                    if (!supabase) return;
+                                    loginLoading.value = true;
+                                    loginError.value = '';
+                                    const { error } = await supabase.auth.signUp({
+                                        email: loginEmail.value,
+                                        password: loginPassword.value,
+                                    });
+                                    if (error) {
+                                        loginError.value = error.message;
+                                    } else {
+                                        loginError.value = 'Success! Check your email to confirm.';
+                                    }
+                                    loginLoading.value = false;
+                                };
+                
+                                const handleOAuthLogin = async (provider) => {
+                                    if (!supabase) return;
+                                    const { error } = await supabase.auth.signInWithOAuth({
+                                        provider: provider,
+                                        options: {
+                                            redirectTo: window.location.origin
+                                        }
+                                    });
+                                    if (error) {
+                                        console.error(error);
+                                        loginError.value = error.message;
+                                    }
+                                };
+                
+                                const handleLogout = async () => {
+                                    if (!supabase) return;
+                                    await supabase.auth.signOut();
+                                };
+                
+                                const _safeGetLocalStorage = (key) => {
+                                    try {
+                                        return localStorage.getItem(key);
+                                    } catch (_) {
+                                        return null;
+                                    }
+                                };
+                
+                                const _safeSetLocalStorage = (key, value) => {
+                                    try {
+                                        localStorage.setItem(key, value);
+                                    } catch (_) {
+                                        // ignore
+                                    }
+                                };
+                
+                                // Autocomplete State
+                                const includeSearch = ref("");
+                                const excludeSearch = ref("");
+                                const showIncludeDropdown = ref(false);
+                                const showExcludeDropdown = ref(false);
+                
+                                // Presets State
+                                const showAllPresets = ref(false);
+                                const showMobileFilters = ref(false);
+                                const showAdvancedFilters = ref(false);
+                                const showMobileFilterHint = ref(false);
+                
+                                // View mode (mobile)
+                                const VIEW_MODE_KEY = "polylab_view_mode";
+                                const MOBILE_FILTERS_SEEN_KEY = "polylab_mobile_filters_seen";
+                                const isNarrowScreen = ref(false);
+                                const viewMode = ref(_safeGetLocalStorage(VIEW_MODE_KEY) || "cards"); // 'cards' | 'table'
+                
+                                const updateScreenFlags = () => {
+                                    isNarrowScreen.value = window.innerWidth < 768;
+                                };
+                
+                                const effectiveViewMode = Vue.computed(() => (isNarrowScreen.value ? viewMode.value : "table"));
+                
+                                watch(viewMode, (v) => {
+                                    _safeSetLocalStorage(VIEW_MODE_KEY, String(v || "cards"));
+                                });
+                
+                                const toggleViewMode = () => {
+                                    viewMode.value = effectiveViewMode.value === "cards" ? "table" : "cards";
+                                    expandedId.value = null;
+                                };
+                
+                                const maybeAutoOpenMobileFilters = () => {
+                                    if (!isNarrowScreen.value) return;
+                                    const seen = _safeGetLocalStorage(MOBILE_FILTERS_SEEN_KEY);
+                                    if (seen !== "1") {
+                                        showMobileFilterHint.value = true;
+                                    }
+                                };
+                
+                                const dismissMobileFilterHint = () => {
+                                    showMobileFilterHint.value = false;
+                                    _safeSetLocalStorage(MOBILE_FILTERS_SEEN_KEY, "1");
+                                };
+                
+                                // Default Filters (User Request: 5c spread, 5k vol, 1k liq, 0-100 prob)
+                	                const filters = ref({
+                	                    includedTags: [],
+                	                    excludedTags: [],
+                	                    min_volume: 5000,
+                	                    min_liquidity: 1000,
+                	                    min_price: 0.00,
+                	                    max_price: 1.00,
+                	                    max_spread: 0.05,
+                	                    min_apr_percent: 0,
+                	                    min_hours_to_expire: 0,
+                	                    max_hours_to_expire: 0,
+                	                    expiry_index: 0,
+                	                    include_expired: true,
+                                        // Smart Money filters
+                                        profit_threshold: 1000,
+                                        min_profitable: 0,
+                                        min_losing_opposite: 0,
+                	                    search: "",
+                                    sort_by: "volume_usd",
+                                    sort_dir: "desc"
+                                });
                 // Expiration slider: hours → days → weeks → months (cap at end of next year)
                 const expiryOptions = ref([]);
 
@@ -2422,6 +2538,9 @@
 	                    filters.value.min_hours_to_expire = 0;
 	                    setExpiryHours(0);
 	                    filters.value.include_expired = true;
+                        filters.value.profit_threshold = 1000;
+                        filters.value.min_profitable = 0;
+                        filters.value.min_losing_opposite = 0;
 	                    filters.value.includedTags = [];
 	                    filters.value.excludedTags = [];
 
@@ -2731,6 +2850,14 @@
                             params.append("min_apr", String(filters.value.min_apr_percent / 100));
                         }
                         params.append("include_expired", filters.value.include_expired);
+
+                        // Smart Money filters
+                        if (currentView.value === 'smart') {
+                            params.append("profit_threshold", filters.value.profit_threshold);
+                            params.append("min_profitable", filters.value.min_profitable);
+                            params.append("min_losing_opposite", filters.value.min_losing_opposite);
+                        }
+
                         if (filters.value.search) params.append("search", filters.value.search);
                         params.append("sort_by", filters.value.sort_by);
                         params.append("sort_dir", filters.value.sort_dir);
@@ -2915,6 +3042,7 @@
 	                    expandedId,
 	                    selectedIndex,
 	                    compactMode,
+                    currentView,
                     lastUpdatedTime,
                     smLastUpdatedTime,
                     // New Autocomplete State
