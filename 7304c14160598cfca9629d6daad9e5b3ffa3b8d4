@@ -1,0 +1,16 @@
+Task: Simplify Smart Money side columns (Yes/No)
+
+Summary:
+- Rename headers to Yes side / No side.
+- Show only profitable count and win % per side; remove losing pills.
+- Update mobile smart summary to match the new layout.
+- Adjust UI label test to match the new copy.
+
+Files:
+- main.py
+- static/index.html
+- frontend_deploy/index.html
+- tests/test_ui_smart_money_labels_unittest.py
+
+Why:
+- Make per-side profitability readable at a glance while reducing clutter.
