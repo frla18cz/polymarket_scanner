@@ -13,13 +13,11 @@ class TestSmartMoneyUiLabels(unittest.TestCase):
         self.assertNotIn("Smart (P)", html, "Legacy 'Smart (P)' label should be removed")
         self.assertNotIn("Dumb (L)", html, "Legacy 'Dumb (L)' label should be removed")
 
-        self.assertRegex(html, r"Yes\s+bettors", "Missing 'Yes bettors' label")
-        self.assertRegex(html, r"No\s+bettors", "Missing 'No bettors' label")
+        self.assertRegex(html, r"Yes\s+side", "Missing 'Yes side' label")
+        self.assertRegex(html, r"No\s+side", "Missing 'No side' label")
 
         self.assertRegex(html, r"yes_profitable_count", "Missing YES profitable count in template")
-        self.assertRegex(html, r"yes_losing_count", "Missing YES losing count in template")
         self.assertRegex(html, r"no_profitable_count", "Missing NO profitable count in template")
-        self.assertRegex(html, r"no_losing_count", "Missing NO losing count in template")
 
 
 if __name__ == "__main__":

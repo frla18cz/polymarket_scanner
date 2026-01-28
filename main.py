@@ -645,7 +645,6 @@ def get_markets(
              AND h.outcome_index = 0
              AND ws.total_pnl < 0) AS yes_losing_count,
             (SELECT COUNT(*) FROM holders h 
-             JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
              WHERE h.market_id = amo.condition_id 
              AND h.outcome_index = 0) AS yes_total,
             (SELECT COUNT(*) FROM holders h 
@@ -659,7 +658,6 @@ def get_markets(
              AND h.outcome_index = 1
              AND ws.total_pnl < 0) AS no_losing_count,
             (SELECT COUNT(*) FROM holders h 
-             JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
              WHERE h.market_id = amo.condition_id 
              AND h.outcome_index = 1) AS no_total
     """
