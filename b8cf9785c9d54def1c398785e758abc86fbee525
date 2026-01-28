@@ -1,0 +1,12 @@
+Task: Clamp Smart Money filter inputs to 0–20
+
+Summary:
+- Clamp min_profitable and min_losing_opposite inputs to the 0–20 range.
+- Apply clamp on button step and manual input change for both desktop and mobile UI.
+
+Files:
+- static/index.html
+- frontend_deploy/index.html
+
+Why:
+- Prevents invalid ranges and keeps Smart Money filters within expected bounds.
