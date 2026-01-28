@@ -897,10 +897,9 @@
                             <!-- Smart Money Headers -->
                             <template v-else>
                                 <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('price')">Price</div>
-                                <div class="col-span-2 text-center text-poly-green cursor-pointer hover:text-white" @click="setSort('smart_profitable_count')">Profitable traders</div>
-                                <div class="col-span-2 text-center text-poly-red cursor-pointer hover:text-white" @click="setSort('smart_losing_opposite_count')">Losing traders</div>
-                                <div class="col-span-2 text-center cursor-pointer hover:text-white" @click="setSort('smart_dominance')">Dominance</div>
-                                <div class="col-span-2 text-right cursor-pointer hover:text-white" @click="setSort('end_date')">Expires</div>
+                                <div class="col-span-4 text-center text-poly-green cursor-pointer hover:text-white" @click="setSort('yes_profitable_count')">Yes bettors</div>
+                                <div class="col-span-4 text-center text-poly-red cursor-pointer hover:text-white" @click="setSort('no_profitable_count')">No bettors</div>
+                                <div class="col-span-3 text-right cursor-pointer hover:text-white" @click="setSort('end_date')">Expires</div>
                             </template>
                         </div>
 
@@ -967,14 +966,20 @@
                                             <!-- Stats Grid -->
                                             <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
                                                 <!-- Added Trader Quality for Smart View on Mobile -->
-                                                <div v-if="currentView === 'smart'" class="col-span-2 grid grid-cols-2 gap-2 mb-1">
-                                                    <div class="flex items-center justify-between bg-poly-green/10 px-2 py-1 rounded border border-poly-green/30">
-                                                        <span class="text-[9px] uppercase tracking-wider text-poly-green/80">Profitable</span>
-                                                        <span class="text-poly-green font-mono font-bold text-[11px]">{{ m.smart_profitable_count || 0 }} / {{ m.smart_profitable_total || 0 }}</span>
+                                                <div v-if="currentView === 'smart'" class="col-span-2 grid grid-cols-2 gap-2 mb-1 text-[10px]">
+                                                    <div class="flex flex-col gap-1 bg-poly-green/10 px-2 py-1 rounded border border-poly-green/30">
+                                                        <span class="uppercase tracking-wider text-poly-green/80 text-[9px]">Yes bettors</span>
+                                                        <div class="flex items-center justify-between">
+                                                            <span class="text-poly-green font-mono font-bold">{{ m.yes_profitable_count || 0 }}/{{ m.yes_total || 0 }}</span>
+                                                            <span class="text-poly-red font-mono font-bold">{{ m.yes_losing_count || 0 }}/{{ m.yes_total || 0 }}</span>
+                                                        </div>
                                                     </div>
-                                                    <div class="flex items-center justify-between bg-poly-red/10 px-2 py-1 rounded border border-poly-red/30">
-                                                        <span class="text-[9px] uppercase tracking-wider text-poly-red/80">Losing</span>
-                                                        <span class="text-poly-red font-mono font-bold text-[11px]">{{ m.smart_losing_opposite_count || 0 }} / {{ m.smart_losing_opposite_total || 0 }}</span>
+                                                    <div class="flex flex-col gap-1 bg-poly-red/10 px-2 py-1 rounded border border-poly-red/30">
+                                                        <span class="uppercase tracking-wider text-poly-red/80 text-[9px]">No bettors</span>
+                                                        <div class="flex items-center justify-between">
+                                                            <span class="text-poly-green font-mono font-bold">{{ m.no_profitable_count || 0 }}/{{ m.no_total || 0 }}</span>
+                                                            <span class="text-poly-red font-mono font-bold">{{ m.no_losing_count || 0 }}/{{ m.no_total || 0 }}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -1288,50 +1293,42 @@
                                         </div>
 
                                         <!-- Profitable Traders -->
-                                        <div class="col-span-2 text-center">
-                                            <div class="inline-flex flex-col items-center gap-1 px-3 py-1.5 rounded-lg bg-poly-green/10 border border-poly-green/30 shadow-sm"
-                                                 :class="(m.smart_profitable_total || 0) > 0 ? 'opacity-100' : 'opacity-40'">
-                                                <span class="text-[9px] uppercase tracking-widest text-poly-green/80 font-semibold">Profitable</span>
-                                                <span class="text-poly-green font-bold font-mono text-sm">
-                                                    {{ m.smart_profitable_count || 0 }}
-                                                    <span class="text-[10px] text-gray-400 font-semibold">/ {{ m.smart_profitable_total || 0 }}</span>
-                                                </span>
+                                        <!-- Yes Bettors -->
+                                        <div class="col-span-4">
+                                            <div class="flex items-center justify-center gap-2"
+                                                 :class="(m.yes_total || 0) > 0 ? 'opacity-100' : 'opacity-40'">
+                                                <div class="flex items-center gap-1 px-2 py-1 rounded-lg bg-poly-green/10 border border-poly-green/30 shadow-sm">
+                                                    <span class="text-[9px] uppercase tracking-wider text-poly-green/80 font-semibold">Profitable</span>
+                                                    <span class="text-poly-green font-mono font-bold text-sm">{{ m.yes_profitable_count || 0 }}</span>
+                                                    <span class="text-[10px] text-gray-400 font-semibold">/ {{ m.yes_total || 0 }}</span>
+                                                </div>
+                                                <div class="flex items-center gap-1 px-2 py-1 rounded-lg bg-poly-red/10 border border-poly-red/30 shadow-sm">
+                                                    <span class="text-[9px] uppercase tracking-wider text-poly-red/80 font-semibold">Losing</span>
+                                                    <span class="text-poly-red font-mono font-bold text-sm">{{ m.yes_losing_count || 0 }}</span>
+                                                    <span class="text-[10px] text-gray-400 font-semibold">/ {{ m.yes_total || 0 }}</span>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <!-- Losing Traders -->
-                                        <div class="col-span-2 text-center">
-                                            <div class="inline-flex flex-col items-center gap-1 px-3 py-1.5 rounded-lg bg-poly-red/10 border border-poly-red/30 shadow-sm"
-                                                 :class="(m.smart_losing_opposite_total || 0) > 0 ? 'opacity-100' : 'opacity-40'">
-                                                <span class="text-[9px] uppercase tracking-widest text-poly-red/80 font-semibold">Losing</span>
-                                                <span class="text-poly-red font-bold font-mono text-sm">
-                                                    {{ m.smart_losing_opposite_count || 0 }}
-                                                    <span class="text-[10px] text-gray-400 font-semibold">/ {{ m.smart_losing_opposite_total || 0 }}</span>
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <!-- Dominance Bar -->
-                                        <div class="col-span-2 flex flex-col items-center justify-center gap-1.5 px-2">
-                                            <div class="w-full h-2 bg-poly-accent/50 rounded-full overflow-hidden flex border border-white/5">
-                                                <div class="h-full bg-poly-green transition-all duration-500" 
-                                                     :style="{ width: (m.smart_profitable_count + m.smart_losing_opposite_count > 0) ? (m.smart_profitable_count / (m.smart_profitable_count + m.smart_losing_opposite_count) * 100) + '%' : '50%' }"></div>
-                                                <div class="h-full bg-poly-red transition-all duration-500" 
-                                                     :style="{ width: (m.smart_profitable_count + m.smart_losing_opposite_count > 0) ? (m.smart_losing_opposite_count / (m.smart_profitable_count + m.smart_losing_opposite_count) * 100) + '%' : '50%' }"></div>
-                                            </div>
-                                            <div class="flex justify-between w-full text-[9px] font-bold font-mono tracking-tighter">
-                                                <span class="text-poly-green" v-if="m.smart_profitable_count + m.smart_losing_opposite_count > 0">
-                                                    {{ Math.round(m.smart_profitable_count / (m.smart_profitable_count + m.smart_losing_opposite_count) * 100) }}%
-                                                </span>
-                                                <span class="text-gray-600" v-else>NO DATA</span>
-                                                <span class="text-poly-red" v-if="m.smart_profitable_count + m.smart_losing_opposite_count > 0">
-                                                    {{ Math.round(m.smart_losing_opposite_count / (m.smart_profitable_count + m.smart_losing_opposite_count) * 100) }}%
-                                                </span>
+                                        <!-- No Bettors -->
+                                        <div class="col-span-4">
+                                            <div class="flex items-center justify-center gap-2"
+                                                 :class="(m.no_total || 0) > 0 ? 'opacity-100' : 'opacity-40'">
+                                                <div class="flex items-center gap-1 px-2 py-1 rounded-lg bg-poly-green/10 border border-poly-green/30 shadow-sm">
+                                                    <span class="text-[9px] uppercase tracking-wider text-poly-green/80 font-semibold">Profitable</span>
+                                                    <span class="text-poly-green font-mono font-bold text-sm">{{ m.no_profitable_count || 0 }}</span>
+                                                    <span class="text-[10px] text-gray-400 font-semibold">/ {{ m.no_total || 0 }}</span>
+                                                </div>
+                                                <div class="flex items-center gap-1 px-2 py-1 rounded-lg bg-poly-red/10 border border-poly-red/30 shadow-sm">
+                                                    <span class="text-[9px] uppercase tracking-wider text-poly-red/80 font-semibold">Losing</span>
+                                                    <span class="text-poly-red font-mono font-bold text-sm">{{ m.no_losing_count || 0 }}</span>
+                                                    <span class="text-[10px] text-gray-400 font-semibold">/ {{ m.no_total || 0 }}</span>
+                                                </div>
                                             </div>
                                         </div>
 
                                         <!-- Expires -->
-                                        <div class="col-span-2 text-right text-xs text-gray-500 font-medium">
+                                        <div class="col-span-3 text-right text-xs text-gray-500 font-medium">
                                             {{ timeFromNow(m.end_date) }}
                                         </div>
                                     </template>
@@ -2643,6 +2640,10 @@
                         spread: "Spread",
                         apr: "APR",
                         question: "Market",
+                        yes_profitable_count: "Yes profitable",
+                        no_profitable_count: "No profitable",
+                        yes_losing_count: "Yes losing",
+                        no_losing_count: "No losing",
                     };
                     return map[sortBy] || String(sortBy || "");
                 };

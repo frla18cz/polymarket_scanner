@@ -67,6 +67,9 @@ class TestSmartMoneyFilters(unittest.TestCase):
         for w in profitable_wallets:
             conn.execute("INSERT INTO holders (market_id, outcome_index, wallet_address) VALUES (?, ?, ?)", ("c1", 0, w))
             conn.execute("INSERT OR REPLACE INTO wallets_stats (wallet_address, total_pnl) VALUES (?, ?)", (w, 5000))
+        # Losing wallet on YES
+        conn.execute("INSERT INTO holders (market_id, outcome_index, wallet_address) VALUES (?, ?, ?)", ("c1", 0, "w7"))
+        conn.execute("INSERT OR REPLACE INTO wallets_stats (wallet_address, total_pnl) VALUES (?, ?)", ("w7", -300))
         # Neutral wallet (PnL == 0) should not be counted as profitable or losing
         conn.execute("INSERT INTO holders (market_id, outcome_index, wallet_address) VALUES (?, ?, ?)", ("c1", 0, "w0"))
         conn.execute("INSERT OR REPLACE INTO wallets_stats (wallet_address, total_pnl) VALUES (?, ?)", ("w0", 0))
@@ -76,6 +79,8 @@ class TestSmartMoneyFilters(unittest.TestCase):
         for w in losing_wallets:
             conn.execute("INSERT INTO holders (market_id, outcome_index, wallet_address) VALUES (?, ?, ?)", ("c1", 1, w))
             conn.execute("INSERT OR REPLACE INTO wallets_stats (wallet_address, total_pnl) VALUES (?, ?)", (w, -2000))
+        conn.execute("INSERT INTO holders (market_id, outcome_index, wallet_address) VALUES (?, ?, ?)", ("c1", 1, "w8"))
+        conn.execute("INSERT OR REPLACE INTO wallets_stats (wallet_address, total_pnl) VALUES (?, ?)", ("w8", 2000))
             
         # Market 2: Low Smart Money (1 profitable holder)
         conn.execute("INSERT INTO active_market_outcomes (market_id, condition_id, outcome_index, question, outcome_name, volume_usd, liquidity_usd, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -114,9 +119,12 @@ class TestSmartMoneyFilters(unittest.TestCase):
     def test_counts_use_positive_negative_pnl(self):
         res = self.app_main.get_markets(Response(), limit=10)
         target = next(r for r in res if r["market_id"] == "m1" and r["outcome_name"] == "Yes")
-        self.assertEqual(target["smart_profitable_count"], 3)
-        self.assertEqual(target["smart_losing_opposite_count"], 2)
-        self.assertEqual(target["smart_profitable_total"], 4)
+        self.assertEqual(target["yes_profitable_count"], 3)
+        self.assertEqual(target["yes_losing_count"], 1)
+        self.assertEqual(target["yes_total"], 5)
+        self.assertEqual(target["no_profitable_count"], 1)
+        self.assertEqual(target["no_losing_count"], 2)
+        self.assertEqual(target["no_total"], 3)
 
     def test_no_results(self):
         res = self.app_main.get_markets(Response(), min_profitable=10)

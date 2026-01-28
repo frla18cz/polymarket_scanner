@@ -607,7 +607,21 @@ def get_markets(
     where_str = " AND ".join(where_clauses)
     
     # Sorting
-    valid_sorts = ["volume_usd", "liquidity_usd", "end_date", "price", "spread", "apr", "question", "smart_dominance"]
+    valid_sorts = [
+        "volume_usd",
+        "liquidity_usd",
+        "end_date",
+        "price",
+        "spread",
+        "apr",
+        "question",
+        "yes_profitable_count",
+        "yes_losing_count",
+        "yes_total",
+        "no_profitable_count",
+        "no_losing_count",
+        "no_total",
+    ]
     if sort_by not in valid_sorts:
         sort_by = "volume_usd"
 
@@ -616,9 +630,6 @@ def get_markets(
         sort_sql = apr_sql
     elif sort_by == "question":
         sort_sql = "amo.question COLLATE NOCASE"
-    elif sort_by == "smart_dominance":
-        sort_sql = "(CAST(smart_profitable_count AS REAL) / NULLIF(smart_profitable_count + smart_losing_opposite_count, 0))"
-
     select_sql = f"""
         SELECT 
             amo.*, 
@@ -626,21 +637,31 @@ def get_markets(
             (SELECT COUNT(*) FROM holders h 
              JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
              WHERE h.market_id = amo.condition_id 
-             AND h.outcome_index = amo.outcome_index
-             AND ws.total_pnl > 0) AS smart_profitable_count,
+             AND h.outcome_index = 0
+             AND ws.total_pnl > 0) AS yes_profitable_count,
             (SELECT COUNT(*) FROM holders h 
              JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
              WHERE h.market_id = amo.condition_id 
-             AND h.outcome_index = amo.outcome_index) AS smart_profitable_total,
+             AND h.outcome_index = 0
+             AND ws.total_pnl < 0) AS yes_losing_count,
             (SELECT COUNT(*) FROM holders h 
              JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
              WHERE h.market_id = amo.condition_id 
-             AND h.outcome_index = (1 - amo.outcome_index)
-             AND ws.total_pnl < 0) AS smart_losing_opposite_count,
+             AND h.outcome_index = 0) AS yes_total,
             (SELECT COUNT(*) FROM holders h 
              JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
              WHERE h.market_id = amo.condition_id 
-             AND h.outcome_index = (1 - amo.outcome_index)) AS smart_losing_opposite_total
+             AND h.outcome_index = 1
+             AND ws.total_pnl > 0) AS no_profitable_count,
+            (SELECT COUNT(*) FROM holders h 
+             JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
+             WHERE h.market_id = amo.condition_id 
+             AND h.outcome_index = 1
+             AND ws.total_pnl < 0) AS no_losing_count,
+            (SELECT COUNT(*) FROM holders h 
+             JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
+             WHERE h.market_id = amo.condition_id 
+             AND h.outcome_index = 1) AS no_total
     """
 
     sql = f"""

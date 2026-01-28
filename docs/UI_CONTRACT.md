@@ -69,7 +69,7 @@ All filters must work the same on desktop and mobile because they share the same
 - **Sort**
   - UI: `filters.sort_by`, `filters.sort_dir`
   - API:
-    - `sort_by` in `volume_usd|liquidity_usd|end_date|price|spread|apr|question|smart_money_win_rate`
+    - `sort_by` in `volume_usd|liquidity_usd|end_date|price|spread|apr|question|yes_profitable_count|yes_losing_count|yes_total|no_profitable_count|no_losing_count|no_total`
     - `sort_dir` in `asc|desc`
 - **Pagination**
   - UI: fixed `limit=100`, `offset` increments by 100
