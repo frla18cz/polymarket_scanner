@@ -772,9 +772,9 @@
                                 <span class="text-white font-mono tabular-nums">{{ filters.min_profitable }}</span>
                             </label>
                             <div class="flex items-center gap-2">
-                                <button @click="filters.min_profitable = Math.max(0, filters.min_profitable - 1); resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">-</button>
-                                <input type="number" v-model.number="filters.min_profitable" @change="resetAndFetch" class="flex-1 bg-poly-bg border border-poly-accent rounded h-8 text-center text-xs text-white outline-none focus:border-poly-blue">
-                                <button @click="filters.min_profitable++; resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">+</button>
+                                <button @click="filters.min_profitable = Math.max(0, Math.min(20, (Number(filters.min_profitable) || 0) - 1)); resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">-</button>
+                                <input type="number" min="0" max="20" v-model.number="filters.min_profitable" @change="filters.min_profitable = Math.max(0, Math.min(20, Number(filters.min_profitable) || 0)); resetAndFetch()" class="flex-1 bg-poly-bg border border-poly-accent rounded h-8 text-center text-xs text-white outline-none focus:border-poly-blue">
+                                <button @click="filters.min_profitable = Math.max(0, Math.min(20, (Number(filters.min_profitable) || 0) + 1)); resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">+</button>
                             </div>
                         </div>
 
@@ -785,9 +785,9 @@
                                 <span class="text-white font-mono tabular-nums">{{ filters.min_losing_opposite }}</span>
                             </label>
                             <div class="flex items-center gap-2">
-                                <button @click="filters.min_losing_opposite = Math.max(0, filters.min_losing_opposite - 1); resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">-</button>
-                                <input type="number" v-model.number="filters.min_losing_opposite" @change="resetAndFetch" class="flex-1 bg-poly-bg border border-poly-accent rounded h-8 text-center text-xs text-white outline-none focus:border-poly-blue">
-                                <button @click="filters.min_losing_opposite++; resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">+</button>
+                                <button @click="filters.min_losing_opposite = Math.max(0, Math.min(20, (Number(filters.min_losing_opposite) || 0) - 1)); resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">-</button>
+                                <input type="number" min="0" max="20" v-model.number="filters.min_losing_opposite" @change="filters.min_losing_opposite = Math.max(0, Math.min(20, Number(filters.min_losing_opposite) || 0)); resetAndFetch()" class="flex-1 bg-poly-bg border border-poly-accent rounded h-8 text-center text-xs text-white outline-none focus:border-poly-blue">
+                                <button @click="filters.min_losing_opposite = Math.max(0, Math.min(20, (Number(filters.min_losing_opposite) || 0) + 1)); resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">+</button>
                             </div>
                         </div>
 
@@ -971,8 +971,9 @@
                                                         <span class="uppercase tracking-wider text-poly-green/80 text-[9px]">Yes side</span>
                                                         <div class="flex items-center justify-between">
                                                             <span class="text-poly-green font-mono font-bold">{{ m.yes_profitable_count || 0 }}/{{ m.yes_total || 0 }}</span>
-                                                            <span class="text-poly-green/70 font-mono font-bold">
-                                                                {{ (m.yes_total || 0) > 0 ? Math.round((m.yes_profitable_count || 0) / m.yes_total * 100) + '%' : '-' }}
+                                                            <span class="px-1.5 py-0.5 rounded border font-mono font-bold"
+                                                                  :style="winPctStyle(calcWinPct(m.yes_profitable_count, m.yes_total))">
+                                                                {{ formatWinPct(m.yes_profitable_count, m.yes_total) }}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -980,8 +981,9 @@
                                                         <span class="uppercase tracking-wider text-poly-red/80 text-[9px]">No side</span>
                                                         <div class="flex items-center justify-between">
                                                             <span class="text-poly-green font-mono font-bold">{{ m.no_profitable_count || 0 }}/{{ m.no_total || 0 }}</span>
-                                                            <span class="text-poly-green/70 font-mono font-bold">
-                                                                {{ (m.no_total || 0) > 0 ? Math.round((m.no_profitable_count || 0) / m.no_total * 100) + '%' : '-' }}
+                                                            <span class="px-1.5 py-0.5 rounded border font-mono font-bold"
+                                                                  :style="winPctStyle(calcWinPct(m.no_profitable_count, m.no_total))">
+                                                                {{ formatWinPct(m.no_profitable_count, m.no_total) }}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -1301,15 +1303,16 @@
                                         <div class="col-span-3">
                                             <div class="flex flex-wrap items-center justify-center gap-2"
                                                  :class="(m.yes_total || 0) > 0 ? 'opacity-100' : 'opacity-40'">
-                                                <div class="flex items-center gap-1 px-2 py-1 rounded-lg bg-poly-green/10 border border-poly-green/30 shadow-sm">
-                                                    <span class="text-[9px] uppercase tracking-wider text-poly-green/80 font-semibold">Profitable</span>
-                                                    <span class="text-poly-green font-mono font-bold text-sm">{{ m.yes_profitable_count || 0 }}</span>
-                                                    <span class="text-[10px] text-gray-400 font-semibold">/ {{ m.yes_total || 0 }}</span>
-                                                </div>
-                                                <div class="flex items-center gap-1 px-2 py-1 rounded-lg bg-poly-card/30 border border-poly-accent/40 shadow-sm">
-                                                    <span class="text-[9px] uppercase tracking-wider text-gray-400 font-semibold">Win %</span>
-                                                    <span class="text-gray-200 font-mono font-bold text-sm">
-                                                        {{ (m.yes_total || 0) > 0 ? Math.round((m.yes_profitable_count || 0) / m.yes_total * 100) + '%' : '-' }}
+                                                    <div class="flex items-center gap-1 px-2 py-1 rounded-lg bg-poly-card/30 border border-poly-accent/40 shadow-sm">
+                                                        <span class="text-[9px] uppercase tracking-wider text-poly-green/80 font-semibold">Profitable</span>
+                                                        <span class="text-poly-green font-mono font-bold text-sm">{{ m.yes_profitable_count || 0 }}</span>
+                                                        <span class="text-[10px] text-gray-400 font-semibold">/ {{ m.yes_total || 0 }}</span>
+                                                    </div>
+                                                <div class="flex items-center gap-1 px-2 py-1 rounded-lg border shadow-sm"
+                                                     :style="winPctStyle(calcWinPct(m.yes_profitable_count, m.yes_total))">
+                                                    <span class="text-[9px] uppercase tracking-wider font-semibold">Win %</span>
+                                                    <span class="font-mono font-bold text-sm">
+                                                        {{ formatWinPct(m.yes_profitable_count, m.yes_total) }}
                                                     </span>
                                                 </div>
                                             </div>
@@ -1319,15 +1322,16 @@
                                         <div class="col-span-3">
                                             <div class="flex flex-wrap items-center justify-center gap-2"
                                                  :class="(m.no_total || 0) > 0 ? 'opacity-100' : 'opacity-40'">
-                                                <div class="flex items-center gap-1 px-2 py-1 rounded-lg bg-poly-green/10 border border-poly-green/30 shadow-sm">
-                                                    <span class="text-[9px] uppercase tracking-wider text-poly-green/80 font-semibold">Profitable</span>
-                                                    <span class="text-poly-green font-mono font-bold text-sm">{{ m.no_profitable_count || 0 }}</span>
-                                                    <span class="text-[10px] text-gray-400 font-semibold">/ {{ m.no_total || 0 }}</span>
-                                                </div>
-                                                <div class="flex items-center gap-1 px-2 py-1 rounded-lg bg-poly-card/30 border border-poly-accent/40 shadow-sm">
-                                                    <span class="text-[9px] uppercase tracking-wider text-gray-400 font-semibold">Win %</span>
-                                                    <span class="text-gray-200 font-mono font-bold text-sm">
-                                                        {{ (m.no_total || 0) > 0 ? Math.round((m.no_profitable_count || 0) / m.no_total * 100) + '%' : '-' }}
+                                                    <div class="flex items-center gap-1 px-2 py-1 rounded-lg bg-poly-card/30 border border-poly-accent/40 shadow-sm">
+                                                        <span class="text-[9px] uppercase tracking-wider text-poly-green/80 font-semibold">Profitable</span>
+                                                        <span class="text-poly-green font-mono font-bold text-sm">{{ m.no_profitable_count || 0 }}</span>
+                                                        <span class="text-[10px] text-gray-400 font-semibold">/ {{ m.no_total || 0 }}</span>
+                                                    </div>
+                                                <div class="flex items-center gap-1 px-2 py-1 rounded-lg border shadow-sm"
+                                                     :style="winPctStyle(calcWinPct(m.no_profitable_count, m.no_total))">
+                                                    <span class="text-[9px] uppercase tracking-wider font-semibold">Win %</span>
+                                                    <span class="font-mono font-bold text-sm">
+                                                        {{ formatWinPct(m.no_profitable_count, m.no_total) }}
                                                     </span>
                                                 </div>
                                             </div>
@@ -2606,6 +2610,38 @@
                     }).format(v);
                 };
 
+                const calcWinPct = (profitable, total) => {
+                    const t = Number(total || 0);
+                    if (!isFinite(t) || t <= 0) return null;
+                    const p = Number(profitable || 0);
+                    if (!isFinite(p)) return null;
+                    return Math.round((p / t) * 100);
+                };
+
+                const formatWinPct = (profitable, total) => {
+                    const pct = calcWinPct(profitable, total);
+                    return pct === null ? "-" : `${pct}%`;
+                };
+
+                const winPctStyle = (pct) => {
+                    if (pct === null || pct === undefined) {
+                        return { color: "#94a3b8", borderColor: "rgba(148,163,184,0.35)", backgroundColor: "rgba(148,163,184,0.08)" };
+                    }
+                    if (pct <= 25) {
+                        return { color: "#ff4d4d", borderColor: "rgba(255,77,77,0.45)", backgroundColor: "rgba(255,77,77,0.12)" };
+                    }
+                    if (pct <= 40) {
+                        return { color: "#f59e0b", borderColor: "rgba(245,158,11,0.45)", backgroundColor: "rgba(245,158,11,0.12)" };
+                    }
+                    if (pct <= 60) {
+                        return { color: "#facc15", borderColor: "rgba(250,204,21,0.45)", backgroundColor: "rgba(250,204,21,0.12)" };
+                    }
+                    if (pct <= 74) {
+                        return { color: "#84cc16", borderColor: "rgba(132,204,22,0.45)", backgroundColor: "rgba(132,204,22,0.12)" };
+                    }
+                    return { color: "#00c388", borderColor: "rgba(0,195,136,0.45)", backgroundColor: "rgba(0,195,136,0.12)" };
+                };
+
                 const formatWalletAddress = (address) => {
                     const s = String(address || "");
                     if (!s) return "-";
@@ -3106,6 +3142,9 @@
                     formatCompact,
                     formatNumberCompact,
                     formatPnl,
+                    calcWinPct,
+                    formatWinPct,
+                    winPctStyle,
                     formatDate,
                     formatAprPercent,
                     timeFromNow,
