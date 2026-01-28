@@ -22,6 +22,7 @@ Vytvoření vizuálních prvků pro přepínání pohledů a integrace nových f
 ## Fáze 3: Logika a Vizuální "Boost" Smart Money
 Implementace výpočtů dominance a grafického znázornění v řádcích.
 
+- [x] Task: PnL sign counts & labels – Smart Money na PnL > 0 / < 0, přejmenování na ziskové/ztrátové obchodníky, "x z y" zobrazení a UI polish. [043ccbd]
 - [ ] Task: Dominance Logic – Implementace frontendové funkce pro výpočet ziskových/ztrátových z pole `top_holders`.
 - [ ] Task: Smart Money Row Component – Vytvoření vizuálně bohatého zobrazení pro řádek v pohledu Smart Money.
     - Implementace barevných indikátorů (progress bary / intenzita pozadí).
