@@ -6,10 +6,10 @@ This document captures the **expected/required UI + API behavior** so we can kee
 
 The app UI is a single static HTML file (Vue + Tailwind):
 
-- `frontend_deploy/index.html` (served by FastAPI when `SERVE_FRONTEND=1`)
-- `static/index.html` (kept **byte-identical** to `frontend_deploy/index.html` for alternate hosting)
+- `frontend_deploy/app/index.html` (served by FastAPI when `SERVE_FRONTEND=1`)
+- `static/app/index.html` (kept **byte-identical** to `frontend_deploy/app/index.html` for alternate hosting)
 
-Rule: **edit `frontend_deploy/index.html` and copy it to `static/index.html`** (there is a unit test that enforces this).
+Rule: **edit `frontend_deploy/app/index.html` and copy it to `static/app/index.html`** (there is a unit test that enforces this).
 
 ## API surface (required)
 
@@ -54,9 +54,6 @@ All filters must work the same on desktop and mobile because they share the same
 - **Min volume / liquidity**
   - UI: `filters.min_volume`, `filters.min_liquidity`
   - API: `min_volume`, `min_liquidity`
-- **Min Smart Money Win Rate**
-  - UI: `filters.min_smart_money_win_rate` (percentage, e.g. `50` = 50%)
-  - API: `min_smart_money_win_rate` (fraction, e.g. `0.5` = 50%)
 - **Smart Money Analysis (Dominance)**
   - UI: `filters.min_profitable`, `filters.min_losing_opposite`
   - API:
@@ -79,6 +76,7 @@ Notes:
 
 - The frontend always includes a cache-buster `_t=<timestamp>`; the backend returns `Cache-Control: no-cache`.
 - Tag params are sent as comma-separated strings for proxy safety; the backend splits them into lists.
+- `smart_money_win_rate` is not part of the current public app contract even though the background job still stores it internally.
 
 ## Required market fields (shown in UI details)
 

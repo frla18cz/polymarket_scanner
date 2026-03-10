@@ -4,8 +4,8 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-FRONTEND_DEPLOY = REPO_ROOT / "frontend_deploy" / "index.html"
-STATIC_INDEX = REPO_ROOT / "static" / "index.html"
+FRONTEND_DEPLOY = REPO_ROOT / "frontend_deploy" / "app" / "index.html"
+STATIC_INDEX = REPO_ROOT / "static" / "app" / "index.html"
 
 
 class TestFrontendContract(unittest.TestCase):
@@ -15,7 +15,7 @@ class TestFrontendContract(unittest.TestCase):
         self.assertEqual(
             FRONTEND_DEPLOY.read_bytes(),
             STATIC_INDEX.read_bytes(),
-            "frontend_deploy/index.html and static/index.html must stay identical",
+            "frontend_deploy/app/index.html and static/app/index.html must stay identical",
         )
 
     def test_required_filters_exist(self):
@@ -119,3 +119,32 @@ class TestFrontendContract(unittest.TestCase):
         ]
         for token in required:
             self.assertIn(token, html, f"Missing expected table header/sort token: {token}")
+
+    def test_app_uses_shared_info_content_and_app_redirect(self):
+        html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
+        self.assertIn('/assets/polylab-info-content.js', html)
+        self.assertIn("const infoContent = window.POLYLAB_INFO_CONTENT || {}", html)
+        self.assertIn("redirectTo: window.location.origin + '/app'", html)
+
+    def test_app_auth_copy_is_free_tier_consistent(self):
+        html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
+        self.assertIn("PolyLab Account", html)
+        self.assertIn("Sign in to use advanced presets. PolyLab is currently free during early access.", html)
+        self.assertIn(">Signed in<", html)
+        self.assertNotIn("PolyLab Pro", html)
+        self.assertNotIn("premium filters & presets", html)
+        self.assertNotIn(">PRO<", html)
+
+    def test_app_has_activation_tracking_contract_tokens(self):
+        html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
+        for token in [
+            "app_first_markets_loaded",
+            "app_first_filter_interaction",
+            "app_market_outbound_click",
+            "app_smart_money_view_opened",
+            "auth_password_started",
+            "auth_password_failed",
+            '<link rel="canonical" href="https://www.polylab.app/app">',
+            '<meta name="robots" content="noindex,follow">',
+        ]:
+            self.assertIn(token, html, f"Missing app readiness token: {token}")

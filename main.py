@@ -6,7 +6,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional, List, Any
 from fastapi import FastAPI, Query, Response, Request, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -52,7 +52,14 @@ def get_metrics_db_path() -> str:
 
 DB_PATH = get_db_path()
 METRICS_DB_PATH = get_metrics_db_path()
-FRONTEND_INDEX_PATH = Path(BASE_DIR) / "frontend_deploy" / "index.html"
+HOME_INDEX_PATH = Path(BASE_DIR) / "frontend_deploy" / "index.html"
+APP_INDEX_PATH = Path(BASE_DIR) / "frontend_deploy" / "app" / "index.html"
+DOCS_DIR = Path(BASE_DIR) / "frontend_deploy" / "docs"
+DOCS_INDEX_PATH = Path(BASE_DIR) / "frontend_deploy" / "docs" / "index.html"
+LANDING_INDEX_PATH = Path(BASE_DIR) / "frontend_deploy" / "landing" / "index.html"
+CUSTOM_DATA_INDEX_PATH = Path(BASE_DIR) / "frontend_deploy" / "custom-data" / "index.html"
+ROBOTS_TXT_PATH = Path(BASE_DIR) / "frontend_deploy" / "robots.txt"
+SITEMAP_XML_PATH = Path(BASE_DIR) / "frontend_deploy" / "sitemap.xml"
 
 class TagStats(BaseModel):
     tag_label: str
@@ -322,7 +329,7 @@ def _compute_hours_to_expire_default() -> int:
         conn.close()
 
 # Initialize App
-app = FastAPI(title="PolyLab")
+app = FastAPI(title="PolyLab", docs_url="/api/docs", redoc_url="/api/redoc")
 
 # Serve static assets for the frontend (e.g. logo under /assets/*)
 ASSETS_DIR = Path(BASE_DIR) / "frontend_deploy" / "assets"
@@ -811,24 +818,103 @@ def _frontend_no_cache_headers() -> dict[str, str]:
     }
 
 
+def _resolve_docs_page_path(path: str | None = None) -> Path:
+    if path is None or path == "":
+        target = DOCS_DIR / "index.html"
+    else:
+        parts = [part for part in Path(path).parts if part not in ("", ".")]
+        if not parts or any(part == ".." for part in parts):
+            raise HTTPException(status_code=404, detail="Not Found")
+        target = DOCS_DIR.joinpath(*parts) / "index.html"
+    if not target.exists():
+        raise HTTPException(status_code=404, detail="Not Found")
+    return target
+
+
 @app.get("/", include_in_schema=False)
-def frontend_root():
+def frontend_root(request: Request):
     if not _frontend_enabled():
         raise HTTPException(status_code=404, detail="Not Found")
-    if not FRONTEND_INDEX_PATH.exists():
+    if "market_id" in request.query_params:
+        redirect_target = f"/app?{request.query_params}"
+        return RedirectResponse(url=redirect_target, status_code=307, headers=_frontend_no_cache_headers())
+    if not HOME_INDEX_PATH.exists():
         raise HTTPException(status_code=500, detail="frontend_deploy/index.html not found")
-    return FileResponse(FRONTEND_INDEX_PATH, headers=_frontend_no_cache_headers())
+    return FileResponse(HOME_INDEX_PATH, headers=_frontend_no_cache_headers())
 
 
-@app.get("/{path:path}", include_in_schema=False)
-def frontend_catchall(path: str):
+@app.get("/app", include_in_schema=False)
+@app.get("/app/", include_in_schema=False)
+def frontend_app():
+    if not _frontend_enabled():
+        raise HTTPException(status_code=404, detail="Not Found")
+    if not APP_INDEX_PATH.exists():
+        raise HTTPException(status_code=500, detail="frontend_deploy/app/index.html not found")
+    return FileResponse(APP_INDEX_PATH, headers=_frontend_no_cache_headers())
+
+
+@app.get("/docs", include_in_schema=False)
+@app.get("/docs/", include_in_schema=False)
+def frontend_docs():
+    if not _frontend_enabled():
+        raise HTTPException(status_code=404, detail="Not Found")
+    return FileResponse(_resolve_docs_page_path(), headers=_frontend_no_cache_headers())
+
+
+@app.get("/docs/{path:path}", include_in_schema=False)
+def frontend_docs_page(path: str):
+    if not _frontend_enabled():
+        raise HTTPException(status_code=404, detail="Not Found")
+    return FileResponse(_resolve_docs_page_path(path), headers=_frontend_no_cache_headers())
+
+
+@app.get("/landing", include_in_schema=False)
+@app.get("/landing/", include_in_schema=False)
+def frontend_landing():
+    if not _frontend_enabled():
+        raise HTTPException(status_code=404, detail="Not Found")
+    if not LANDING_INDEX_PATH.exists():
+        raise HTTPException(status_code=500, detail="frontend_deploy/landing/index.html not found")
+    return FileResponse(LANDING_INDEX_PATH, headers=_frontend_no_cache_headers())
+
+
+@app.get("/custom-data", include_in_schema=False)
+@app.get("/custom-data/", include_in_schema=False)
+def frontend_custom_data():
+    if not _frontend_enabled():
+        raise HTTPException(status_code=404, detail="Not Found")
+    if not CUSTOM_DATA_INDEX_PATH.exists():
+        raise HTTPException(status_code=500, detail="frontend_deploy/custom-data/index.html not found")
+    return FileResponse(CUSTOM_DATA_INDEX_PATH, headers=_frontend_no_cache_headers())
+
+
+@app.get("/robots.txt", include_in_schema=False)
+def frontend_robots():
+    if not _frontend_enabled():
+        raise HTTPException(status_code=404, detail="Not Found")
+    if not ROBOTS_TXT_PATH.exists():
+        raise HTTPException(status_code=500, detail="frontend_deploy/robots.txt not found")
+    return FileResponse(ROBOTS_TXT_PATH, headers=_frontend_no_cache_headers())
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+def frontend_sitemap():
+    if not _frontend_enabled():
+        raise HTTPException(status_code=404, detail="Not Found")
+    if not SITEMAP_XML_PATH.exists():
+        raise HTTPException(status_code=500, detail="frontend_deploy/sitemap.xml not found")
+    return FileResponse(SITEMAP_XML_PATH, headers=_frontend_no_cache_headers())
+
+
+@app.get("/app/{path:path}", include_in_schema=False)
+def frontend_app_catchall(path: str):
     if not _frontend_enabled():
         raise HTTPException(status_code=404, detail="Not Found")
     if path.startswith("api/"):
         raise HTTPException(status_code=404, detail="Not Found")
-    if not FRONTEND_INDEX_PATH.exists():
-        raise HTTPException(status_code=500, detail="frontend_deploy/index.html not found")
-    return FileResponse(FRONTEND_INDEX_PATH, headers=_frontend_no_cache_headers())
+    if not APP_INDEX_PATH.exists():
+        raise HTTPException(status_code=500, detail="frontend_deploy/app/index.html not found")
+    return FileResponse(APP_INDEX_PATH, headers=_frontend_no_cache_headers())
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
