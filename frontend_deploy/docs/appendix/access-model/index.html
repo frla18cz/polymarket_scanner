@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f111a">
+  <title>PolyLab Docs | Access Model</title>
+  <meta name="description" content="Read the public PolyLab access-model notes and how they relate to the scanner and documentation surface.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://www.polylab.app/docs/appendix/access-model">
+  <meta property="og:title" content="PolyLab Docs | Access Model">
+  <meta property="og:description" content="Read the public PolyLab access-model notes and how they relate to the scanner and documentation surface.">
+  <meta property="og:image" content="https://www.polylab.app/assets/landing-og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://www.polylab.app/docs/appendix/access-model">
+  <meta name="twitter:title" content="PolyLab Docs | Access Model">
+  <meta name="twitter:description" content="Read the public PolyLab access-model notes and how they relate to the scanner and documentation surface.">
+  <meta name="twitter:image" content="https://www.polylab.app/assets/landing-og.png">
+  <link rel="canonical" href="https://www.polylab.app/docs/appendix/access-model">
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","name":"PolyLab","url":"https://www.polylab.app","logo":"https://www.polylab.app/assets/polylab-mark.svg","email":"hello@polylab.app"},{"@type":"TechArticle","headline":"PolyLab Docs | Access Model","description":"Read the public PolyLab access-model notes and how they relate to the scanner and documentation surface.","url":"https://www.polylab.app/docs/appendix/access-model","author":{"@type":"Organization","name":"PolyLab"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Docs","item":"https://www.polylab.app/docs"},{"@type":"ListItem","position":2,"name":"Access Model","item":"https://www.polylab.app/docs/appendix/access-model"}]}]}</script>
+  <link rel="icon" href="/assets/polylab-mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+
+    :root {
+      color-scheme: dark;
+      --bg: #0b0f17;
+      --panel: #131927;
+      --panel-soft: rgba(19, 25, 39, 0.78);
+      --border: rgba(130, 148, 194, 0.14);
+      --border-strong: rgba(130, 148, 194, 0.24);
+      --text: #edf2ff;
+      --muted: #9da8c6;
+      --blue: #4e86ff;
+      --green: #00c388;
+      --amber: #f2bc58;
+      --danger: #ff8e7b;
+      --shadow: 0 24px 80px rgba(3, 8, 24, 0.38);
+      --sidebar-width: 280px;
+      --toc-width: 240px;
+      --content-width: 860px;
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'IBM Plex Sans', sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(78, 134, 255, 0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(0, 195, 136, 0.08), transparent 24%),
+        linear-gradient(180deg, #080b12 0%, #0b0f17 100%);
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body.info-modal-open { overflow: hidden; }
+    a { color: inherit; text-decoration: none; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+
+    .docs-shell { min-height: 100vh; }
+    .docs-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      backdrop-filter: blur(18px);
+      background: rgba(8, 11, 18, 0.78);
+      border-bottom: 1px solid rgba(130, 148, 194, 0.08);
+    }
+
+    .docs-topbar-inner {
+      width: min(1480px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 14px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .docs-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .docs-brand img {
+      width: 32px;
+      height: 32px;
+    }
+
+    .docs-brand span {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .docs-brand strong,
+    .docs-page-kicker,
+    .docs-page-header h1,
+    .docs-sidebar-group-label,
+    .docs-admonition-title {
+      font-family: 'Space Grotesk', sans-serif;
+      letter-spacing: -0.03em;
+    }
+
+    .docs-brand span span {
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-top: 2px;
+    }
+
+    .docs-topnav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+      color: var(--muted);
+      font-size: 0.93rem;
+    }
+
+    .docs-topnav a:hover { color: var(--text); }
+
+    .docs-layout {
+      width: min(1480px, calc(100% - 28px));
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: var(--sidebar-width) minmax(0, var(--content-width)) var(--toc-width);
+      gap: 24px;
+      padding: 26px 0 56px;
+      align-items: start;
+    }
+
+    .docs-sidebar,
+    .docs-article,
+    .docs-toc-inner {
+      background: var(--panel-soft);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+    }
+
+    .docs-sidebar {
+      position: sticky;
+      top: 78px;
+      max-height: calc(100vh - 96px);
+      overflow: auto;
+    }
+
+    .docs-sidebar-inner { padding: 18px 16px; }
+    .docs-sidebar-group + .docs-sidebar-group { margin-top: 18px; }
+    .docs-sidebar-group-label {
+      color: var(--amber);
+      font-size: 0.86rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+
+    .docs-sidebar-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.35;
+    }
+
+    .docs-sidebar-link:hover,
+    .docs-sidebar-link.is-active {
+      background: rgba(78, 134, 255, 0.12);
+      color: var(--text);
+    }
+
+    .docs-sidebar-link-status {
+      font-size: 0.72rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .docs-content { min-width: 0; }
+    .docs-article { padding: 28px 32px; }
+
+    .docs-global-banner {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 22px;
+      padding: 15px 18px;
+      border-radius: 16px;
+      border: 1px solid rgba(242, 188, 88, 0.26);
+      background: linear-gradient(135deg, rgba(242, 188, 88, 0.14), rgba(78, 134, 255, 0.08));
+      color: #ffe4ae;
+      line-height: 1.55;
+    }
+
+    .docs-global-banner strong {
+      font-family: 'Space Grotesk', sans-serif;
+      letter-spacing: -0.02em;
+    }
+
+    .docs-page-kicker {
+      color: var(--amber);
+      font-size: 0.84rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .docs-page-header h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(2rem, 4vw, 2.9rem);
+      line-height: 1.04;
+    }
+
+    .docs-page-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .docs-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+    }
+
+    .docs-status-badge.is-stable {
+      color: #d9fff2;
+      background: rgba(0, 195, 136, 0.12);
+      border-color: rgba(0, 195, 136, 0.22);
+    }
+
+    .docs-status-badge.is-in-progress {
+      color: #ffe4ae;
+      background: rgba(242, 188, 88, 0.12);
+      border-color: rgba(242, 188, 88, 0.22);
+    }
+
+    .docs-page-updated {
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .docs-page-summary,
+    .docs-article p,
+    .docs-article li,
+    .docs-article blockquote,
+    .docs-toc-empty {
+      color: var(--muted);
+      line-height: 1.72;
+      font-size: 1rem;
+    }
+
+    .docs-article h2,
+    .docs-article h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      letter-spacing: -0.03em;
+      scroll-margin-top: 96px;
+    }
+
+    .docs-article h2 {
+      margin: 34px 0 12px;
+      font-size: 1.55rem;
+    }
+
+    .docs-article h3 {
+      margin: 24px 0 10px;
+      font-size: 1.16rem;
+    }
+
+    .docs-article p { margin: 14px 0; }
+    .docs-article ul,
+    .docs-article ol {
+      margin: 14px 0;
+      padding-left: 22px;
+    }
+
+    .docs-article li + li { margin-top: 8px; }
+
+    .docs-article code {
+      padding: 0.14rem 0.34rem;
+      border-radius: 6px;
+      background: rgba(78, 134, 255, 0.1);
+      color: #e7f0ff;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+      font-size: 0.92em;
+    }
+
+    .docs-article pre {
+      margin: 18px 0;
+      padding: 16px 18px;
+      border-radius: 14px;
+      overflow: auto;
+      background: #0c111b;
+      border: 1px solid var(--border);
+    }
+
+    .docs-article pre code {
+      padding: 0;
+      background: transparent;
+    }
+
+    .docs-table-wrap {
+      margin: 18px 0;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: rgba(12, 17, 27, 0.58);
+    }
+
+    .docs-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 640px;
+    }
+
+    .docs-table th,
+    .docs-table td {
+      padding: 12px 14px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid rgba(130, 148, 194, 0.12);
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+
+    .docs-table th {
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      letter-spacing: -0.02em;
+      background: rgba(78, 134, 255, 0.08);
+    }
+
+    .docs-table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .docs-admonition {
+      margin: 18px 0;
+      padding: 18px 18px 4px;
+      border-radius: 16px;
+      border: 1px solid var(--border-strong);
+      background: rgba(19, 25, 39, 0.78);
+    }
+
+    .docs-admonition-title {
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+
+    .docs-admonition-note { border-color: rgba(78, 134, 255, 0.28); }
+    .docs-admonition-warning { border-color: rgba(255, 142, 123, 0.28); }
+    .docs-admonition-methodology { border-color: rgba(0, 195, 136, 0.28); }
+    .docs-admonition-in-progress { border-color: rgba(242, 188, 88, 0.28); }
+
+    .docs-article-nav {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 34px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(130, 148, 194, 0.1);
+    }
+
+    .docs-article-nav-link {
+      display: block;
+      min-height: 72px;
+      padding: 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(12, 17, 27, 0.58);
+    }
+
+    .docs-article-nav-link.is-empty {
+      visibility: hidden;
+    }
+
+    .docs-article-nav-label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .docs-article-nav-link strong { display: block; }
+
+    .docs-toc {
+      position: sticky;
+      top: 78px;
+    }
+
+    .docs-toc-inner {
+      padding: 18px 16px;
+    }
+
+    .docs-toc-label {
+      margin-bottom: 10px;
+      color: var(--amber);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .docs-toc-link {
+      display: block;
+      color: var(--muted);
+      padding: 7px 0;
+      font-size: 0.9rem;
+      line-height: 1.35;
+    }
+
+    .docs-toc-link:hover { color: var(--text); }
+    .docs-toc-level-3 { padding-left: 12px; font-size: 0.84rem; }
+
+    .docs-footer {
+      width: min(1480px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 0 0 34px;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .docs-footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: flex-end;
+    }
+
+    .docs-footer-links button {
+      appearance: none;
+      border: 0;
+      background: none;
+      padding: 0;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .info-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(4, 7, 16, 0.72);
+      backdrop-filter: blur(16px);
+    }
+
+    .info-modal[hidden] { display: none; }
+
+    .info-modal-card {
+      width: min(720px, 100%);
+      max-height: min(80vh, 720px);
+      overflow: auto;
+      background: #121726;
+      border: 1px solid rgba(130, 148, 194, 0.22);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .info-modal-head,
+    .info-modal-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 22px;
+      border-bottom: 1px solid rgba(130, 148, 194, 0.14);
+    }
+
+    .info-modal-foot {
+      border-top: 1px solid rgba(130, 148, 194, 0.14);
+      border-bottom: 0;
+      justify-content: flex-end;
+    }
+
+    .info-modal-body {
+      padding: 22px;
+      color: var(--muted);
+      line-height: 1.72;
+    }
+
+    .info-modal-item {
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr);
+      gap: 14px;
+      align-items: flex-start;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(130, 148, 194, 0.12);
+    }
+
+    .info-modal-item:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .info-modal-index {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: rgba(78, 134, 255, 0.16);
+      border: 1px solid rgba(78, 134, 255, 0.24);
+      color: #cfe0ff;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .info-modal-item p { margin: 0; }
+
+    .info-modal-close {
+      appearance: none;
+      border: 1px solid rgba(130, 148, 194, 0.22);
+      background: rgba(18, 22, 34, 0.9);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 10px 16px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 1220px) {
+      .docs-layout {
+        grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+      }
+
+      .docs-toc { display: none; }
+    }
+
+    @media (max-width: 900px) {
+      .docs-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .docs-sidebar {
+        position: static;
+        max-height: none;
+      }
+
+      .docs-topbar-inner,
+      .docs-footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .docs-footer-links {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .docs-article { padding: 22px 20px; }
+      .docs-topnav { gap: 10px; font-size: 0.88rem; }
+      .docs-page-header h1 { font-size: 2rem; }
+      .docs-article-nav { grid-template-columns: 1fr; }
+    }
+
+  </style>
+</head>
+<body data-page-key="docs" data-landing-variant="docs">
+  <div class="docs-shell">
+    <header class="docs-topbar">
+      <div class="docs-topbar-inner">
+        <a class="docs-brand" href="/docs">
+          <img src="/assets/polylab-mark.svg" alt="PolyLab">
+          <span>
+            <strong>PolyLab Docs</strong>
+            <span>Independent analyzer for Polymarket</span>
+          </span>
+        </a>
+        <nav class="docs-topnav" aria-label="Docs top navigation">
+          <a href="/docs">Docs Home</a>
+          <a href="/app" data-track-event="cta_click" data-track-placement="docs_topbar" data-track-target="app">Open APP</a>
+          <a href="/custom-data">Custom Data</a>
+        </nav>
+      </div>
+    </header>
+    <div class="docs-layout">
+      <aside class="docs-sidebar">
+<div class="docs-sidebar-inner">
+<section class="docs-sidebar-group"><div class="docs-sidebar-group-label">Start Here</div>
+<a class="docs-sidebar-link" href="/docs"><span>Documentation</span><span class="docs-sidebar-link-status">In Progress</span></a>
+<a class="docs-sidebar-link" href="/docs/getting-started"><span>Getting Started</span><span class="docs-sidebar-link-status">In Progress</span></a>
+<a class="docs-sidebar-link" href="/docs/how-polylab-works"><span>How PolyLab Works</span><span class="docs-sidebar-link-status">In Progress</span></a>
+</section>
+<section class="docs-sidebar-group"><div class="docs-sidebar-group-label">Using the Scanner</div>
+<a class="docs-sidebar-link" href="/docs/workflows"><span>Workflows</span><span class="docs-sidebar-link-status">In Progress</span></a>
+<a class="docs-sidebar-link" href="/docs/scanner/filters-and-sorting"><span>Filters and Sorting</span><span class="docs-sidebar-link-status">In Progress</span></a>
+<a class="docs-sidebar-link" href="/docs/scanner/market-details-and-holders"><span>Market Details and Holders</span><span class="docs-sidebar-link-status">In Progress</span></a>
+</section>
+<section class="docs-sidebar-group"><div class="docs-sidebar-group-label">Understanding the Data</div>
+<a class="docs-sidebar-link" href="/docs/metrics/core-metrics"><span>Core Metrics</span><span class="docs-sidebar-link-status">In Progress</span></a>
+<a class="docs-sidebar-link" href="/docs/methodology/apr"><span>APR Methodology</span><span class="docs-sidebar-link-status">In Progress</span></a>
+<a class="docs-sidebar-link" href="/docs/methodology/smart-money"><span>Smart Money Methodology</span><span class="docs-sidebar-link-status">In Progress</span></a>
+<a class="docs-sidebar-link" href="/docs/data/freshness-and-limitations"><span>Freshness and Limitations</span><span class="docs-sidebar-link-status">In Progress</span></a>
+</section>
+<section class="docs-sidebar-group"><div class="docs-sidebar-group-label">Data Sources</div>
+<a class="docs-sidebar-link" href="/docs/sources/markets-and-events"><span>Markets and Events Source</span><span class="docs-sidebar-link-status">In Progress</span></a>
+<a class="docs-sidebar-link" href="/docs/sources/holders-and-wallet-pnl"><span>Holders and Wallet PnL Source</span><span class="docs-sidebar-link-status">In Progress</span></a>
+</section>
+<section class="docs-sidebar-group"><div class="docs-sidebar-group-label">Pipeline</div>
+<a class="docs-sidebar-link" href="/docs/pipeline/refresh-storage-and-snapshots"><span>Refresh, Storage, and Snapshots</span><span class="docs-sidebar-link-status">In Progress</span></a>
+</section>
+<section class="docs-sidebar-group"><div class="docs-sidebar-group-label">Reference</div>
+<a class="docs-sidebar-link" href="/docs/reference/upstream-field-map"><span>Upstream to PolyLab Field Map</span><span class="docs-sidebar-link-status">In Progress</span></a>
+<a class="docs-sidebar-link" href="/docs/reference/scanner-query-contract"><span>Scanner Query and Filter Contract</span><span class="docs-sidebar-link-status">In Progress</span></a>
+<a class="docs-sidebar-link" href="/docs/reference/public-api-contract"><span>Public API Contract</span><span class="docs-sidebar-link-status">In Progress</span></a>
+<a class="docs-sidebar-link" href="/docs/faq"><span>FAQ</span><span class="docs-sidebar-link-status">In Progress</span></a>
+</section>
+<section class="docs-sidebar-group"><div class="docs-sidebar-group-label">Appendix</div>
+<a class="docs-sidebar-link is-active" href="/docs/appendix/access-model"><span>Access Model</span><span class="docs-sidebar-link-status">In Progress</span></a>
+<a class="docs-sidebar-link" href="/docs/appendix/storage-and-runtime"><span>Storage and Runtime Reference</span><span class="docs-sidebar-link-status">In Progress</span></a>
+</section>
+</div></aside>
+      <main class="docs-content">
+        <article class="docs-article">
+          <section class="docs-global-banner" aria-label="Documentation progress notice"><strong>Documentation is in progress.</strong> <span>Every page in this section describes the current implementation and may change as PolyLab evolves.</span></section>
+          <div class="docs-page-header">
+            <div class="docs-page-kicker">Appendix</div>
+            <h1>Access Model</h1>
+            <div class="docs-page-meta">
+              <span class="docs-status-badge is-in-progress">In Progress</span>
+              <span class="docs-page-updated">Last updated 2026-03-10</span>
+            </div>
+            <p class="docs-page-summary">Public-facing notes on how the current PolyLab product is positioned and what this documentation is trying to make transparent.</p>
+          </div>
+          <div class="docs-admonition docs-admonition-in-progress"><div class="docs-admonition-title">Current Implementation</div><p>This page is intentionally explicit and implementation-first. If the product or upstream APIs change, the current behavior described here can change with them.</p></div>
+          <h2 id="why-this-page-exists">Why this page exists</h2>
+<p>Most of the docs tree is about the scanner, data, and methodology. This appendix page exists to explain how the public product surface is framed today.</p>
+<h2 id="current-public-stance">Current public stance</h2>
+<p>PolyLab is presented as an independent analyzer for Polymarket. The public docs are meant to reduce black-box interpretation by explaining:</p>
+<ul>
+<li>what comes directly from Polymarket</li>
+<li>what is computed locally</li>
+<li>where the scanner is approximate</li>
+<li>which parts of the product are still in progress</li>
+</ul>
+<h2 id="access-and-scope">Access and scope</h2>
+<p>The public website exposes:</p>
+<ul>
+<li>marketing pages</li>
+<li>the public scanner app</li>
+<li>the public docs section</li>
+<li>custom-data information</li>
+</ul>
+<p>This page does not define pricing or entitlements. It exists as context for the documentation layer.</p>
+<h2 id="why-it-remains-in-the-appendix">Why it remains in the appendix</h2>
+<p>Most users benefit more from methodology and scanner documentation than from access-model notes. That is why this page is kept as an appendix rather than a primary getting-started article.</p>
+          <nav class="docs-article-nav"><a class="docs-article-nav-link" href="/docs/faq"><span class="docs-article-nav-label">Previous</span><strong>FAQ</strong></a><a class="docs-article-nav-link" href="/docs/appendix/storage-and-runtime"><span class="docs-article-nav-label">Next</span><strong>Storage and Runtime Reference</strong></a></nav>
+        </article>
+      </main>
+      <aside class="docs-toc">
+<div class="docs-toc-inner">
+<div class="docs-toc-label">On this page</div>
+<a class="docs-toc-link" href="#why-this-page-exists">Why this page exists</a>
+<a class="docs-toc-link" href="#current-public-stance">Current public stance</a>
+<a class="docs-toc-link" href="#access-and-scope">Access and scope</a>
+<a class="docs-toc-link" href="#why-it-remains-in-the-appendix">Why it remains in the appendix</a>
+</div></aside>
+    </div>
+    <footer class="docs-footer">
+      <div>PolyLab Docs</div>
+      <div class="docs-footer-links">
+        <a href="/docs">Home</a>
+        <a href="/docs/faq">Site FAQ</a>
+        <button type="button" data-info-trigger="terms">Terms</button>
+        <button type="button" data-info-trigger="privacy">Privacy</button>
+        <a data-contact-link href="mailto:hello@polylab.app">Contact</a>
+      </div>
+    </footer>
+  </div>
+  <div class="info-modal" data-info-modal hidden>
+    <div class="info-modal-card">
+      <div class="info-modal-head">
+        <h3 data-info-modal-title>Terms</h3>
+        <button class="info-modal-close" type="button" data-info-close aria-label="Close">x</button>
+      </div>
+      <div class="info-modal-body" data-info-modal-body></div>
+      <div class="info-modal-foot">
+        <button class="info-modal-close" type="button" data-info-close>Close</button>
+      </div>
+    </div>
+  </div>
+  <script src="/assets/polylab-info-content.js"></script>
+  <script src="/assets/polylab-marketing.js"></script>
+  <script src="/assets/polylab-tracking.js"></script>
+  <script>
+    (function () {
+      if (window.initPolyLabMarketingPage) {
+        window.initPolyLabMarketingPage();
+      }
+    }());
+  </script>
+</body>
+</html>

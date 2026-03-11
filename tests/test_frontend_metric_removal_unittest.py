@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-FRONTEND_DEPLOY = REPO_ROOT / "frontend_deploy" / "index.html"
+FRONTEND_DEPLOY = REPO_ROOT / "frontend_deploy" / "app" / "index.html"
 
 class TestFrontendMetricRemoval(unittest.TestCase):
     def test_smart_money_win_rate_ui_removed(self):

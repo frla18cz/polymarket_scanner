@@ -1,0 +1,8 @@
+{
+  "track_id": "supabase_auth_recovery_20260310",
+  "type": "feature",
+  "status": "in_progress",
+  "created_at": "2026-03-10T11:00:00Z",
+  "updated_at": "2026-03-10T11:00:00Z",
+  "description": "Rebuild the minimal Supabase public schema for PolyLab auth profiles and ad-tracking events, then wire lightweight client-side event tracking into the marketing pages and app."
+}

@@ -1,0 +1,8 @@
+{
+  "track_id": "user_docs_starter_pack_20260310",
+  "type": "docs",
+  "status": "completed",
+  "created_at": "2026-03-10T14:51:03Z",
+  "updated_at": "2026-03-10T15:08:38Z",
+  "description": "Add the first user-facing documentation pack under docs/access and publish it on the website via a public /docs page, with linked marketing navigation and routing coverage."
+}

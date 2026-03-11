@@ -1,0 +1,8 @@
+{
+  "track_id": "pre_launch_paid_traffic_readiness_20260310",
+  "type": "feature",
+  "status": "completed",
+  "created_at": "2026-03-10T13:20:00Z",
+  "updated_at": "2026-03-10T14:05:00Z",
+  "description": "Prepare the marketing web surfaces and app handoff for paid traffic by fixing misleading paid copy, preserving attribution into /app, adding activation tracking, hardening indexing behavior, and trimming the heaviest landing media behavior."
+}

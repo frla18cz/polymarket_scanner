@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-FRONTEND_DEPLOY = REPO_ROOT / "frontend_deploy" / "index.html"
+FRONTEND_DEPLOY = REPO_ROOT / "frontend_deploy" / "app" / "index.html"
 
 class TestDeepLinkingContract(unittest.TestCase):
     def test_url_update_logic_exists(self):

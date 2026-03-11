@@ -34,3 +34,5 @@ Notes:
 - `docs/ROADMAP_IDEAS.md`
 - `docs/BUG_REPORT.md`
 - `docs/GEMINI.md`
+- `docs/access/README.md`
+- `docs/marketing/README.md`

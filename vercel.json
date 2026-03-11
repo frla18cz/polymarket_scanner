@@ -12,11 +12,51 @@
       "destination": "/frontend_deploy/assets/:path*"
     },
     {
+      "source": "/robots.txt",
+      "destination": "/frontend_deploy/robots.txt"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/frontend_deploy/sitemap.xml"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://api.polylab.app/api/:path*"
     },
     {
-      "source": "/(.*)",
+      "source": "/app",
+      "destination": "/frontend_deploy/app/index.html"
+    },
+    {
+      "source": "/app/:path*",
+      "destination": "/frontend_deploy/app/index.html"
+    },
+    {
+      "source": "/docs",
+      "destination": "/frontend_deploy/docs/index.html"
+    },
+    {
+      "source": "/docs/:path*",
+      "destination": "/frontend_deploy/docs/:path*/index.html"
+    },
+    {
+      "source": "/landing",
+      "destination": "/frontend_deploy/landing/index.html"
+    },
+    {
+      "source": "/landing/:path*",
+      "destination": "/frontend_deploy/landing/index.html"
+    },
+    {
+      "source": "/custom-data",
+      "destination": "/frontend_deploy/custom-data/index.html"
+    },
+    {
+      "source": "/custom-data/:path*",
+      "destination": "/frontend_deploy/custom-data/index.html"
+    },
+    {
+      "source": "/",
       "destination": "/frontend_deploy/index.html"
     }
   ]

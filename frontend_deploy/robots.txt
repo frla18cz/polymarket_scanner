@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /app
+Disallow: /landing
+
+Sitemap: https://www.polylab.app/sitemap.xml
