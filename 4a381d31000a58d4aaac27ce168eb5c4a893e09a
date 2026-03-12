@@ -1,0 +1,24 @@
+Task: Marketing Playground X Retail
+
+Summary:
+- Added a dedicated Conductor track for the retail X paid-marketing playground.
+- Added checked-in marketing ops assets for the first paid wave: playbook, copy matrix, daily readout template, and deep-activation SQL.
+- Extended docs/marketing/README.md to point at the new operating assets and reporting query.
+- Added a targeted unittest that contracts the presence and core content of the new track/docs/query.
+
+Files:
+- conductor/tracks.md
+- conductor/tracks/marketing_playground_x_retail_20260312/spec.md
+- conductor/tracks/marketing_playground_x_retail_20260312/plan.md
+- conductor/tracks/marketing_playground_x_retail_20260312/metadata.json
+- docs/marketing/README.md
+- docs/marketing/paid_retail_x_playbook.md
+- docs/marketing/retail_x_copy_matrix.md
+- docs/marketing/daily_readout_template.md
+- docs/marketing/sql/deep_activation_by_utm_content.sql
+- tests/test_marketing_experiments_docs_unittest.py
+
+Why:
+- Give the first retail X campaign a stable repo-native operating system before any broader spend.
+- Reuse the existing landing/app telemetry contract instead of inventing new product instrumentation.
+- Keep the first iteration focused on copy and measurement, not product-surface churn.
