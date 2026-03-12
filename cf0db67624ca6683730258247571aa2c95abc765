@@ -1,0 +1,7 @@
+Task: Align marketing track contract test with completed status
+
+Summary:
+- Updated the marketing experiments docs unittest to allow the completed track status after the Conductor plan-update commit.
+
+Why:
+- Preserve a truthful contract between the checked-in track metadata and the docs test suite.
