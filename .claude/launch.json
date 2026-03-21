@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "polylab-dev",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["dev_local.sh"],
+      "port": 8000
+    }
+  ]
+}

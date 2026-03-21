@@ -232,7 +232,7 @@
         </header>
 
         <!-- View Switcher (Sub-header) -->
-        <div class="bg-poly-bg border-b border-poly-accent/50 px-4 py-2 flex items-center justify-between shrink-0 z-20">
+        <div class="bg-poly-bg border-b border-poly-accent/50 px-4 py-2 flex flex-wrap items-center gap-y-1 justify-between shrink-0 z-20">
             <div class="flex bg-poly-card p-1 rounded-xl border border-poly-accent shadow-inner">
                 <button @click="setCurrentView('scanner')" 
                     :class="currentView === 'scanner' ? 'bg-poly-blue text-white shadow-lg' : 'text-gray-400 hover:text-gray-200'"
@@ -247,9 +247,17 @@
                     Smart Money
                 </button>
             </div>
-            <div v-if="currentView === 'smart'" class="hidden md:flex items-center gap-2 text-[10px] text-gray-500 font-mono uppercase tracking-wider">
-                <i class="ph ph-info mr-1"></i>
-                Analyzing holder dominance (PnL &gt; 0 vs &lt; 0)
+            <div class="flex items-center gap-3">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border border-poly-accent/50 bg-poly-bg text-gray-200 font-mono tabular-nums">{{ markets.length }} results</span>
+                <button v-if="activeFiltersCount > 0" type="button" @click="resetAllFilters"
+                    class="text-[10px] text-gray-500 hover:text-white flex items-center gap-1 transition-colors"
+                    title="Reset all filters">
+                    <i class="ph ph-arrow-counter-clockwise text-xs"></i> Reset
+                </button>
+                <div v-if="currentView === 'smart'" class="hidden sm:flex items-center gap-2 text-[10px] text-gray-500 font-mono uppercase tracking-wider">
+                    <i class="ph ph-brain mr-1 text-poly-blue/60"></i>
+                    Top holders · profitable vs losing split
+                </div>
             </div>
         </div>
 
@@ -372,18 +380,26 @@
                 <!-- Mobile Pull Handle -->
                 <div class="md:hidden w-12 h-1.5 bg-gray-700 rounded-full mx-auto my-3 shrink-0" @click="showMobileFilters = false"></div>
 
-                <!-- Header -->
-                <div class="px-4 pb-2 flex justify-between items-center shrink-0">
-                    <h3 class="text-white font-bold text-lg md:text-sm md:text-gray-400 md:uppercase md:tracking-wider">Filters</h3>
+                <!-- Header (mobile only — desktop sidebar has no title, filters are self-evident) -->
+                <div class="md:hidden px-4 py-3 flex justify-between items-center shrink-0 border-b border-poly-accent/30">
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-white font-bold text-lg">Filters</h3>
+                        <span v-if="activeFiltersCount > 0"
+                            class="px-1.5 py-0.5 text-[10px] rounded-full bg-poly-blue/20 border border-poly-blue/40 text-poly-blue font-mono font-bold leading-none">
+                            {{ activeFiltersCount }}
+                        </span>
+                    </div>
                     <div class="flex items-center gap-1">
-                        <button v-if="activeFiltersCount > 0" type="button" @click="resetAllFilters"
-                            class="p-2 text-gray-400 hover:text-white transition-colors flex items-center gap-1"
+                        <button type="button" @click="resetAllFilters"
+                            :disabled="activeFiltersCount === 0"
+                            :class="activeFiltersCount > 0 ? 'text-gray-400 hover:text-white' : 'text-gray-700 cursor-default'"
+                            class="p-2 transition-colors flex items-center gap-1"
                             title="Reset all filters">
                             <i class="ph ph-arrow-counter-clockwise text-lg"></i>
-                            <span class="text-xs font-bold md:hidden">Reset</span>
+                            <span class="text-xs font-bold">Reset</span>
                         </button>
                         <button @click="showMobileFilters = false"
-                            class="md:hidden p-2 text-gray-400 hover:text-white transition-colors"
+                            class="p-2 text-gray-400 hover:text-white transition-colors"
                             aria-label="Close filters">
                             <i class="ph ph-x text-2xl"></i>
                         </button>
@@ -399,12 +415,41 @@
                         <span class="text-xs font-mono text-white">{{ markets.length }}</span>
                     </div>
 
-                    <!-- Primary Filters (Presets, Search, Tags, Expiry, Price) -->
-                    <div class="flex flex-col gap-6 md:gap-4">
-                        <!-- Presets -->
-                        </button>
+                    <!-- Smart Money Signals (top of sidebar, only in Smart Money view) -->
+                    <div v-if="currentView === 'smart'"
+                        class="rounded-xl border border-poly-blue/40 bg-poly-blue/5 p-3 animate-in fade-in slide-in-from-top-1 duration-200">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i class="ph ph-brain text-poly-blue text-base"></i>
+                            <span class="text-xs font-bold text-poly-blue uppercase tracking-wider">Smart Money Signals</span>
+                        </div>
+                        <p class="text-[10px] text-gray-400 leading-relaxed mb-3">
+                            Filter by top holder positioning:
+                            <span class="text-poly-green font-semibold">profitable</span> vs
+                            <span class="text-poly-red font-semibold">losing</span> traders.
+                        </p>
+                        <div class="mb-4">
+                            <label class="text-xs text-gray-400 font-semibold mb-2 flex justify-between">
+                                <span>Min <span class="text-poly-green">profitable</span> holders (this side)</span>
+                                <span class="text-white font-mono tabular-nums">{{ filters.min_profitable }}</span>
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <button @click="filters.min_profitable = Math.max(0, Math.min(20, (Number(filters.min_profitable) || 0) - 1)); resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">-</button>
+                                <input type="number" min="0" max="20" v-model.number="filters.min_profitable" @change="filters.min_profitable = Math.max(0, Math.min(20, Number(filters.min_profitable) || 0)); resetAndFetch()" class="flex-1 bg-poly-bg border border-poly-accent rounded h-8 text-center text-xs text-white outline-none focus:border-poly-blue">
+                                <button @click="filters.min_profitable = Math.max(0, Math.min(20, (Number(filters.min_profitable) || 0) + 1)); resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 font-semibold mb-2 flex justify-between">
+                                <span>Min <span class="text-poly-red">losing</span> holders (opposite side)</span>
+                                <span class="text-white font-mono tabular-nums">{{ filters.min_losing_opposite }}</span>
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <button @click="filters.min_losing_opposite = Math.max(0, Math.min(20, (Number(filters.min_losing_opposite) || 0) - 1)); resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">-</button>
+                                <input type="number" min="0" max="20" v-model.number="filters.min_losing_opposite" @change="filters.min_losing_opposite = Math.max(0, Math.min(20, Number(filters.min_losing_opposite) || 0)); resetAndFetch()" class="flex-1 bg-poly-bg border border-poly-accent rounded h-8 text-center text-xs text-white outline-none focus:border-poly-blue">
+                                <button @click="filters.min_losing_opposite = Math.max(0, Math.min(20, (Number(filters.min_losing_opposite) || 0) + 1)); resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">+</button>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
                 <div v-if="activePreset" class="rounded-xl border border-poly-accent/50 bg-poly-bg/30 p-3">
                     <div class="flex items-start justify-between gap-3">
@@ -433,25 +478,35 @@
                 <!-- Search Markets -->
                 <div class="rounded-xl border border-poly-accent/50 bg-poly-bg/30 p-3"
                     :class="filters.search ? 'border-poly-blue/50' : ''">
-                    <div class="flex items-center justify-between mb-2">
-                        <label class="text-xs text-gray-300 font-semibold">Search Markets</label>
-                        <button v-if="filters.search" type="button" @click="filters.search = ''; resetAndFetch()"
-                            class="text-xs text-gray-500 hover:text-white transition font-medium">
-                            Clear
-                        </button>
+                    <div class="flex items-center justify-between cursor-pointer select-none"
+                        :class="sectionOpen.search ? 'mb-2' : ''"
+                        @click="toggleSection('search')">
+                        <label class="text-xs text-gray-300 font-semibold cursor-pointer">Search Markets</label>
+                        <div class="flex items-center gap-2">
+                            <span v-if="sectionActive.search" class="w-1.5 h-1.5 rounded-full bg-poly-blue flex-shrink-0"></span>
+                            <i :class="sectionOpen.search ? 'ph-caret-up' : 'ph-caret-down'" class="ph text-gray-500 text-xs"></i>
+                        </div>
                     </div>
-                    <div class="relative">
-                        <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-gray-500"></i>
-                        <input type="text" v-model="filters.search" @input="debouncedFetch"
-                            class="w-full bg-poly-bg border border-poly-accent/70 rounded-xl pl-9 pr-3 py-2 text-sm focus:border-poly-blue outline-none transition"
-                            placeholder="Trump, BTC, etc...">
+                    <div v-show="sectionOpen.search">
+                        <div class="flex justify-end mb-1" v-if="filters.search">
+                            <button type="button" @click.stop="filters.search = ''; resetAndFetch()"
+                                class="text-xs text-gray-500 hover:text-white transition font-medium">Clear</button>
+                        </div>
+                        <div class="relative">
+                            <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-gray-500"></i>
+                            <input type="text" v-model="filters.search" @input="debouncedFetch"
+                                class="w-full bg-poly-bg border border-poly-accent/70 rounded-xl pl-9 pr-3 py-2 text-sm focus:border-poly-blue outline-none transition"
+                                placeholder="Trump, BTC, etc...">
+                        </div>
                     </div>
                 </div>
 
                 <!-- Categories (Smart Autocomplete) -->
                 <div class="rounded-xl border border-poly-accent/50 bg-poly-bg/30 p-3"
                     :class="(filters.includedTags.length || filters.excludedTags.length) ? 'border-poly-blue/30' : ''">
-                    <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center justify-between cursor-pointer select-none"
+                        :class="sectionOpen.categories ? 'mb-3' : ''"
+                        @click="toggleSection('categories')">
                         <div class="text-xs text-gray-300 font-semibold">Categories</div>
                         <div class="flex items-center gap-1.5">
                             <span v-if="filters.includedTags.length"
@@ -462,10 +517,11 @@
                                 class="px-2 py-0.5 rounded-full text-[10px] font-bold border border-poly-red/40 bg-poly-red/10 text-poly-red">
                                 -{{ filters.excludedTags.length }}
                             </span>
+                            <i :class="sectionOpen.categories ? 'ph-caret-up' : 'ph-caret-down'" class="ph text-gray-500 text-xs ml-1"></i>
                         </div>
                     </div>
 
-                    <div class="flex flex-col gap-5">
+                    <div v-show="sectionOpen.categories" class="flex flex-col gap-5">
                         <!-- INCLUDED Categories -->
                         <div class="relative">
                             <div class="flex justify-between items-center mb-1">
@@ -567,14 +623,15 @@
                 <!-- Expiration -->
                 <div class="rounded-xl border border-poly-accent/50 bg-poly-bg/30 p-3"
                     :class="(filters.max_hours_to_expire > 0 || filters.min_hours_to_expire > 0) ? 'border-poly-blue/40' : ''">
+                    <!-- Header — always visible, no collapse -->
                     <div class="flex items-center justify-between mb-2">
-                        <label class="text-xs text-gray-300 font-semibold"
-                            title="Filters markets with end_date <= now + cutoff">Expires Within</label>
-                        <span
+                        <label class="text-xs text-gray-300 font-semibold">Expiration</label>
+                        <span v-if="sectionActive.expiry"
                             class="px-2 py-0.5 rounded-full text-xs border border-poly-accent/70 bg-poly-card/30 text-gray-200 font-mono tabular-nums">
                             {{ expiryDisplay }}
                         </span>
                     </div>
+                    <!-- Slider + quick presets — always visible -->
                     <input type="range" min="0" :max="Math.max(0, expiryOptions.length - 1)" step="1"
                         v-model.number="filters.expiry_index" @input="updateExpiryFromSlider(false)"
                         @change="updateExpiryFromSlider(true)"
@@ -583,92 +640,78 @@
                         <span>Now</span>
                         <span>{{ expiryMaxLabel }}</span>
                     </div>
-
-                    <div class="grid grid-cols-3 gap-1.5 mb-3">
+                    <div class="grid grid-cols-3 gap-1.5 mb-2">
                         <button type="button" @click="applyExpiryPreset('24h')"
-                            class="px-2 py-1 rounded-lg text-[10px] font-medium border border-poly-accent/70 bg-poly-bg hover:bg-poly-accent text-gray-200 transition">
-                            24h
-                        </button>
+                            class="px-2 py-1 rounded-lg text-[10px] font-medium border border-poly-accent/70 bg-poly-bg hover:bg-poly-accent text-gray-200 transition">24h</button>
                         <button type="button" @click="applyExpiryPreset('7d')"
-                            class="px-2 py-1 rounded-lg text-[10px] font-medium border border-poly-accent/70 bg-poly-bg hover:bg-poly-accent text-gray-200 transition">
-                            7d
-                        </button>
+                            class="px-2 py-1 rounded-lg text-[10px] font-medium border border-poly-accent/70 bg-poly-bg hover:bg-poly-accent text-gray-200 transition">7d</button>
                         <button type="button" @click="applyExpiryPreset('30d')"
-                            class="px-2 py-1 rounded-lg text-[10px] font-medium border border-poly-accent/70 bg-poly-bg hover:bg-poly-accent text-gray-200 transition">
-                            30d
-                        </button>
-                        <button type="button" @click="applyExpiryPreset('end_this')"
-                            class="px-2 py-1 rounded-lg text-[10px] font-medium border border-poly-accent/70 bg-poly-bg hover:bg-poly-accent text-gray-200 transition leading-tight">
-                            End this year
-                        </button>
-                        <button type="button" @click="applyExpiryPreset('end')"
-                            class="px-2 py-1 rounded-lg text-[10px] font-medium border border-poly-accent/70 bg-poly-bg hover:bg-poly-accent text-gray-200 transition leading-tight">
-                            End next year
-                        </button>
-                        <button type="button" @click="applyExpiryPreset('any')"
-                            class="px-2 py-1 rounded-lg text-[10px] font-medium border border-poly-accent/70 bg-poly-bg hover:bg-poly-accent text-gray-200 transition">
-                            Anytime
-                        </button>
+                            class="px-2 py-1 rounded-lg text-[10px] font-medium border border-poly-accent/70 bg-poly-bg hover:bg-poly-accent text-gray-200 transition">30d</button>
                     </div>
-
-                    <div class="border-t border-poly-accent/30 my-3"></div>
-
-                    <div class="flex items-center justify-between mb-2">
-                        <label class="text-xs text-gray-300 font-semibold"
-                            title="Filters markets with end_date >= now + min">Not Sooner Than</label>
-                        <span
-                            class="px-2 py-0.5 rounded-full text-xs border border-poly-accent/70 bg-poly-card/30 text-gray-200 font-mono tabular-nums">
-                            {{ minExpiryDisplay }}
-                        </span>
+                    <!-- More options toggle -->
+                    <button type="button" @click="toggleSection('expiryDetails')"
+                        class="w-full mt-1 flex items-center justify-center gap-1 text-[10px] text-gray-600 hover:text-gray-400 transition-colors py-0.5">
+                        <i :class="sectionOpen.expiryDetails ? 'ph-caret-up' : 'ph-caret-down'" class="ph"></i>
+                        {{ sectionOpen.expiryDetails ? 'Less' : 'More options' }}
+                    </button>
+                    <!-- Secondary options: End this yr / End next yr / Anytime + Not Sooner Than + Include Expired -->
+                    <div v-show="sectionOpen.expiryDetails" class="mt-2">
+                        <div class="grid grid-cols-3 gap-1.5 mb-2">
+                            <button type="button" @click="applyExpiryPreset('end_this')"
+                                class="px-2 py-1 rounded-lg text-[10px] font-medium border border-poly-accent/70 bg-poly-bg hover:bg-poly-accent text-gray-200 transition leading-tight">End&nbsp;this&nbsp;yr</button>
+                            <button type="button" @click="applyExpiryPreset('end')"
+                                class="px-2 py-1 rounded-lg text-[10px] font-medium border border-poly-accent/70 bg-poly-bg hover:bg-poly-accent text-gray-200 transition leading-tight">End&nbsp;next&nbsp;yr</button>
+                            <button type="button" @click="applyExpiryPreset('any')"
+                                class="px-2 py-1 rounded-lg text-[10px] font-medium border border-poly-accent/70 bg-poly-bg hover:bg-poly-accent text-gray-200 transition">Anytime</button>
+                        </div>
+                        <div class="border-t border-poly-accent/30 my-3"></div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-xs text-gray-300 font-semibold"
+                                title="Filters markets with end_date >= now + min">Not Sooner Than</label>
+                            <span class="px-2 py-0.5 rounded-full text-xs border border-poly-accent/70 bg-poly-card/30 text-gray-200 font-mono tabular-nums">
+                                {{ minExpiryDisplay }}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-4 gap-1.5 mb-3">
+                            <button type="button" @click="applyMinExpiryPreset('any')"
+                                class="px-2 py-1 rounded-lg text-[10px] font-medium border border-poly-accent/70 bg-poly-bg hover:bg-poly-accent text-gray-200 transition">Any</button>
+                            <button type="button" @click="applyMinExpiryPreset('24h')"
+                                class="px-2 py-1 rounded-lg text-[10px] font-medium border border-poly-accent/70 bg-poly-bg hover:bg-poly-accent text-gray-200 transition">24h</button>
+                            <button type="button" @click="applyMinExpiryPreset('48h')"
+                                class="px-2 py-1 rounded-lg text-[10px] font-medium border border-poly-accent/70 bg-poly-bg hover:bg-poly-accent text-gray-200 transition">48h</button>
+                            <button type="button" @click="applyMinExpiryPreset('7d')"
+                                class="px-2 py-1 rounded-lg text-[10px] font-medium border border-poly-accent/70 bg-poly-bg hover:bg-poly-accent text-gray-200 transition">7d</button>
+                        </div>
+                        <!-- Include Expired Toggle -->
+                        <label class="flex items-center justify-between gap-3 text-xs cursor-pointer select-none">
+                            <span :class="filters.include_expired ? 'text-white' : 'text-gray-500'">Include Past Due (Expired)</span>
+                            <span class="relative inline-flex items-center w-10 h-6">
+                                <input type="checkbox" v-model="filters.include_expired" @change="resetAndFetch" class="sr-only peer">
+                                <span class="absolute inset-0 rounded-full border border-poly-accent bg-poly-accent/80 peer-checked:bg-poly-blue/50 transition-colors"></span>
+                                <span class="absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white/90 shadow-sm transition-transform peer-checked:translate-x-4"></span>
+                            </span>
+                        </label>
                     </div>
-                    <div class="grid grid-cols-4 gap-1.5 mb-3">
-                        <button type="button" @click="applyMinExpiryPreset('any')"
-                            class="px-2 py-1 rounded-lg text-[10px] font-medium border border-poly-accent/70 bg-poly-bg hover:bg-poly-accent text-gray-200 transition">
-                            Any
-                        </button>
-                        <button type="button" @click="applyMinExpiryPreset('24h')"
-                            class="px-2 py-1 rounded-lg text-[10px] font-medium border border-poly-accent/70 bg-poly-bg hover:bg-poly-accent text-gray-200 transition">
-                            24h
-                        </button>
-                        <button type="button" @click="applyMinExpiryPreset('48h')"
-                            class="px-2 py-1 rounded-lg text-[10px] font-medium border border-poly-accent/70 bg-poly-bg hover:bg-poly-accent text-gray-200 transition">
-                            48h
-                        </button>
-                        <button type="button" @click="applyMinExpiryPreset('7d')"
-                            class="px-2 py-1 rounded-lg text-[10px] font-medium border border-poly-accent/70 bg-poly-bg hover:bg-poly-accent text-gray-200 transition">
-                            7d
-                        </button>
-                    </div>
-
-                    <!-- Include Expired Toggle -->
-                    <label class="flex items-center justify-between gap-3 text-xs cursor-pointer select-none">
-                        <span :class="filters.include_expired ? 'text-white' : 'text-gray-500'">Include Past Due
-                            (Expired)</span>
-                        <span class="relative inline-flex items-center w-10 h-6">
-                            <input type="checkbox" v-model="filters.include_expired" @change="resetAndFetch"
-                                class="sr-only peer">
-                            <span
-                                class="absolute inset-0 rounded-full border border-poly-accent bg-poly-accent/80 peer-checked:bg-poly-blue/50 transition-colors"></span>
-                            <span
-                                class="absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white/90 shadow-sm transition-transform peer-checked:translate-x-4"></span>
-                        </span>
-                    </label>
                 </div>
 
                 <!-- Price Range -->
                 <div class="rounded-xl border border-poly-accent/50 bg-poly-bg/30 p-3"
                     :class="(filters.min_price > 0 || filters.max_price < 1) ? 'border-poly-blue/40' : ''">
-                    <div class="flex items-center justify-between gap-2 mb-2">
-                        <label class="min-w-0 text-xs text-gray-300 font-semibold">Outcome Price Range (Probability)</label>
-                        <span
-                            class="shrink-0 whitespace-nowrap px-2 py-0.5 rounded-full text-xs border border-poly-accent/70 bg-poly-card/30 text-gray-200 font-mono tabular-nums">
-                            <span>{{ formatPct(minPricePct) }}</span>
-                            <span class="mx-1 opacity-70">–</span>
-                            <span>{{ formatPct(maxPricePct) }}%</span>
-                        </span>
+                    <div class="flex items-center justify-between gap-2 cursor-pointer select-none"
+                        :class="sectionOpen.price ? 'mb-2' : ''"
+                        @click="toggleSection('price')">
+                        <label class="min-w-0 text-xs text-gray-300 font-semibold cursor-pointer">Price Range</label>
+                        <div class="flex items-center gap-2">
+                            <span v-if="sectionActive.price"
+                                class="shrink-0 whitespace-nowrap px-2 py-0.5 rounded-full text-xs border border-poly-accent/70 bg-poly-card/30 text-gray-200 font-mono tabular-nums">
+                                {{ formatPct(minPricePct) }}–{{ formatPct(maxPricePct) }}%
+                            </span>
+                            <span v-if="sectionActive.price" class="w-1.5 h-1.5 rounded-full bg-poly-blue flex-shrink-0"></span>
+                            <i :class="sectionOpen.price ? 'ph-caret-up' : 'ph-caret-down'" class="ph text-gray-500 text-xs"></i>
+                        </div>
                     </div>
 
-                    <div class="space-y-3">
+                    <div v-show="sectionOpen.price" class="space-y-3">
                         <!-- Min Price -->
                         <div>
                             <div class="flex justify-between text-xs mb-1">
@@ -693,16 +736,18 @@
                     </div>
                 </div>
 
-                <!-- Advanced Filters Toggle (Mobile Only) -->
-                <button v-if="isNarrowScreen" @click="showAdvancedFilters = !showAdvancedFilters" 
-                    class="w-full py-4 flex justify-between items-center border-t border-poly-accent/50 mt-2">
-                    <span class="text-sm font-bold text-gray-300">Advanced Constraints</span>
-                    <i :class="['ph text-lg text-gray-500', showAdvancedFilters ? 'ph-caret-up' : 'ph-caret-down']"></i>
-                </button>
-
-                <div v-show="!isNarrowScreen || showAdvancedFilters" class="flex flex-col gap-6 md:gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div class="flex flex-col gap-6 md:gap-4">
                     <div class="rounded-xl border border-poly-accent/50 bg-poly-bg/30 p-3">
-                        <div class="text-xs text-gray-300 font-semibold mb-3">Constraints</div>
+                        <div class="flex items-center justify-between cursor-pointer select-none"
+                            :class="sectionOpen.constraints ? 'mb-3' : ''"
+                            @click="toggleSection('constraints')">
+                            <div class="text-xs text-gray-300 font-semibold">Constraints</div>
+                            <div class="flex items-center gap-2">
+                                <span v-if="sectionActive.constraints" class="w-1.5 h-1.5 rounded-full bg-poly-blue flex-shrink-0"></span>
+                                <i :class="sectionOpen.constraints ? 'ph-caret-up' : 'ph-caret-down'" class="ph text-gray-500 text-xs"></i>
+                            </div>
+                        </div>
+                        <div v-show="sectionOpen.constraints">
 
                     <!-- Max Spread -->
                     <div>
@@ -760,44 +805,6 @@
 
                     <div class="border-t border-poly-accent/30 my-3"></div>
 
-                    <!-- Smart Money Specific Constraints -->
-                    <div v-if="currentView === 'smart'" class="space-y-4 animate-in fade-in slide-in-from-left-2 duration-300">
-                        <div class="text-[10px] font-bold text-poly-blue uppercase tracking-widest mb-2 flex items-center gap-2">
-                            <i class="ph ph-brain"></i> PnL Split
-                        </div>
-                        <div class="text-[10px] text-gray-500 leading-relaxed">
-                            Counts use holders with PnL &gt; 0 (profitable) and PnL &lt; 0 (losing).
-                        </div>
-
-                        <!-- Min Profitable Holders -->
-                        <div>
-                            <label class="text-xs text-gray-400 font-semibold mb-2 block flex justify-between">
-                                <span>Min Profitable Traders (This Side)</span>
-                                <span class="text-white font-mono tabular-nums">{{ filters.min_profitable }}</span>
-                            </label>
-                            <div class="flex items-center gap-2">
-                                <button @click="filters.min_profitable = Math.max(0, Math.min(20, (Number(filters.min_profitable) || 0) - 1)); resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">-</button>
-                                <input type="number" min="0" max="20" v-model.number="filters.min_profitable" @change="filters.min_profitable = Math.max(0, Math.min(20, Number(filters.min_profitable) || 0)); resetAndFetch()" class="flex-1 bg-poly-bg border border-poly-accent rounded h-8 text-center text-xs text-white outline-none focus:border-poly-blue">
-                                <button @click="filters.min_profitable = Math.max(0, Math.min(20, (Number(filters.min_profitable) || 0) + 1)); resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">+</button>
-                            </div>
-                        </div>
-
-                        <!-- Min Losing Opposite -->
-                        <div>
-                            <label class="text-xs text-gray-400 font-semibold mb-2 block flex justify-between">
-                                <span>Min Losing Traders (Opposite)</span>
-                                <span class="text-white font-mono tabular-nums">{{ filters.min_losing_opposite }}</span>
-                            </label>
-                            <div class="flex items-center gap-2">
-                                <button @click="filters.min_losing_opposite = Math.max(0, Math.min(20, (Number(filters.min_losing_opposite) || 0) - 1)); resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">-</button>
-                                <input type="number" min="0" max="20" v-model.number="filters.min_losing_opposite" @change="filters.min_losing_opposite = Math.max(0, Math.min(20, Number(filters.min_losing_opposite) || 0)); resetAndFetch()" class="flex-1 bg-poly-bg border border-poly-accent rounded h-8 text-center text-xs text-white outline-none focus:border-poly-blue">
-                                <button @click="filters.min_losing_opposite = Math.max(0, Math.min(20, (Number(filters.min_losing_opposite) || 0) + 1)); resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">+</button>
-                            </div>
-                        </div>
-
-                        <div class="border-t border-poly-accent/30 my-3"></div>
-                    </div>
-
                     <!-- Min Liquidity -->
                     <div>
                         <label class="text-xs text-gray-400 font-semibold mb-2 block flex justify-between">
@@ -811,6 +818,7 @@
                             @change="resetAndFetch"
                             class="w-full h-1 bg-poly-accent/70 rounded-lg appearance-none cursor-pointer">
                     </div>
+                    </div><!-- end constraints v-show -->
                 </div>
 
                 <div class="rounded-xl border border-poly-accent/50 bg-poly-bg/30 p-3">
@@ -832,6 +840,7 @@
                     <p>Showing {{ markets.length }} markets</p>
                     <p class="mt-1 opacity-50">Scraped Data from Gamma API</p>
                 </div>
+                </div><!-- end scrollable content -->
 
                 <!-- Sticky Mobile Footer -->
                 <div class="md:hidden absolute bottom-0 left-0 right-0 p-4 bg-poly-card border-t border-poly-accent/50 backdrop-blur-md">
@@ -891,8 +900,14 @@
                             <!-- Scanner Headers -->
                             <template v-if="currentView === 'scanner'">
                                 <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('price')">Price</div>
-                                <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('spread')">Spread</div>
-                                <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('apr')">APR</div>
+                                <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('spread')"
+                                    title="Bid-ask spread v centech. Čím nižší, tím snazší vstup/výstup za férovou cenu.">
+                                    Spread <i class="ph ph-info text-gray-600 text-[10px]"></i>
+                                </div>
+                                <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('apr')"
+                                    title="Annualized return pokud tento outcome vyhraje. Vyšší APR = lepší výnos relativně k době do expirace.">
+                                    APR <i class="ph ph-info text-gray-600 text-[10px]"></i>
+                                </div>
                                 <div class="col-span-2 text-right cursor-pointer hover:text-white" @click="setSort('volume_usd')">Volume</div>
                                 <div class="col-span-1 text-right cursor-pointer hover:text-white" @click="setSort('liquidity_usd')">Liq</div>
                                 <div class="col-span-2 text-right cursor-pointer hover:text-white" @click="setSort('end_date')">Expires</div>
@@ -1852,6 +1867,17 @@
                                 const showMobileFilters = ref(false);
                                 const showAdvancedFilters = ref(false);
                                 const showMobileFilterHint = ref(false);
+
+                                // Collapsible sidebar sections
+                                const SECTION_OPEN_KEY = "polylab_section_open";
+                                const _defaultSectionOpen = { search: true, categories: true, price: false, constraints: false, expiryDetails: false };
+                                const _loadSectionOpen = () => {
+                                    try { const s = localStorage.getItem(SECTION_OPEN_KEY); if (s) return { ..._defaultSectionOpen, ...JSON.parse(s) }; } catch (_) {}
+                                    return { ..._defaultSectionOpen };
+                                };
+                                const sectionOpen = ref(_loadSectionOpen());
+                                watch(sectionOpen, (v) => { _safeSetLocalStorage(SECTION_OPEN_KEY, JSON.stringify(v)); }, { deep: true });
+                                const toggleSection = (key) => { sectionOpen.value = { ...sectionOpen.value, [key]: !sectionOpen.value[key] }; };
                 
                                 // View mode (mobile)
                                 const VIEW_MODE_KEY = "polylab_view_mode";
@@ -1908,6 +1934,14 @@
                                     sort_by: "volume_usd",
                                     sort_dir: "desc"
                                 });
+
+                const sectionActive = Vue.computed(() => ({
+                    search: !!filters.value.search,
+                    categories: filters.value.includedTags.length > 0 || filters.value.excludedTags.length > 0,
+                    expiry: filters.value.max_hours_to_expire > 0,
+                    price: filters.value.min_price > 0 || filters.value.max_price < 1,
+                    constraints: filters.value.max_spread < 0.20 || filters.value.min_apr_percent > 0 || filters.value.min_volume > 0 || filters.value.min_liquidity > 0,
+                }));
 
                 const getTrackedFilterState = () => ({
                     includedTags: filters.value.includedTags.slice(),
@@ -3183,6 +3217,10 @@
                     showAdvancedFilters,
                     showMobileFilterHint,
                     dismissMobileFilterHint,
+                    sectionOpen,
+                    sectionActive,
+                    toggleSection,
+                    isNarrowScreen,
                     effectiveViewMode,
                     filters,
                     holdersByMarket,
