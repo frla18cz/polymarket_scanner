@@ -22,11 +22,11 @@ class TestHomeContract(unittest.TestCase):
         html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
 
         required_tokens = [
-            "PolyLab | Independent analyzer for Polymarket",
-            "Scan and evaluate Polymarket markets faster",
+            "PolyLab",
+            "Follow the smart money on Polymarket",
             "Open APP",
-            "Explore Product",
-            "PolyLab is currently free during early access.",
+            "See live signals",
+            "Currently free during early access.",
             "Currently free",
             "No wallet required",
             "Hourly snapshots",
@@ -35,7 +35,7 @@ class TestHomeContract(unittest.TestCase):
             "Paid plans may be introduced later",
             "Need custom Polymarket data for a team?",
             "Explore Custom Data",
-            "Independent analyzer for Polymarket",
+            "Independent analysis layer for Polymarket",
             "data-faq-list",
             'data-info-trigger="terms"',
             'data-info-trigger="privacy"',
