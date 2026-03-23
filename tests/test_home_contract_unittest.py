@@ -27,6 +27,7 @@ class TestHomeContract(unittest.TestCase):
             "Open APP",
             "See live signals",
             "8 trading playbooks",
+            "Show me the next edge",
             "Currently free during early access.",
             "Currently free",
             "No wallet required",
@@ -53,6 +54,7 @@ class TestHomeContract(unittest.TestCase):
         self.assertIn('"@type":"SoftwareApplication"', html)
         self.assertIn('"@type":"FAQPage"', html)
         self.assertIn("Smart Money Edge", html)
+        self.assertIn("advanceSpotlightPage", html)
         self.assertNotIn("Free vs Pro", html)
         self.assertNotIn("unlock Pro features later", html)
 

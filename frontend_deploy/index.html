@@ -539,6 +539,43 @@
       margin-top: 8px;
     }
 
+    .section-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 11px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(46, 117, 255, 0.24);
+      background: linear-gradient(180deg, rgba(46, 117, 255, 0.16), rgba(46, 117, 255, 0.08));
+      color: #dbe7ff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+      box-shadow: 0 18px 40px rgba(7, 13, 31, 0.22);
+    }
+
+    .section-action:hover {
+      transform: translateY(-1px);
+      border-color: rgba(122, 173, 255, 0.42);
+      background: linear-gradient(180deg, rgba(46, 117, 255, 0.24), rgba(46, 117, 255, 0.12));
+      box-shadow: 0 22px 50px rgba(7, 13, 31, 0.3);
+    }
+
+    .section-action:disabled {
+      opacity: 0.5;
+      cursor: default;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .section-footer {
+      display: flex;
+      justify-content: center;
+      margin-top: 24px;
+    }
+
     /* ─── Signal cards ─── */
     .signal-grid {
       display: grid;
@@ -1853,6 +1890,10 @@
         max-width: none;
       }
 
+      .section-action {
+        margin-top: 14px;
+      }
+
       .footer-inner {
         flex-direction: column;
         align-items: flex-start;
@@ -2070,6 +2111,21 @@
                   <i class="ph ph-arrow-square-out" style="font-size:0.9rem"></i> View details
                 </div>
               </article>
+            </div>
+
+            <div v-if="!spotlightLoading && spotlightMarkets.length" class="section-footer reveal is-visible">
+              <button
+                type="button"
+                class="section-action"
+                @click="advanceSpotlightPage"
+                :disabled="!canAdvanceSpotlight"
+                data-track-event="homepage_signal_page_advance"
+                data-track-placement="home_signals"
+                data-track-target="next_edge"
+              >
+                <i class="ph ph-shooting-star" style="font-size:0.95rem"></i>
+                Show me the next edge
+              </button>
             </div>
 
             <!-- Signal detail modal (teleported to body) -->
@@ -2450,12 +2506,13 @@
           // ─────────────────────────────────────────────────────────────────
 
           // ─── State ───
-          var spotlightMarkets = ref([]);
+          var spotlightCandidates = ref([]);
           var spotlightLoading = ref(true);
           var expandedCardId = ref(null);
           var holdersData = ref({});
           var holdersLoading = ref({});
           var heroCardIndex = ref(0);
+          var spotlightPageIndex = ref(0);
           var lastUpdated = ref(null);
           var showAllHolders = ref({ yes: false, no: false });
           var playbookPreviews = ref({});
@@ -2576,6 +2633,23 @@
           });
 
           // ─── Computed ───
+          var spotlightPageCount = computed(function () {
+            if (!spotlightCandidates.value.length) return 0;
+            return Math.ceil(spotlightCandidates.value.length / SPOTLIGHT_CONFIG.displayCount);
+          });
+
+          var spotlightMarkets = computed(function () {
+            if (!spotlightCandidates.value.length) return [];
+            var pageCount = spotlightPageCount.value;
+            var pageIndex = pageCount ? (spotlightPageIndex.value % pageCount) : 0;
+            var start = pageIndex * SPOTLIGHT_CONFIG.displayCount;
+            return spotlightCandidates.value.slice(start, start + SPOTLIGHT_CONFIG.displayCount);
+          });
+
+          var canAdvanceSpotlight = computed(function () {
+            return spotlightCandidates.value.length > 1;
+          });
+
           var heroMarkets = computed(function () {
             return spotlightMarkets.value.slice(0, SPOTLIGHT_CONFIG.heroCount);
           });
@@ -2720,37 +2794,86 @@
             return hours + 'h ago';
           }
 
+          function buildSpotlightUrl(options) {
+            var params = [
+              'sort_by=yes_profitable_count',
+              'sort_dir=desc',
+              'limit=' + SPOTLIGHT_CONFIG.fetchLimit,
+              'min_volume=' + SPOTLIGHT_CONFIG.minVolume,
+              'max_spread=' + SPOTLIGHT_CONFIG.maxSpread
+            ];
+            if (options && options.minProfitable != null) {
+              params.push('min_profitable=' + options.minProfitable);
+            }
+            if (options && options.minLosingOpposite != null) {
+              params.push('min_losing_opposite=' + options.minLosingOpposite);
+            }
+            return API_BASE + '/api/markets?' + params.join('&');
+          }
+
+          function normalizeSpotlightMarkets(markets) {
+            var seen = {};
+            return (Array.isArray(markets) ? markets : []).filter(function (m) {
+              if ((m.yes_total || 0) < SPOTLIGHT_CONFIG.minTotalHolders || (m.no_total || 0) < SPOTLIGHT_CONFIG.minTotalHolders) {
+                return false;
+              }
+              if (!m.condition_id || seen[m.condition_id]) {
+                return false;
+              }
+              seen[m.condition_id] = true;
+              return true;
+            });
+          }
+
+          function mergeUniqueMarkets(primary, secondary) {
+            var merged = [];
+            var seen = {};
+            [primary || [], secondary || []].forEach(function (items) {
+              items.forEach(function (market) {
+                if (!market || !market.condition_id || seen[market.condition_id]) return;
+                seen[market.condition_id] = true;
+                merged.push(market);
+              });
+            });
+            return merged;
+          }
+
           // ─── API ───
           function fetchSpotlightMarkets() {
-            var cfg = SPOTLIGHT_CONFIG;
-            var url = API_BASE + '/api/markets'
-              + '?sort_by=yes_profitable_count&sort_dir=desc'
-              + '&limit=' + cfg.fetchLimit
-              + '&min_volume=' + cfg.minVolume
-              + '&min_profitable=' + cfg.minProfitable
-              + '&min_losing_opposite=' + cfg.minLosingOpposite
-              + '&max_spread=' + cfg.maxSpread;
-            return fetch(url)
+            var strictUrl = buildSpotlightUrl({
+              minProfitable: SPOTLIGHT_CONFIG.minProfitable,
+              minLosingOpposite: SPOTLIGHT_CONFIG.minLosingOpposite
+            });
+            var relaxedUrl = buildSpotlightUrl({
+              minProfitable: SPOTLIGHT_CONFIG.minProfitable
+            });
+            return fetch(strictUrl)
               .then(function (res) {
                 if (!res.ok) throw new Error('Failed to load markets');
                 return res.json();
               })
-              .then(function (data) {
-                var markets = Array.isArray(data) ? data : [];
-                // Client-side filter: min holders on each side
-                var filtered = markets.filter(function (m) {
-                  return (m.yes_total || 0) >= cfg.minTotalHolders
-                      && (m.no_total  || 0) >= cfg.minTotalHolders;
-                });
-                // Fallback: relax filter if too few results to fill display
-                if (filtered.length < cfg.displayCount) {
-                  var extra = markets.filter(function (m) { return filtered.indexOf(m) === -1; });
-                  filtered = filtered.concat(extra).slice(0, cfg.displayCount);
+              .then(function (strictData) {
+                var strictMarkets = normalizeSpotlightMarkets(strictData);
+                if (strictMarkets.length >= SPOTLIGHT_CONFIG.displayCount) {
+                  return strictMarkets;
                 }
-                spotlightMarkets.value = filtered.slice(0, cfg.displayCount);
+                return fetch(relaxedUrl)
+                  .then(function (res) {
+                    if (!res.ok) throw new Error('Failed to load fallback markets');
+                    return res.json();
+                  })
+                  .then(function (relaxedData) {
+                    return mergeUniqueMarkets(strictMarkets, normalizeSpotlightMarkets(relaxedData));
+                  });
+              })
+              .then(function (markets) {
+                spotlightCandidates.value = markets;
+                spotlightPageIndex.value = 0;
+                heroCardIndex.value = 0;
               })
               .catch(function () {
-                spotlightMarkets.value = [];
+                spotlightCandidates.value = [];
+                spotlightPageIndex.value = 0;
               });
           }
 
@@ -2849,6 +2972,18 @@
             return url;
           }
 
+          function advanceSpotlightPage() {
+            if (!canAdvanceSpotlight.value) return;
+            var pageCount = spotlightPageCount.value;
+            if (pageCount > 1) {
+              spotlightPageIndex.value = (spotlightPageIndex.value + 1) % pageCount;
+            } else {
+              spotlightCandidates.value = spotlightCandidates.value.slice(1).concat(spotlightCandidates.value.slice(0, 1));
+            }
+            heroCardIndex.value = 0;
+            expandedCardId.value = null;
+          }
+
           function holderPnlBarWidth(pnl, holders) {
             if (pnl == null || !holders || !holders.length) return '0%';
             var maxPnl = Math.max.apply(null, holders.map(function (h) { return Math.abs(h.total_pnl || 0); }));
@@ -2935,6 +3070,8 @@
 
           return {
             spotlightMarkets: spotlightMarkets,
+            spotlightPageCount: spotlightPageCount,
+            canAdvanceSpotlight: canAdvanceSpotlight,
             spotlightLoading: spotlightLoading,
             expandedCardId: expandedCardId,
             expandedMarket: expandedMarket,
@@ -2971,6 +3108,7 @@
             toggleShowAll: toggleShowAll,
             showAllHolders: showAllHolders,
             buildPresetUrl: buildPresetUrl,
+            advanceSpotlightPage: advanceSpotlightPage,
             holderPnlBarWidth: holderPnlBarWidth,
             SPOTLIGHT_CONFIG: SPOTLIGHT_CONFIG
           };
