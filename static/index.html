@@ -1943,8 +1943,8 @@
               <template v-if="!spotlightLoading && heroMarkets.length">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
                   <div class="hero-card-badge">Live signal</div>
-                  <div v-if="convictionScore(currentHeroMarket)" class="conviction-badge" :class="{ 'conviction-badge-jackpot': convictionScore(currentHeroMarket).score >= 80, 'conviction-badge-elite': convictionScore(currentHeroMarket).score >= 65 && convictionScore(currentHeroMarket).score < 80 }" :style="{ color: convictionScore(currentHeroMarket).color, borderColor: convictionScore(currentHeroMarket).color, background: convictionScore(currentHeroMarket).bgColor, fontSize: '0.68rem' }">
-                    {{ convictionScore(currentHeroMarket).emoji }} {{ convictionScore(currentHeroMarket).score }}
+                  <div v-if="convictionScore(currentHeroMarket)" class="conviction-badge" :class="{ 'conviction-badge-jackpot': convictionScore(currentHeroMarket).score >= 80, 'conviction-badge-elite': convictionScore(currentHeroMarket).score >= 70 && convictionScore(currentHeroMarket).score < 80 }" :style="{ color: convictionScore(currentHeroMarket).color, borderColor: convictionScore(currentHeroMarket).color, background: convictionScore(currentHeroMarket).bgColor, fontSize: '0.68rem' }">
+                    {{ convictionScore(currentHeroMarket).emoji }} {{ convictionScore(currentHeroMarket).level }}
                   </div>
                 </div>
                 <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:2px">
@@ -2031,8 +2031,8 @@
                   <img v-if="market.icon_url" :src="market.icon_url" class="signal-card-icon" alt="">
                   <div v-else class="signal-card-icon signal-card-icon-fallback"><i class="ph ph-chart-bar"></i></div>
                   <h3 class="signal-card-title">{{ market.question }}</h3>
-                  <div v-if="convictionScore(market)" class="conviction-badge" :class="{ 'conviction-badge-jackpot': convictionScore(market).score >= 80, 'conviction-badge-elite': convictionScore(market).score >= 65 && convictionScore(market).score < 80 }" :style="{ color: convictionScore(market).color, borderColor: convictionScore(market).color, background: convictionScore(market).bgColor }">
-                    {{ convictionScore(market).emoji }} {{ convictionScore(market).score }}
+                  <div v-if="convictionScore(market)" class="conviction-badge" :class="{ 'conviction-badge-jackpot': convictionScore(market).score >= 80, 'conviction-badge-elite': convictionScore(market).score >= 70 && convictionScore(market).score < 80 }" :style="{ color: convictionScore(market).color, borderColor: convictionScore(market).color, background: convictionScore(market).bgColor }">
+                    {{ convictionScore(market).emoji }} {{ convictionScore(market).level }}
                   </div>
                 </div>
                 <div class="signal-card-price-row">
@@ -2092,8 +2092,8 @@
 
                   <!-- Smart money rating -->
                   <div v-if="convictionScore(expandedMarket)" class="modal-conviction" :style="{ color: convictionScore(expandedMarket).color, borderColor: convictionScore(expandedMarket).color, background: convictionScore(expandedMarket).bgColor }">
-                    <span class="modal-conviction-score">{{ convictionScore(expandedMarket).emoji }} {{ convictionScore(expandedMarket).score }}</span>
-                    <span class="modal-conviction-label">Smart money rating — {{ convictionScore(expandedMarket).level }}</span>
+                    <span class="modal-conviction-score">{{ convictionScore(expandedMarket).emoji }} {{ convictionScore(expandedMarket).level }}</span>
+                    <span class="modal-conviction-label">Smart money rating</span>
                   </div>
 
                   <!-- Stat pills -->
@@ -2650,18 +2650,20 @@
             if (yPct === null || nPct === null) return null;
             var score = Math.abs(yPct - nPct);
             var level, emoji, color, bgColor;
-            if (score >= 80) {
+            if (score >= 90) {
+              level = 'Legendary'; emoji = '🛥️'; color = '#c084fc'; bgColor = 'rgba(192,132,252,0.15)';
+            } else if (score >= 80) {
               level = 'Jackpot'; emoji = '💎'; color = '#a78bfa'; bgColor = 'rgba(167,139,250,0.15)';
-            } else if (score >= 65) {
+            } else if (score >= 70) {
               level = 'Elite'; emoji = '🏆'; color = '#f59e0b'; bgColor = 'rgba(245,158,11,0.15)';
-            } else if (score >= 50) {
+            } else if (score >= 60) {
               level = 'Very strong'; emoji = '🔥'; color = '#f97316'; bgColor = 'rgba(249,115,22,0.12)';
-            } else if (score >= 40) {
+            } else if (score >= 50) {
               level = 'Strong'; emoji = '💪'; color = '#22c55e'; bgColor = 'rgba(34,197,94,0.12)';
-            } else if (score >= 20) {
+            } else if (score >= 40) {
               level = 'Notable'; emoji = '⚡'; color = '#facc15'; bgColor = 'rgba(250,204,21,0.12)';
-            } else if (score >= 10) {
-              level = 'Moderate'; emoji = '📊'; color = '#94a3b8'; bgColor = 'rgba(148,163,184,0.10)';
+            } else if (score >= 25) {
+              level = 'Weak signal'; emoji = '📡'; color = '#94a3b8'; bgColor = 'rgba(148,163,184,0.10)';
             } else {
               return null;
             }
