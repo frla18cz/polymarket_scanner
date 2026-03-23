@@ -1,0 +1,15 @@
+Task: Improve smart money signal rotation and CTA placement
+
+Summary:
+- Moved the manual spotlight rotation CTA to the centered footer below the signal grid.
+- Changed homepage spotlight sourcing to prioritize strict smart-money signals and backfill with a broader unique smart-money pool when strict results are fewer than six.
+- Kept hero auto-rotation intact while ensuring the manual CTA can continue cycling candidate sets.
+- Extended the homepage contract test to cover the CTA token and spotlight advance handler.
+
+Files changed:
+- frontend_deploy/index.html
+- static/index.html
+- tests/test_home_contract_unittest.py
+
+Why:
+- The homepage was hiding the CTA when only one strict page existed, and current data returned only five strict markets. This made the section look broken and left the grid underfilled. The new behavior keeps the section interactive and fills the live signals area more reliably.
