@@ -13,7 +13,20 @@ from pydantic import BaseModel
 import uvicorn
 from pathlib import Path
 
+from bootstrap_snapshots import (
+    BOOTSTRAP_CACHE_CONTROL,
+    build_app_bootstrap_payload,
+    build_homepage_bootstrap_payload,
+    ensure_precomputed_snapshots_schema,
+    load_precomputed_snapshot,
+    refresh_precomputed_snapshots,
+)
 from logging_setup import setup_logging
+from market_queries import get_status_timestamps, get_tag_stats, query_markets
+from smart_money_materialized import (
+    ensure_market_smart_money_stats_schema,
+    rebuild_market_smart_money_stats,
+)
 
 setup_logging("web")
 logger = logging.getLogger("polylab")
@@ -209,6 +222,9 @@ def ensure_indices():
         except Exception as e:
             logger.warning("Failed to ensure APR column/index readiness: %s", e)
         
+        ensure_market_smart_money_stats_schema(conn)
+        ensure_precomputed_snapshots_schema(conn)
+
         conn.executescript("""
             CREATE TABLE IF NOT EXISTS holders (
                 market_id TEXT,
@@ -226,14 +242,10 @@ def ensure_indices():
                 wallet_tag TEXT
             );
 
-            CREATE TABLE IF NOT EXISTS market_smart_money_stats (
-                condition_id TEXT PRIMARY KEY,
-                smart_money_win_rate REAL,
-                last_updated_at TEXT
-            );
-
             CREATE INDEX IF NOT EXISTS idx_holders_market ON holders(market_id);
             CREATE INDEX IF NOT EXISTS idx_holders_wallet ON holders(wallet_address);
+            CREATE INDEX IF NOT EXISTS idx_holders_market_outcome ON holders(market_id, outcome_index);
+            CREATE INDEX IF NOT EXISTS idx_holders_market_outcome_wallet ON holders(market_id, outcome_index, wallet_address);
             CREATE INDEX IF NOT EXISTS idx_wallets_stats_address ON wallets_stats(wallet_address);
 
             CREATE INDEX IF NOT EXISTS idx_market_tags_label ON market_tags(tag_label);
@@ -248,7 +260,6 @@ def ensure_indices():
             -- Missing indices for sliders (Critical for performance)
             CREATE INDEX IF NOT EXISTS idx_amo_price ON active_market_outcomes(price);
             CREATE INDEX IF NOT EXISTS idx_amo_spread ON active_market_outcomes(spread);
-            CREATE INDEX IF NOT EXISTS idx_amo_liquidity ON active_market_outcomes(liquidity_usd);
             CREATE INDEX IF NOT EXISTS idx_amo_apr ON active_market_outcomes(apr);
             
             -- Text Search Indices (helps with sorting/exact match)
@@ -325,6 +336,40 @@ def _compute_hours_to_expire_default() -> int:
         now = datetime.now(end_dt.tzinfo)
         hours = int(((end_dt - now).total_seconds() / 3600.0) + 1.0)
         return max(1, min(hours, 24 * 14))
+    finally:
+        conn.close()
+
+
+def refresh_materialized_smart_money_stats() -> str:
+    conn = get_db_connection()
+    try:
+        updated_at = rebuild_market_smart_money_stats(conn)
+        conn.commit()
+        return updated_at
+    finally:
+        conn.close()
+
+
+def refresh_bootstrap_snapshots() -> None:
+    conn = get_db_connection()
+    try:
+        refresh_precomputed_snapshots(conn)
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def _load_or_build_snapshot(snapshot_key: str, builder):
+    conn = get_db_connection()
+    try:
+        payload = load_precomputed_snapshot(conn, snapshot_key)
+        if payload is not None:
+            return payload
+        payload = builder(conn)
+        ensure_precomputed_snapshots_schema(conn)
+        refresh_precomputed_snapshots(conn)
+        conn.commit()
+        return payload
     finally:
         conn.close()
 
@@ -415,31 +460,19 @@ def get_market_holders(market_id: str):
 
 def get_tags():
     conn = get_db_connection()
-    cursor = conn.cursor()
-    query = "SELECT tag_label, COUNT(*) as count FROM market_tags GROUP BY tag_label ORDER BY count DESC"
-    rows = cursor.execute(query).fetchall()
-    conn.close()
-    return [{"tag_label": r["tag_label"], "count": r["count"]} for r in rows]
+    try:
+        return get_tag_stats(conn)
+    finally:
+        conn.close()
 
 @app.get("/api/status")
 def get_status(response: Response):
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     conn = get_db_connection()
-    cursor = conn.cursor()
     try:
-        row = cursor.execute("SELECT MAX(snapshot_at) as last_updated FROM active_market_outcomes").fetchone()
-        last_updated = row["last_updated"] if row else None
-        
-        row_sm = cursor.execute("SELECT MAX(last_updated_at) as sm_last_updated FROM market_smart_money_stats").fetchone()
-        sm_last_updated = row_sm["sm_last_updated"] if row_sm else None
-    except:
-        last_updated = None
-        sm_last_updated = None
-    conn.close()
-    return {
-        "last_updated": last_updated,
-        "smart_money_last_updated": sm_last_updated
-    }
+        return get_status_timestamps(conn)
+    finally:
+        conn.close()
 
 @app.get("/api/markets")
 def get_markets(
@@ -477,235 +510,52 @@ def get_markets(
             excluded_tags = None
 
     logger.debug("get_markets called with included_tags=%s, excluded_tags=%s", included_tags, excluded_tags)
-    
-    # Handle comma-separated tags (proxy fix)
-    if included_tags and len(included_tags) == 1 and "," in included_tags[0]:
-        included_tags = included_tags[0].split(",")
-        logger.debug("Parsed comma-separated included_tags: %s", included_tags)
-
-    if excluded_tags and len(excluded_tags) == 1 and "," in excluded_tags[0]:
-        excluded_tags = excluded_tags[0].split(",")
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    # Some DB snapshots may not have an `apr` column (older schema). When missing,
-    # compute APR on the fly so sorting/filtering doesn't break.
-    amo_cols = {r["name"] for r in cursor.execute("PRAGMA table_info(active_market_outcomes)").fetchall()}
-    has_apr_col = "apr" in amo_cols
-    apr_expr = (
-        "CASE "
-        "WHEN amo.price IS NOT NULL "
-        " AND amo.price > 0.0 "
-        " AND amo.price < 1.0 "
-        " AND amo.end_date IS NOT NULL "
-        " AND amo.snapshot_at IS NOT NULL "
-        " AND julianday(datetime(amo.end_date)) > julianday(datetime(amo.snapshot_at)) "
-        "THEN ((1.0 / amo.price) - 1.0) * (365.0 / (julianday(datetime(amo.end_date)) - julianday(datetime(amo.snapshot_at)))) "
-        "ELSE NULL "
-        "END"
-    )
-    apr_sql = "amo.apr" if has_apr_col else f"({apr_expr})"
-
-    # Disable caching
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
-    
-    where_clauses = ["1=1"]
-    params = []
-    
-    if min_volume:
-        where_clauses.append("amo.volume_usd >= ?")
-        params.append(min_volume)
-        
-    if min_liquidity:
-        where_clauses.append("amo.liquidity_usd >= ?")
-        params.append(min_liquidity)
-
-    if min_price is not None:
-        where_clauses.append("amo.price >= ?")
-        params.append(min_price)
-    
-    if max_price is not None:
-        where_clauses.append("amo.price <= ?")
-        params.append(max_price)
-
-    if max_spread is not None:
-        where_clauses.append("amo.spread <= ?")
-        params.append(max_spread)
-
-    if min_apr is not None and float(min_apr) > 0:
-        # Win-APR (linear). Prefer indexed column `apr`, but fall back to formula for older DBs.
-        # min_apr is a fraction: 1.0 == 100% APR
-        where_clauses.append(f"({apr_sql} IS NOT NULL AND {apr_sql} >= ?)")
-        params.append(float(min_apr))
-
-    # Smart Money Dominance Filters (PnL sign-based)
-    if min_profitable > 0:
-        where_clauses.append(f"""
-            (SELECT COUNT(*) FROM holders h 
-             JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
-             WHERE h.market_id = amo.condition_id 
-             AND h.outcome_index = amo.outcome_index
-             AND ws.total_pnl > 0) >= ?
-        """)
-        params.append(min_profitable)
-
-    if min_losing_opposite > 0:
-        # Opposite outcome index: 0 -> 1, 1 -> 0
-        where_clauses.append(f"""
-            (SELECT COUNT(*) FROM holders h 
-             JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
-             WHERE h.market_id = amo.condition_id 
-             AND h.outcome_index = (1 - amo.outcome_index)
-             AND ws.total_pnl < 0) >= ?
-        """)
-        params.append(min_losing_opposite)
-
-    if search:
-        where_clauses.append("(amo.question LIKE ? OR amo.outcome_name LIKE ?)")
-        params.append(f"%{search}%")
-        params.append(f"%{search}%")
-
-    if min_hours_to_expire is not None and int(min_hours_to_expire) <= 0:
-        min_hours_to_expire = None
-    if max_hours_to_expire is not None and int(max_hours_to_expire) <= 0:
-        max_hours_to_expire = None
-
-    if (
-        min_hours_to_expire is not None
-        and max_hours_to_expire is not None
-        and int(min_hours_to_expire) > int(max_hours_to_expire)
-    ):
-        min_hours_to_expire, max_hours_to_expire = max_hours_to_expire, min_hours_to_expire
-
-    if min_hours_to_expire is not None:
-        min_dt = datetime.now(timezone.utc) + timedelta(hours=int(min_hours_to_expire))
-        min_str = min_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
-        where_clauses.append("amo.end_date >= ?")
-        params.append(min_str)
-
-    if max_hours_to_expire is not None:
-        cutoff_dt = datetime.now(timezone.utc) + timedelta(hours=int(max_hours_to_expire))
-        cutoff_str = cutoff_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
-        where_clauses.append("amo.end_date <= ?")
-        params.append(cutoff_str)
-
-    if (min_hours_to_expire is not None or max_hours_to_expire is not None) and not include_expired:
-        now_str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-        where_clauses.append("amo.end_date >= ?")
-        params.append(now_str)
-
-    # Tag Logic
-    if included_tags:
-        uniq_included = list(dict.fromkeys(included_tags))
-        placeholders = ",".join("?" * len(uniq_included))
-        # ANY: at least one of selected tags
-        where_clauses.append(f"amo.market_id IN (SELECT market_id FROM market_tags WHERE tag_label IN ({placeholders}))")
-        params.extend(uniq_included)
-
-    if excluded_tags:
-        placeholders = ",".join("?" * len(excluded_tags))
-        # Optimized: Use NOT IN (SELECT...) instead of correlated NOT EXISTS.
-        where_clauses.append(f"amo.market_id NOT IN (SELECT market_id FROM market_tags WHERE tag_label IN ({placeholders}))")
-        params.extend(excluded_tags)
-
-    where_str = " AND ".join(where_clauses)
-    
-    # Sorting
-    valid_sorts = [
-        "volume_usd",
-        "liquidity_usd",
-        "end_date",
-        "price",
-        "spread",
-        "apr",
-        "question",
-        "yes_profitable_count",
-        "yes_losing_count",
-        "yes_total",
-        "no_profitable_count",
-        "no_losing_count",
-        "no_total",
-    ]
-    if sort_by not in valid_sorts:
-        sort_by = "volume_usd"
-
-    sort_sql = f"amo.{sort_by}"
-    if sort_by == "apr":
-        sort_sql = apr_sql
-    elif sort_by == "question":
-        sort_sql = "amo.question COLLATE NOCASE"
-    select_sql = f"""
-        SELECT 
-            amo.*, 
-            {apr_sql} AS apr,
-            (SELECT COUNT(*) FROM holders h 
-             JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
-             WHERE h.market_id = amo.condition_id 
-             AND h.outcome_index = 0
-             AND ws.total_pnl > 0) AS yes_profitable_count,
-            (SELECT COUNT(*) FROM holders h 
-             JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
-             WHERE h.market_id = amo.condition_id 
-             AND h.outcome_index = 0
-             AND ws.total_pnl < 0) AS yes_losing_count,
-            (SELECT COUNT(*) FROM holders h 
-             WHERE h.market_id = amo.condition_id 
-             AND h.outcome_index = 0) AS yes_total,
-            (SELECT COUNT(*) FROM holders h 
-             JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
-             WHERE h.market_id = amo.condition_id 
-             AND h.outcome_index = 1
-             AND ws.total_pnl > 0) AS no_profitable_count,
-            (SELECT COUNT(*) FROM holders h 
-             JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
-             WHERE h.market_id = amo.condition_id 
-             AND h.outcome_index = 1
-             AND ws.total_pnl < 0) AS no_losing_count,
-            (SELECT COUNT(*) FROM holders h 
-             WHERE h.market_id = amo.condition_id 
-             AND h.outcome_index = 1) AS no_total
-    """
-
-    sql = f"""
-        SELECT * FROM (
-            {select_sql}
-            FROM active_market_outcomes amo
-        ) as t
-        WHERE {where_str.replace('amo.', 't.')}
-        ORDER BY {sort_sql.replace('amo.', 't.')} {'ASC' if sort_dir == 'asc' else 'DESC'}
-        LIMIT {limit} OFFSET {offset}
-    """
-    
-    # --- PERFORMANCE LOGGING ---
-    t_start = time.time()
+    conn = get_db_connection()
     try:
-        rows = cursor.execute(sql, params).fetchall()
-    except Exception as e:
-        logger.exception("Error executing SQL: %s", e)
+        return query_markets(
+            conn,
+            included_tags=included_tags,
+            excluded_tags=excluded_tags,
+            sort_by=sort_by,
+            sort_dir=sort_dir,
+            limit=limit,
+            offset=offset,
+            min_volume=min_volume,
+            min_liquidity=min_liquidity,
+            min_price=min_price,
+            max_price=max_price,
+            max_spread=max_spread,
+            min_apr=min_apr,
+            min_hours_to_expire=min_hours_to_expire,
+            max_hours_to_expire=max_hours_to_expire,
+            include_expired=include_expired,
+            search=search,
+            profit_threshold=profit_threshold,
+            min_profitable=min_profitable,
+            min_losing_opposite=min_losing_opposite,
+        )
+    finally:
         conn.close()
-        return []
-        
-    t_end = time.time()
-    duration = t_end - t_start
-    
-    logger.debug("SQL query took %.4fs (rows=%d)", duration, len(rows))
-    
-    if duration > 0.5: # Log anything over 500ms
-        logger.warning("Slow SQL query (%.4fs): %s params=%s", duration, sql, params)
-        try:
-            explain_sql = f"EXPLAIN QUERY PLAN {sql}"
-            plan = cursor.execute(explain_sql, params).fetchall()
-            logger.debug("Query plan:")
-            for p in plan:
-                logger.debug("%s", dict(p))
-        except Exception:
-            pass
 
-    conn.close()
-    return [dict(row) for row in rows]
+
+@app.get("/api/homepage-bootstrap")
+def get_homepage_bootstrap(response: Response):
+    response.headers["Cache-Control"] = BOOTSTRAP_CACHE_CONTROL
+    return _load_or_build_snapshot("homepage", build_homepage_bootstrap_payload)
+
+
+@app.get("/api/app-bootstrap")
+def get_app_bootstrap(response: Response, view: str = "scanner", preset: Optional[str] = None):
+    response.headers["Cache-Control"] = BOOTSTRAP_CACHE_CONTROL
+    normalized_view = "smart" if view == "smart" else "scanner"
+    snapshot_key = f"app_preset_{preset}" if preset else f"app_default_{normalized_view}"
+    return _load_or_build_snapshot(
+        snapshot_key,
+        lambda conn: build_app_bootstrap_payload(conn, view=normalized_view, preset_id=preset),
+    )
 
 @app.get("/api/admin/stats")
 def get_admin_stats(request: Request, days: int = 1):

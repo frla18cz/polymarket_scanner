@@ -5,6 +5,8 @@ from fastapi import Response
 import tempfile
 from pathlib import Path
 
+from market_queries import build_markets_sql
+
 class TestSmartMoneyFilters(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -91,6 +93,8 @@ class TestSmartMoneyFilters(unittest.TestCase):
         conn.commit()
         conn.close()
 
+        cls.app_main.refresh_materialized_smart_money_stats()
+
     @classmethod
     def tearDownClass(cls):
         os.close(cls.db_fd)
@@ -129,6 +133,40 @@ class TestSmartMoneyFilters(unittest.TestCase):
     def test_no_results(self):
         res = self.app_main.get_markets(Response(), min_profitable=10)
         self.assertEqual(len(res), 0)
+
+    def test_materialized_stats_drive_counts_even_without_holders_scan(self):
+        conn = sqlite3.connect(self.db_path)
+        try:
+            conn.execute("DELETE FROM holders")
+            conn.commit()
+        finally:
+            conn.close()
+
+        res = self.app_main.get_markets(Response(), limit=10)
+        target = next(r for r in res if r["market_id"] == "m1" and r["outcome_name"] == "Yes")
+        self.assertEqual(target["yes_profitable_count"], 3)
+        self.assertEqual(target["yes_losing_count"], 1)
+        self.assertEqual(target["yes_total"], 5)
+        self.assertEqual(target["no_profitable_count"], 1)
+        self.assertEqual(target["no_losing_count"], 2)
+        self.assertEqual(target["no_total"], 3)
+
+    def test_query_plan_avoids_correlated_scalar_subqueries_for_smart_filters(self):
+        conn = sqlite3.connect(self.db_path)
+        try:
+            sql, params = build_markets_sql(
+                conn,
+                min_profitable=2,
+                min_losing_opposite=2,
+                limit=20,
+            )
+            plan_rows = conn.execute(f"EXPLAIN QUERY PLAN {sql}", params).fetchall()
+            plan_text = " | ".join(str(row[3]) for row in plan_rows)
+        finally:
+            conn.close()
+
+        self.assertIn("market_smart_money_stats", sql)
+        self.assertNotIn("CORRELATED SCALAR SUBQUERY", plan_text)
 
 if __name__ == "__main__":
     unittest.main()

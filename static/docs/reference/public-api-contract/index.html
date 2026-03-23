@@ -653,7 +653,17 @@
             <p class="docs-page-summary">Public reference for the endpoints the current PolyLab web app relies on.</p>
           </div>
           <div class="docs-admonition docs-admonition-in-progress"><div class="docs-admonition-title">Current Implementation</div><p>This page is intentionally explicit and implementation-first. If the product or upstream APIs change, the current behavior described here can change with them.</p></div>
-          <h2 id="get-api-tags"><code>GET /api/tags</code></h2>
+          <h2 id="get-api-homepage-bootstrap"><code>GET /api/homepage-bootstrap</code></h2>
+<p>Returns the precomputed homepage payload used for the marketing homepage first paint.</p>
+<p>Important response fields include:</p>
+<div class="docs-table-wrap"><table class="docs-table"><thead><tr><th>Field</th><th>Meaning</th></tr></thead><tbody><tr><td><code>generated_at</code></td><td>Snapshot generation timestamp</td></tr><tr><td><code>market_last_updated</code></td><td>Latest <code>snapshot_at</code> used when building the snapshot</td></tr><tr><td><code>smart_money_last_updated</code></td><td>Latest smart-money refresh timestamp available to the snapshot</td></tr><tr><td><code>cache_max_age_ms</code></td><td>Suggested client-side cache TTL for local bootstrap hydration</td></tr><tr><td><code>spotlight_markets</code></td><td>Ready-to-render smart-money spotlight cards</td></tr><tr><td><code>playbook_previews</code></td><td>Per-playbook preview rows keyed by preset id</td></tr></tbody></table></div>
+<h2 id="get-api-app-bootstrap"><code>GET /api/app-bootstrap</code></h2>
+<p>Returns the precomputed first-paint payload for <code>/app</code>.</p>
+<p>Query params:</p>
+<div class="docs-table-wrap"><table class="docs-table"><thead><tr><th>Param</th><th>Meaning</th></tr></thead><tbody><tr><td><code>view</code></td><td><code>scanner</code> or <code>smart</code></td></tr><tr><td><code>preset</code></td><td>Optional preset id such as <code>smart_money_edge</code></td></tr></tbody></table></div>
+<p>Important response fields include:</p>
+<div class="docs-table-wrap"><table class="docs-table"><thead><tr><th>Field</th><th>Meaning</th></tr></thead><tbody><tr><td><code>generated_at</code></td><td>Snapshot generation timestamp</td></tr><tr><td><code>market_last_updated</code></td><td>Latest <code>snapshot_at</code> used when building the snapshot</td></tr><tr><td><code>smart_money_last_updated</code></td><td>Latest smart-money refresh timestamp available to the snapshot</td></tr><tr><td><code>view</code></td><td>Resolved app view after preset application</td></tr><tr><td><code>active_preset_id</code></td><td>Resolved preset id, or <code>null</code> for default bootstraps</td></tr><tr><td><code>filters</code></td><td>Resolved initial filter state for the first paint</td></tr><tr><td><code>markets</code></td><td>Initial market rows rendered before live revalidation</td></tr><tr><td><code>tags</code></td><td>Initial tag stats used by include/exclude autocomplete</td></tr><tr><td><code>cache_key</code></td><td>Storage key used by the frontend for bootstrap caching</td></tr></tbody></table></div>
+<h2 id="get-api-tags"><code>GET /api/tags</code></h2>
 <p>Returns tag statistics used by the include/exclude tag UI.</p>
 <div class="docs-table-wrap"><table class="docs-table"><thead><tr><th>Field</th><th>Meaning</th></tr></thead><tbody><tr><td><code>tag_label</code></td><td>Tag label</td></tr><tr><td><code>count</code></td><td>Number of occurrences in the current snapshot</td></tr></tbody></table></div>
 <h2 id="get-api-status"><code>GET /api/status</code></h2>
@@ -667,6 +677,7 @@
 <p>Returns holder rows for the condition represented by the selected market detail view.</p>
 <div class="docs-table-wrap"><table class="docs-table"><thead><tr><th>Field</th><th>Meaning</th></tr></thead><tbody><tr><td><code>wallet_address</code></td><td>Normalized holder wallet</td></tr><tr><td><code>position_size</code></td><td>Current sampled position size</td></tr><tr><td><code>outcome_index</code></td><td>YES / NO side index</td></tr><tr><td><code>total_pnl</code></td><td>Joined wallet PnL if available</td></tr><tr><td><code>alias</code></td><td>Optional wallet alias</td></tr><tr><td><code>wallet_tag</code></td><td>Optional operational tag such as <code>SYSTEM</code></td></tr></tbody></table></div>
 <h2 id="contract-stability">Contract stability</h2>
+<p>The homepage and initial <code>/app</code> load are intentionally snapshot-backed for speed. Live <code>/api/markets</code> remains the source for interactive filtering, pagination, and silent revalidation after first paint.</p>
 <p>This reference documents what the current public app uses today. It should be read as a current implementation contract, not a long-term versioned API promise.</p>
           <nav class="docs-article-nav"><a class="docs-article-nav-link" href="/docs/reference/scanner-query-contract"><span class="docs-article-nav-label">Previous</span><strong>Scanner Query and Filter Contract</strong></a><a class="docs-article-nav-link" href="/docs/faq"><span class="docs-article-nav-label">Next</span><strong>FAQ</strong></a></nav>
         </article>
@@ -674,6 +685,8 @@
       <aside class="docs-toc">
 <div class="docs-toc-inner">
 <div class="docs-toc-label">On this page</div>
+<a class="docs-toc-link" href="#get-api-homepage-bootstrap">`GET /api/homepage-bootstrap`</a>
+<a class="docs-toc-link" href="#get-api-app-bootstrap">`GET /api/app-bootstrap`</a>
 <a class="docs-toc-link" href="#get-api-tags">`GET /api/tags`</a>
 <a class="docs-toc-link" href="#get-api-status">`GET /api/status`</a>
 <a class="docs-toc-link" href="#get-api-markets">`GET /api/markets`</a>

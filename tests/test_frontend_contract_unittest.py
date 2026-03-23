@@ -65,6 +65,15 @@ class TestFrontendContract(unittest.TestCase):
         for snippet in required_snippets:
             self.assertIn(snippet, html, f"Missing required request param mapping: {snippet}")
 
+    def test_app_uses_bootstrap_endpoint_for_first_paint(self):
+        html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
+
+        self.assertIn("/api/app-bootstrap", html)
+        self.assertIn("sessionStorage", html)
+        self.assertIn("localStorage", html)
+        self.assertIn("cache_key", html)
+        self.assertIn("buildBootstrapCacheKey", html)
+
     def test_market_details_labels_present_on_page(self):
         html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
         for label in ["Market Details", "Implied odds", "APR (Win)", "Liquidity", "Volume", "Dates", "Market ID"]:

@@ -18,6 +18,7 @@ logger = logging.getLogger("polylab.worker")
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from scraper import run_scrape
 from smart_money_scraper import run as run_smart_money
+from main import refresh_bootstrap_snapshots
 
 def _default_stats_path() -> Path:
     log_dir = Path(os.environ.get("LOG_DIR", "logs"))
@@ -95,6 +96,16 @@ def job_coordinated_refresh():
             pass
     else:
         logger.info("Step 2/2: Skipping Smart Money (Next run in %.1fh)", (SMART_MONEY_INTERVAL_SECONDS - time_since_last) / 3600)
+
+    try:
+        logger.info("Step 3/3: Refreshing bootstrap snapshots")
+        t0_bootstrap = time.time()
+        refresh_bootstrap_snapshots()
+        duration_bootstrap = time.time() - t0_bootstrap
+        log_stats("bootstrap_snapshots", duration_bootstrap)
+        logger.info("Job BOOTSTRAP_SNAPSHOTS finished in %.2fs", duration_bootstrap)
+    except Exception as e:
+        logger.exception("Error during BOOTSTRAP_SNAPSHOTS: %s", e)
 
 def start_scheduler():
     scheduler = BlockingScheduler()

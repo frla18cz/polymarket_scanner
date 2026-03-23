@@ -9,6 +9,7 @@ from typing import List, Set, Dict, Tuple, Optional
 from holders_client import HoldersClient, PnLClient
 from main import get_db_connection
 from logging_setup import setup_logging
+from smart_money_materialized import rebuild_market_smart_money_stats
 
 setup_logging("smart_money")
 logger = logging.getLogger("polylab.smart_money")
@@ -240,20 +241,7 @@ def run(args_list: Optional[List[str]] = None):
         
         # 3. Calculate and Update Metrics
         logger.info("Faze 3: Výpočet a aktualizace Smart Money metrik...")
-        now_iso = datetime.now(timezone.utc).isoformat()
-        conn.execute("""
-            INSERT INTO market_smart_money_stats (condition_id, smart_money_win_rate, last_updated_at)
-            SELECT 
-                h.market_id as condition_id,
-                CAST(SUM(CASE WHEN ws.total_pnl > 0 THEN 1 ELSE 0 END) AS REAL) / COUNT(*) as smart_money_win_rate,
-                ? as last_updated_at
-            FROM holders h
-            JOIN wallets_stats ws ON h.wallet_address = ws.wallet_address
-            GROUP BY h.market_id
-            ON CONFLICT(condition_id) DO UPDATE SET
-                smart_money_win_rate = excluded.smart_money_win_rate,
-                last_updated_at = excluded.last_updated_at
-        """, (now_iso,))
+        now_iso = rebuild_market_smart_money_stats(conn)
         conn.commit()
         logger.info("Všechny metriky byly úspěšně aktualizovány v tabulce market_smart_money_stats.")
 

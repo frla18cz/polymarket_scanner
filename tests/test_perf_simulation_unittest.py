@@ -23,6 +23,8 @@ class TestUserSimulationPerformance(unittest.TestCase):
 
         cls.app_main = app_main
         cls.app_main.ensure_indices()
+        cls.app_main.refresh_materialized_smart_money_stats()
+        cls.app_main.refresh_bootstrap_snapshots()
 
         cls._conn = sqlite3.connect(str(cls._snapshot.path))
         cls._conn.row_factory = sqlite3.Row
@@ -101,6 +103,16 @@ class TestUserSimulationPerformance(unittest.TestCase):
         budget_ms = self._budget(env_key)
         if budget_ms > 0:
             self.assertLess(ms, budget_ms, msg=f"{env_key}: {ms:.1f}ms > {budget_ms}ms")
+
+    def _time_bootstrap_ms(self, view: str = "scanner", preset: str | None = None, homepage: bool = False) -> float:
+        t0 = time.perf_counter()
+        if homepage:
+            payload = self.app_main.get_homepage_bootstrap(Response())
+        else:
+            payload = self.app_main.get_app_bootstrap(Response(), view=view, preset=preset)
+        t1 = time.perf_counter()
+        self.assertIsInstance(payload, dict)
+        return (t1 - t0) * 1000.0
 
     def test_perf_excluded_single_tag(self):
         ms = self._time_request_ms(
@@ -231,3 +243,11 @@ class TestUserSimulationPerformance(unittest.TestCase):
             },
         )
         self._assert_budget(ms, "PERF_BUDGET_EXPIRING_SOON_MS")
+
+    def test_perf_homepage_bootstrap(self):
+        ms = self._time_bootstrap_ms(homepage=True)
+        self._assert_budget(ms, "PERF_BUDGET_HOMEPAGE_BOOTSTRAP_MS")
+
+    def test_perf_app_bootstrap_preset(self):
+        ms = self._time_bootstrap_ms(view="smart", preset="smart_money_edge")
+        self._assert_budget(ms, "PERF_BUDGET_APP_BOOTSTRAP_MS")

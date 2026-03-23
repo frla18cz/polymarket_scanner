@@ -9,6 +9,8 @@ class TestUiContractDoc(unittest.TestCase):
 
         self.assertIn("frontend_deploy/app/index.html", content)
         self.assertIn("static/app/index.html", content)
+        self.assertIn("/api/homepage-bootstrap", content)
+        self.assertIn("/api/app-bootstrap", content)
         self.assertIn("filters.min_profitable", content)
         self.assertIn("`smart_money_win_rate` is not part of the current public app contract", content)
         self.assertNotIn("filters.min_smart_money_win_rate", content)

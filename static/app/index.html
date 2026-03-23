@@ -1855,6 +1855,46 @@
                                         // ignore
                                     }
                                 };
+
+                                const _safeGetSessionStorage = (key) => {
+                                    try {
+                                        return sessionStorage.getItem(key);
+                                    } catch (_) {
+                                        return null;
+                                    }
+                                };
+
+                                const _safeSetSessionStorage = (key, value) => {
+                                    try {
+                                        sessionStorage.setItem(key, value);
+                                    } catch (_) {
+                                        // ignore
+                                    }
+                                };
+
+                                const APP_BOOTSTRAP_FALLBACK_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
+                                const buildBootstrapCacheKey = (view, presetId) => {
+                                    const normalizedView = view === 'smart' ? 'smart' : 'scanner';
+                                    return `polylab:app-bootstrap:${normalizedView}:${presetId || 'default'}`;
+                                };
+
+                                const parseCachedBootstrap = (raw) => {
+                                    if (!raw) return null;
+                                    try {
+                                        return JSON.parse(raw);
+                                    } catch (_) {
+                                        return null;
+                                    }
+                                };
+
+                                const isBootstrapFresh = (payload) => {
+                                    if (!payload || !payload.generated_at) return false;
+                                    const ts = new Date(payload.generated_at).getTime();
+                                    if (!Number.isFinite(ts)) return false;
+                                    const maxAge = Number(payload.cache_max_age_ms || APP_BOOTSTRAP_FALLBACK_MAX_AGE_MS);
+                                    return (Date.now() - ts) <= maxAge;
+                                };
                 
                                 // Autocomplete State
                                 const includeSearch = ref("");
@@ -1935,6 +1975,28 @@
                                     sort_dir: "desc"
                                 });
 
+                const createDefaultFilterState = () => ({
+                    includedTags: [],
+                    excludedTags: [],
+                    min_volume: 5000,
+                    min_liquidity: 1000,
+                    min_price: 0.00,
+                    max_price: 1.00,
+                    max_spread: 0.05,
+                    min_apr_percent: 0,
+                    min_hours_to_expire: 0,
+                    max_hours_to_expire: 0,
+                    expiry_index: 0,
+                    include_expired: true,
+                    min_profitable: 0,
+                    min_losing_opposite: 0,
+                    search: "",
+                    sort_by: "volume_usd",
+                    sort_dir: "desc"
+                });
+
+                let suppressFilterTracking = false;
+
                 const sectionActive = Vue.computed(() => ({
                     search: !!filters.value.search,
                     categories: filters.value.includedTags.length > 0 || filters.value.excludedTags.length > 0,
@@ -1976,6 +2038,20 @@
 
                 lastTrackedFilterState = getTrackedFilterState();
 
+                const syncTrackedFilterState = () => {
+                    lastTrackedFilterState = getTrackedFilterState();
+                };
+
+                const runWithoutFilterTracking = (fn) => {
+                    suppressFilterTracking = true;
+                    try {
+                        return fn();
+                    } finally {
+                        syncTrackedFilterState();
+                        suppressFilterTracking = false;
+                    }
+                };
+
                 const setViewState = (nextView) => {
                     if (currentView.value === nextView) {
                         return;
@@ -2013,6 +2089,10 @@
 
                 watch(filters, () => {
                     const nextState = getTrackedFilterState();
+                    if (suppressFilterTracking) {
+                        lastTrackedFilterState = nextState;
+                        return;
+                    }
                     if (!hasTrackedFirstFilterInteraction) {
                         const changedKey = findChangedFilterKey(lastTrackedFilterState || {}, nextState);
                         if (changedKey) {
@@ -2356,6 +2436,154 @@
                     return presetDefinitions.find(p => p.id === activePresetId.value) || null;
                 });
 
+                const getPresetById = (presetId) => {
+                    if (!presetId) return null;
+                    return presetDefinitions.find(p => p.id === presetId) || null;
+                };
+
+                const isLockedPreset = (preset) => {
+                    return !!(preset && (preset.id === 'buffett' || preset.id === 'sniper'));
+                };
+
+                const resetUiSelectionState = () => {
+                    expandedId.value = null;
+                    selectedIndex.value = markets.value.length > 0 ? 0 : -1;
+                };
+
+                const resetFilterState = () => {
+                    const nextFilters = createDefaultFilterState();
+                    filters.value = nextFilters;
+                    setExpiryHours(0);
+                    return nextFilters;
+                };
+
+                const applyPresetState = (preset) => {
+                    runWithoutFilterTracking(() => {
+                        activePresetId.value = preset && preset.id ? preset.id : null;
+                        includeSearch.value = "";
+                        excludeSearch.value = "";
+                        showIncludeDropdown.value = false;
+                        showExcludeDropdown.value = false;
+                        resetFilterState();
+                        setViewState(preset && preset.view ? preset.view : 'scanner');
+                        if (preset && preset.apply) {
+                            preset.apply();
+                        }
+                    });
+                };
+
+                const normalizeBootstrapFilters = (rawFilters) => {
+                    const nextFilters = createDefaultFilterState();
+                    const incoming = rawFilters && typeof rawFilters === 'object' ? rawFilters : {};
+                    Object.keys(nextFilters).forEach((key) => {
+                        if (Object.prototype.hasOwnProperty.call(incoming, key)) {
+                            nextFilters[key] = incoming[key];
+                        }
+                    });
+                    nextFilters.includedTags = Array.isArray(incoming.includedTags) ? incoming.includedTags.slice() : [];
+                    nextFilters.excludedTags = Array.isArray(incoming.excludedTags) ? incoming.excludedTags.slice() : [];
+                    nextFilters.search = typeof incoming.search === 'string' ? incoming.search : "";
+                    return nextFilters;
+                };
+
+                const rememberBootstrapPayload = (payload, fallbackView, fallbackPresetId) => {
+                    if (!payload) return;
+                    const cacheKey = payload.cache_key || buildBootstrapCacheKey(payload.view || fallbackView, payload.active_preset_id || fallbackPresetId);
+                    const serialized = JSON.stringify(payload);
+                    _safeSetSessionStorage(cacheKey, serialized);
+                    _safeSetLocalStorage(cacheKey, serialized);
+                };
+
+                const hydrateCachedBootstrap = (view, presetId) => {
+                    const cacheKey = buildBootstrapCacheKey(view, presetId);
+                    const cachedSession = parseCachedBootstrap(_safeGetSessionStorage(cacheKey));
+                    if (isBootstrapFresh(cachedSession)) {
+                        return cachedSession;
+                    }
+
+                    const cachedLocal = parseCachedBootstrap(_safeGetLocalStorage(cacheKey));
+                    if (isBootstrapFresh(cachedLocal)) {
+                        _safeSetSessionStorage(cacheKey, JSON.stringify(cachedLocal));
+                        return cachedLocal;
+                    }
+                    return null;
+                };
+
+                const fetchBootstrapPayload = async (view, presetId) => {
+                    const params = new URLSearchParams();
+                    params.set("view", view === 'smart' ? 'smart' : 'scanner');
+                    if (presetId) {
+                        params.set("preset", presetId);
+                    }
+                    const res = await fetch(`${API_BASE_URL}/api/app-bootstrap?${params.toString()}`);
+                    if (!res.ok) {
+                        throw new Error(`Bootstrap request failed: ${res.status}`);
+                    }
+                    const payload = await res.json();
+                    rememberBootstrapPayload(payload, view, presetId);
+                    return payload;
+                };
+
+                const applyBootstrapPayload = (payload) => {
+                    if (!payload || typeof payload !== 'object') {
+                        return false;
+                    }
+
+                    const bootstrapView = payload.view === 'smart' ? 'smart' : 'scanner';
+                    const normalizedFilters = normalizeBootstrapFilters(payload.filters);
+                    const nextTags = Array.isArray(payload.tags) ? payload.tags : [];
+                    const nextMarkets = Array.isArray(payload.markets) ? payload.markets : [];
+
+                    runWithoutFilterTracking(() => {
+                        activePresetId.value = payload.active_preset_id || null;
+                        includeSearch.value = "";
+                        excludeSearch.value = "";
+                        showIncludeDropdown.value = false;
+                        showExcludeDropdown.value = false;
+                        setViewState(bootstrapView);
+                        filters.value = normalizedFilters;
+                        setExpiryHours(normalizedFilters.max_hours_to_expire);
+                    });
+
+                    tags.value = nextTags;
+                    markets.value = nextMarkets;
+                    offset.value = 0;
+                    expandedId.value = null;
+                    selectedIndex.value = nextMarkets.length > 0 ? 0 : -1;
+                    loading.value = false;
+                    serverLastUpdated.value = payload.market_last_updated || null;
+                    serverSmLastUpdated.value = payload.smart_money_last_updated || null;
+
+                    if (!hasTrackedFirstMarketsLoaded) {
+                        hasTrackedFirstMarketsLoaded = true;
+                        trackEvent('app_first_markets_loaded', {
+                            market_count: nextMarkets.length,
+                            current_view: bootstrapView
+                        });
+                    }
+
+                    return true;
+                };
+
+                const initializeFromBootstrap = async (view, presetId) => {
+                    let hydrated = false;
+                    const cachedPayload = hydrateCachedBootstrap(view, presetId);
+                    if (cachedPayload) {
+                        hydrated = applyBootstrapPayload(cachedPayload) || hydrated;
+                    }
+
+                    try {
+                        const payload = await fetchBootstrapPayload(view, presetId);
+                        hydrated = applyBootstrapPayload(payload) || hydrated;
+                    } catch (e) {
+                        if (!hydrated) {
+                            console.error("app bootstrap failed", e);
+                        }
+                    }
+
+                    return hydrated;
+                };
+
                 let debounceTimer = null;
                 let refreshInterval = null;
                 let abortController = null;
@@ -2674,33 +2902,12 @@
                 // Presets
                 const applyPreset = (preset) => {
                     // Lock Check
-                    if ((preset.id === 'buffett' || preset.id === 'sniper') && !user.value) {
+                    if (isLockedPreset(preset) && !user.value) {
                         showLoginModal.value = true;
                         return;
                     }
 
-                    activePresetId.value = preset && preset.id ? preset.id : null;
-                    setViewState(preset && preset.view ? preset.view : 'scanner');
-                    // Reset defaults
-                    filters.value.min_volume = 5000;
-                    filters.value.min_liquidity = 1000;
-                    filters.value.min_price = 0.00;
-	                    filters.value.max_price = 1.00;
-	                    filters.value.max_spread = 0.05;
-	                    filters.value.min_apr_percent = 0;
-	                    filters.value.min_hours_to_expire = 0;
-	                    setExpiryHours(0);
-	                    filters.value.include_expired = true;
-                        filters.value.min_profitable = 0;
-                        filters.value.min_losing_opposite = 0;
-	                    filters.value.includedTags = [];
-	                    filters.value.excludedTags = [];
-                    filters.value.sort_by = "volume_usd";
-                    filters.value.sort_dir = "desc";
-
-                    if (preset && preset.apply) {
-                        preset.apply();
-                    }
+                    applyPresetState(preset);
                     updateUrlParams();
                     resetAndFetch();
                 };
@@ -2712,23 +2919,9 @@
                     showIncludeDropdown.value = false;
                     showExcludeDropdown.value = false;
 
-                    filters.value.search = "";
-                    filters.value.sort_by = "volume_usd";
-                    filters.value.sort_dir = "desc";
-
-                    filters.value.min_volume = 5000;
-                    filters.value.min_liquidity = 1000;
-                    filters.value.min_price = 0.00;
-	                    filters.value.max_price = 1.00;
-	                    filters.value.max_spread = 0.05;
-	                    filters.value.min_apr_percent = 0;
-	                    filters.value.min_hours_to_expire = 0;
-	                    setExpiryHours(0);
-	                    filters.value.include_expired = true;
-                        filters.value.min_profitable = 0;
-                        filters.value.min_losing_opposite = 0;
-	                    filters.value.includedTags = [];
-	                    filters.value.excludedTags = [];
+                    runWithoutFilterTracking(() => {
+                        resetFilterState();
+                    });
 
                     resetAndFetch();
                 };
@@ -3208,26 +3401,61 @@
                 });
 
                 onMounted(async () => {
-                    fetchTags();
-                    fetchStatus();
                     const initialParams = new URLSearchParams(window.location.search);
-                    const initialView = initialParams.get('view');
-                    if (initialView === 'smart' || initialView === 'scanner') {
-                        setViewState(initialView);
+                    const presetParam = initialParams.get('preset');
+                    const targetPreset = getPresetById(presetParam);
+                    const requestedView = initialParams.get('view') === 'smart' ? 'smart' : 'scanner';
+
+                    const needsEarlySession = isLockedPreset(targetPreset);
+                    if (needsEarlySession && supabase) {
+                        try {
+                            const { data } = await supabase.auth.getSession();
+                            user.value = data.session?.user || null;
+                        } catch (e) {
+                            console.error("early auth bootstrap failed", e);
+                        }
                     }
-                    await fetchMarkets();
+
+                    const canUsePresetBootstrap = !!(targetPreset && (!isLockedPreset(targetPreset) || user.value));
+                    const initialBootstrapView = canUsePresetBootstrap
+                        ? (targetPreset && targetPreset.view ? targetPreset.view : requestedView)
+                        : requestedView;
+                    const initialBootstrapPreset = canUsePresetBootstrap && targetPreset ? targetPreset.id : null;
+                    const shouldPromptLockedPreset = !!(targetPreset && isLockedPreset(targetPreset) && !user.value);
+
+                    let initializedFromBootstrap = await initializeFromBootstrap(initialBootstrapView, initialBootstrapPreset);
+
+                    if (!initializedFromBootstrap) {
+                        runWithoutFilterTracking(() => {
+                            activePresetId.value = null;
+                            includeSearch.value = "";
+                            excludeSearch.value = "";
+                            showIncludeDropdown.value = false;
+                            showExcludeDropdown.value = false;
+                            resetFilterState();
+                            setViewState(requestedView);
+                            if (canUsePresetBootstrap && targetPreset) {
+                                activePresetId.value = targetPreset.id;
+                                if (targetPreset.apply) {
+                                    targetPreset.apply();
+                                }
+                                setViewState(targetPreset.view || requestedView);
+                            }
+                        });
+                        await Promise.all([fetchTags(), fetchStatus()]);
+                        await fetchMarkets();
+                    }
+
                     checkDeepLink();
 
-                    // Preset deep-link from homepage (e.g. /app?preset=safe_haven)
-                    const presetParam = initialParams.get('preset');
                     if (presetParam) {
-                        const targetPreset = presetDefinitions.find(p => p.id === presetParam);
-                        if (targetPreset) {
-                            applyPreset(targetPreset);
-                        }
                         const cleanUrl = new URL(window.location);
                         cleanUrl.searchParams.delete('preset');
                         window.history.replaceState({}, '', cleanUrl);
+                    }
+
+                    if (shouldPromptLockedPreset) {
+                        showLoginModal.value = true;
                     }
 
                     updateScreenFlags();
@@ -3241,10 +3469,19 @@
                         fetchStatus();
                     }, 30000);
 
+                    if (initializedFromBootstrap) {
+                        setTimeout(() => {
+                            fetchMarkets(false, true);
+                            fetchStatus();
+                        }, 150);
+                    }
+
                     // Auth Init
                     if (supabase) {
-                        const { data } = await supabase.auth.getSession();
-                        user.value = data.session?.user || null;
+                        if (!needsEarlySession) {
+                            const { data } = await supabase.auth.getSession();
+                            user.value = data.session?.user || null;
+                        }
 
                         supabase.auth.onAuthStateChange((event, session) => {
                             user.value = session?.user || null;

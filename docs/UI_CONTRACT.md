@@ -13,12 +13,20 @@ Rule: **edit `frontend_deploy/app/index.html` and copy it to `static/app/index.h
 
 ## API surface (required)
 
+- `GET /api/homepage-bootstrap` → snapshot-backed homepage payload (spotlight cards, playbook previews, freshness timestamps)
+- `GET /api/app-bootstrap?view=scanner|smart&preset=<id>` → snapshot-backed first-paint payload for `/app`, smart view, and preset deep-links
 - `GET /api/tags` → list of tags for include/exclude autocomplete
 - `GET /api/status` → `{ last_updated }` timestamp shown in header
-- `GET /api/markets` → main table/card data (supports all filters below)
+- `GET /api/markets` → live scanner data for interactive filtering, pagination, and silent refresh (supports all filters below)
 - `GET /api/markets/{market_id}/holders` → list of top holders with P/L stats for a specific market
   - Response Model: `List[HolderDetail]`
   - Fields: `wallet_address`, `position_size`, `outcome_index`, `total_pnl`, `alias` (optional)
+
+Bootstrap-first rule:
+
+- Homepage first paint should come from `/api/homepage-bootstrap`, optionally hydrated from `localStorage`.
+- App first paint should come from `/api/app-bootstrap`, optionally hydrated from `sessionStorage` / `localStorage`.
+- The frontend may revalidate with live `/api/markets` after first paint, but should not require a second blocking fetch before rendering the initial list.
 
 ## Required filters (UI → `/api/markets` query params)
 
@@ -94,7 +102,7 @@ Both desktop and mobile “details” must include (when available):
 ## Deep-link contract
 
 - `market_id=<market_id>` expands the matching market row after load.
-- `preset=<preset_id>` applies a known preset after load.
+- `preset=<preset_id>` resolves a known preset and should be consumed before the first app data request.
 - `view=scanner|smart` selects the app view after load.
 - `Smart Money Edge` homepage CTA should deep-link as `preset=smart_money_edge&view=smart`.
 

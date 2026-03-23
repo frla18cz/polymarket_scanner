@@ -2488,6 +2488,9 @@
       createApp({
         setup: function () {
           var API_BASE = '';
+          var HOMEPAGE_BOOTSTRAP_STORAGE_KEY = 'polylab:homepage-bootstrap';
+          var APP_BOOTSTRAP_STORAGE_PREFIX = 'polylab:app-bootstrap:';
+          var FALLBACK_BOOTSTRAP_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
           // ─── Spotlight config ─────────────────────────────────────────────
           // Edit these values to control which markets appear in the signal feed.
@@ -2518,6 +2521,7 @@
           var playbookPreviews = ref({});
           var playbookPreviewsLoaded = ref(false);
           var showAllPlaybooks = ref(false);
+          var playbookPrefetchStarted = false;
 
           // ─── Preset definitions ───
           var presetDefinitions = [
@@ -2794,6 +2798,124 @@
             return hours + 'h ago';
           }
 
+          function safeReadStorage(storage, key) {
+            try {
+              return storage.getItem(key);
+            } catch (_) {
+              return null;
+            }
+          }
+
+          function safeWriteStorage(storage, key, value) {
+            try {
+              storage.setItem(key, value);
+            } catch (_) {}
+          }
+
+          function parseCachedPayload(raw) {
+            if (!raw) return null;
+            try {
+              return JSON.parse(raw);
+            } catch (_) {
+              return null;
+            }
+          }
+
+          function isBootstrapFresh(payload) {
+            if (!payload || !payload.generated_at) return false;
+            var generatedAt = new Date(payload.generated_at).getTime();
+            if (isNaN(generatedAt)) return false;
+            var maxAge = Number(payload.cache_max_age_ms || FALLBACK_BOOTSTRAP_MAX_AGE_MS);
+            return (Date.now() - generatedAt) <= maxAge;
+          }
+
+          function buildAppBootstrapCacheKey(view, presetId) {
+            var normalizedView = view === 'smart' ? 'smart' : 'scanner';
+            return APP_BOOTSTRAP_STORAGE_PREFIX + normalizedView + ':' + (presetId || 'default');
+          }
+
+          function cacheAppBootstrapPayload(payload, fallbackView, fallbackPresetId) {
+            if (!payload) return;
+            var key = payload.cache_key || buildAppBootstrapCacheKey(payload.view || fallbackView, payload.active_preset_id || fallbackPresetId);
+            var serialized = JSON.stringify(payload);
+            safeWriteStorage(window.sessionStorage, key, serialized);
+            safeWriteStorage(window.localStorage, key, serialized);
+          }
+
+          function applyHomepageBootstrap(payload) {
+            if (!payload) return;
+            spotlightCandidates.value = Array.isArray(payload.spotlight_markets) ? payload.spotlight_markets : [];
+            playbookPreviews.value = payload.playbook_previews && typeof payload.playbook_previews === 'object' ? payload.playbook_previews : {};
+            playbookPreviewsLoaded.value = true;
+            spotlightPageIndex.value = 0;
+            heroCardIndex.value = 0;
+            lastUpdated.value = payload.smart_money_last_updated || payload.market_last_updated || null;
+          }
+
+          function readHomepageBootstrapCache() {
+            var cached = parseCachedPayload(safeReadStorage(window.localStorage, HOMEPAGE_BOOTSTRAP_STORAGE_KEY));
+            return isBootstrapFresh(cached) ? cached : null;
+          }
+
+          function fetchHomepageBootstrap() {
+            return fetch(API_BASE + '/api/homepage-bootstrap')
+              .then(function (res) {
+                if (!res.ok) throw new Error('Failed to load homepage bootstrap');
+                return res.json();
+              })
+              .then(function (payload) {
+                applyHomepageBootstrap(payload);
+                safeWriteStorage(window.localStorage, HOMEPAGE_BOOTSTRAP_STORAGE_KEY, JSON.stringify(payload));
+                return payload;
+              });
+          }
+
+          function fetchAppBootstrapForPreset(view, presetId) {
+            var normalizedView = view === 'smart' ? 'smart' : 'scanner';
+            var key = buildAppBootstrapCacheKey(normalizedView, presetId);
+            var cachedSession = parseCachedPayload(safeReadStorage(window.sessionStorage, key));
+            if (isBootstrapFresh(cachedSession)) return Promise.resolve(cachedSession);
+
+            var cachedLocal = parseCachedPayload(safeReadStorage(window.localStorage, key));
+            if (isBootstrapFresh(cachedLocal)) {
+              safeWriteStorage(window.sessionStorage, key, JSON.stringify(cachedLocal));
+              return Promise.resolve(cachedLocal);
+            }
+
+            var url = API_BASE + '/api/app-bootstrap?view=' + encodeURIComponent(normalizedView);
+            if (presetId) {
+              url += '&preset=' + encodeURIComponent(presetId);
+            }
+            return fetch(url)
+              .then(function (res) {
+                if (!res.ok) throw new Error('Failed to prefetch app bootstrap');
+                return res.json();
+              })
+              .then(function (payload) {
+                cacheAppBootstrapPayload(payload, normalizedView, presetId);
+                return payload;
+              })
+              .catch(function () { return null; });
+          }
+
+          function prefetchInitialPlaybookBootstraps() {
+            if (playbookPrefetchStarted) return;
+            playbookPrefetchStarted = true;
+            fetchAppBootstrapForPreset('scanner', null);
+            fetchAppBootstrapForPreset('smart', null);
+            presetDefinitions.slice(0, 4).forEach(function (preset) {
+              fetchAppBootstrapForPreset(preset.targetView || 'scanner', preset.id);
+            });
+          }
+
+          function schedulePlaybookPrefetch() {
+            if (window.requestIdleCallback) {
+              window.requestIdleCallback(prefetchInitialPlaybookBootstraps, { timeout: 1800 });
+            } else {
+              setTimeout(prefetchInitialPlaybookBootstraps, 900);
+            }
+          }
+
           function buildSpotlightUrl(options) {
             var params = [
               'sort_by=volume_usd',
@@ -3011,13 +3133,22 @@
 
           // ─── Lifecycle ───
           onMounted(function () {
-            fetchSpotlightMarkets()
+            var cachedHomepagePayload = readHomepageBootstrapCache();
+            if (cachedHomepagePayload) {
+              applyHomepageBootstrap(cachedHomepagePayload);
+              spotlightLoading.value = false;
+              startHeroRotation();
+            }
+
+            fetchHomepageBootstrap()
+              .catch(function () {
+                return Promise.all([fetchSpotlightMarkets(), fetchPlaybookPreviews(), fetchStatus()]);
+              })
               .finally(function () {
                 spotlightLoading.value = false;
                 startHeroRotation();
+                schedulePlaybookPrefetch();
               });
-
-            fetchStatus();
 
             // Close modal on Escape key
             document.addEventListener('keydown', function (e) {
@@ -3034,20 +3165,6 @@
               // Re-run reveal for dynamically created FAQ elements
               initRevealAnimations();
             }, 0);
-
-            // Lazy-load playbook previews when section is in viewport
-            var playbooksEl = document.getElementById('playbooks');
-            if (playbooksEl && 'IntersectionObserver' in window) {
-              var playbookObserver = new IntersectionObserver(function (entries) {
-                if (entries[0].isIntersecting) {
-                  fetchPlaybookPreviews();
-                  playbookObserver.disconnect();
-                }
-              }, { rootMargin: '200px' });
-              playbookObserver.observe(playbooksEl);
-            } else {
-              fetchPlaybookPreviews();
-            }
           });
 
           onBeforeUnmount(function () {
