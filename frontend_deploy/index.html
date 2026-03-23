@@ -2495,9 +2495,9 @@
             minProfitable:      15,     // min profitable holders on YES side
             minLosingOpposite:  15,     // min losing holders on NO side (conviction signal)
             minTotalHolders:    20,     // min total holders required on EACH side
-            maxSpread:          0.10,   // max spread in decimal (0.10 = 10 cents)
-            minVolume:          5000,   // min USD volume
-            fetchLimit:         50,     // how many candidates to fetch from API
+            maxSpread:          0.05,   // max spread in decimal (0.05 = 5 cents)
+            minLiquidity:       1000,   // min USD liquidity for homepage signals
+            fetchLimit:         100,    // how many candidates to fetch from API
             displayCount:       6,      // max signal cards shown
             heroCount:          3,      // how many markets rotate in the hero card
             rotationMs:         4000,   // hero card rotation interval (milliseconds)
@@ -2796,10 +2796,10 @@
 
           function buildSpotlightUrl(options) {
             var params = [
-              'sort_by=yes_profitable_count',
+              'sort_by=volume_usd',
               'sort_dir=desc',
               'limit=' + SPOTLIGHT_CONFIG.fetchLimit,
-              'min_volume=' + SPOTLIGHT_CONFIG.minVolume,
+              'min_liquidity=' + SPOTLIGHT_CONFIG.minLiquidity,
               'max_spread=' + SPOTLIGHT_CONFIG.maxSpread
             ];
             if (options && options.minProfitable != null) {
@@ -2825,10 +2825,24 @@
             });
           }
 
-          function mergeUniqueMarkets(primary, secondary) {
+          function marketHasStrictSignal(market) {
+            var yesProfitable = market.yes_profitable_count || 0;
+            var noProfitable = market.no_profitable_count || 0;
+            var yesLosing = market.yes_losing_count || 0;
+            var noLosing = market.no_losing_count || 0;
+            return (yesProfitable >= SPOTLIGHT_CONFIG.minProfitable && noLosing >= SPOTLIGHT_CONFIG.minLosingOpposite)
+              || (noProfitable >= SPOTLIGHT_CONFIG.minProfitable && yesLosing >= SPOTLIGHT_CONFIG.minLosingOpposite);
+          }
+
+          function marketHasRelaxedSignal(market) {
+            return (market.yes_profitable_count || 0) >= SPOTLIGHT_CONFIG.minProfitable
+              || (market.no_profitable_count || 0) >= SPOTLIGHT_CONFIG.minProfitable;
+          }
+
+          function mergeUniqueMarkets(primary, secondary, tertiary) {
             var merged = [];
             var seen = {};
-            [primary || [], secondary || []].forEach(function (items) {
+            [primary || [], secondary || [], tertiary || []].forEach(function (items) {
               items.forEach(function (market) {
                 if (!market || !market.condition_id || seen[market.condition_id]) return;
                 seen[market.condition_id] = true;
@@ -2840,31 +2854,23 @@
 
           // ─── API ───
           function fetchSpotlightMarkets() {
-            var strictUrl = buildSpotlightUrl({
-              minProfitable: SPOTLIGHT_CONFIG.minProfitable,
-              minLosingOpposite: SPOTLIGHT_CONFIG.minLosingOpposite
-            });
-            var relaxedUrl = buildSpotlightUrl({
-              minProfitable: SPOTLIGHT_CONFIG.minProfitable
-            });
-            return fetch(strictUrl)
+            return fetch(buildSpotlightUrl())
               .then(function (res) {
                 if (!res.ok) throw new Error('Failed to load markets');
                 return res.json();
               })
-              .then(function (strictData) {
-                var strictMarkets = normalizeSpotlightMarkets(strictData);
-                if (strictMarkets.length >= SPOTLIGHT_CONFIG.displayCount) {
-                  return strictMarkets;
-                }
-                return fetch(relaxedUrl)
-                  .then(function (res) {
-                    if (!res.ok) throw new Error('Failed to load fallback markets');
-                    return res.json();
-                  })
-                  .then(function (relaxedData) {
-                    return mergeUniqueMarkets(strictMarkets, normalizeSpotlightMarkets(relaxedData));
-                  });
+              .then(function (data) {
+                var universe = normalizeSpotlightMarkets(data);
+                var strictMarkets = universe.filter(marketHasStrictSignal);
+                var relaxedMarkets = universe.filter(function (market) {
+                  return !marketHasStrictSignal(market) && marketHasRelaxedSignal(market);
+                });
+                var fallbackMarkets = universe.filter(function (market) {
+                  return !marketHasStrictSignal(market)
+                    && !marketHasRelaxedSignal(market)
+                    && convictionScore(market);
+                });
+                return mergeUniqueMarkets(strictMarkets, relaxedMarkets, fallbackMarkets);
               })
               .then(function (markets) {
                 spotlightCandidates.value = markets;
@@ -3005,11 +3011,13 @@
 
           // ─── Lifecycle ───
           onMounted(function () {
-            Promise.all([fetchSpotlightMarkets(), fetchStatus()])
-              .then(function () {
+            fetchSpotlightMarkets()
+              .finally(function () {
                 spotlightLoading.value = false;
                 startHeroRotation();
               });
+
+            fetchStatus();
 
             // Close modal on Escape key
             document.addEventListener('keydown', function (e) {
