@@ -105,6 +105,14 @@
         answer: 'No. PolyLab is an independent third-party tool and is not officially affiliated with, endorsed by, or partnered with Polymarket.'
       },
       {
+        question: 'What are smart money signals on the homepage?',
+        answer: 'The homepage shows markets where profitable holders are clustered on one side. This is based on sampled holder data and meant to surface interesting positioning patterns, not provide a complete picture of all market participants.'
+      },
+      {
+        question: 'What are trading playbooks?',
+        answer: 'Playbooks are pre-built filter sets for the scanner. Each playbook applies specific filters matching a trading style — from conservative value plays (Warren Buffett) to fast expiry sniping (Sniper). Click any playbook on the homepage to jump into the scanner with those filters pre-applied.'
+      },
+      {
         question: 'How can I contact you?',
         answer: 'You can reach us at hello@polylab.app for product questions, feedback, or partnership inquiries.'
       }

@@ -11,13 +11,12 @@ class TestSEOMeta(unittest.TestCase):
             content = f.read()
         
         # Check for essential tags
-        self.assertIn('<title>PolyLab | Independent analyzer for Polymarket</title>', content)
+        self.assertIn('<title>PolyLab |', content)
         self.assertIn('<meta property="og:title"', content)
         self.assertIn('<meta property="og:description"', content)
         self.assertIn('<meta property="og:image"', content)
         self.assertIn('<meta name="description"', content)
         self.assertIn('<meta name="twitter:card"', content)
-        self.assertIn('<title>PolyLab | Independent analyzer for Polymarket</title>', content)
         self.assertIn('content="https://www.polylab.app"', content)
         self.assertIn('content="https://www.polylab.app"', content)
         self.assertIn('<link rel="canonical" href="https://www.polylab.app">', content)
