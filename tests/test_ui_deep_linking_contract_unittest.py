@@ -4,6 +4,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FRONTEND_DEPLOY = REPO_ROOT / "frontend_deploy" / "app" / "index.html"
+HOME_FRONTEND_DEPLOY = REPO_ROOT / "frontend_deploy" / "index.html"
 
 class TestDeepLinkingContract(unittest.TestCase):
     def test_url_update_logic_exists(self):
@@ -38,3 +39,18 @@ class TestDeepLinkingContract(unittest.TestCase):
             html, 
             "Frontend should use URLSearchParams for query manipulation"
         )
+
+    def test_app_supports_view_query_param(self):
+        html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
+
+        self.assertIn("get('view')", html, "App deep-linking must parse a 'view' query parameter")
+        self.assertTrue(
+            "setViewState('smart')" in html or "view === 'smart'" in html or 'view === "smart"' in html,
+            "App must be able to enter smart view from URL state",
+        )
+
+    def test_homepage_smart_money_playbook_links_to_smart_view(self):
+        html = HOME_FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
+
+        self.assertIn("targetView: 'smart'", html)
+        self.assertIn("&view=", html, "Homepage smart-money preset should deep-link into smart view")

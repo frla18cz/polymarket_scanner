@@ -77,8 +77,8 @@ class TestFrontendContract(unittest.TestCase):
             "Search Markets",
             "Include Categories",
             "Exclude Categories",
-            "Expires Within",
-            "Outcome Price Range (Probability)",
+            "Not Sooner Than",
+            "Price Range",
             "Max Spread",
             "Min APR (Win)",
             "Min Volume",
@@ -102,8 +102,24 @@ class TestFrontendContract(unittest.TestCase):
 
     def test_presets_exist(self):
         html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
-        for preset_id in ["safe_haven", "yolo", "buffett", "sniper"]:
+        for preset_id in ["smart_money_edge", "safe_haven", "yolo", "buffett", "sniper"]:
             self.assertIn(f"id: '{preset_id}'", html, f"Missing preset id: {preset_id}")
+
+    def test_safe_haven_and_smart_money_edge_preset_contract(self):
+        html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
+
+        self.assertIn("label: 'Smart Money Edge'", html)
+        self.assertIn("filters.value.min_profitable = 15;", html)
+        self.assertIn("filters.value.min_losing_opposite = 15;", html)
+        self.assertIn("filters.value.max_spread = 0.05;", html)
+        self.assertIn("filters.value.min_liquidity = 1000;", html)
+        self.assertIn("filters.value.sort_by = 'volume_usd';", html)
+        self.assertIn("filters.value.sort_dir = 'desc';", html)
+
+        self.assertIn("label: 'Safe Haven (>90%)'", html)
+        self.assertIn("filters.value.min_price = 0.90;", html)
+        self.assertIn("filters.value.max_price = 1.00;", html)
+        self.assertIn("filters.value.max_spread = 0.02;", html)
 
     def test_table_headers_and_sorts_exist(self):
         html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
@@ -111,7 +127,8 @@ class TestFrontendContract(unittest.TestCase):
             "text-center\">Icon</div>",
             "setSort('question')\">Market",
             "setSort('price')\">Price",
-            "setSort('spread')\">Spread",
+            "setSort('spread')",
+            "Spread <i class=",
             "setSort('apr')",
             "setSort('volume_usd')\">Volume",
             "setSort('liquidity_usd')\">Liq",

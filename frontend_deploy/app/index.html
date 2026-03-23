@@ -1976,7 +1976,7 @@
 
                 lastTrackedFilterState = getTrackedFilterState();
 
-                const setCurrentView = (nextView) => {
+                const setViewState = (nextView) => {
                     if (currentView.value === nextView) {
                         return;
                     }
@@ -1988,6 +1988,15 @@
                             market_id: expandedId.value || null
                         });
                     }
+                };
+
+                const setCurrentView = (nextView) => {
+                    if (currentView.value === nextView) {
+                        return;
+                    }
+
+                    setViewState(nextView);
+                    updateUrlParams();
                     resetAndFetch();
                 };
 
@@ -2217,36 +2226,40 @@
 
                 const presetDefinitions = [
                     {
-                        id: 'safe_haven',
-                        label: 'Safe Haven (>95%)',
-                        description: 'High-probability outcomes (95–100%) with decent liquidity.',
-                        summary: ['Prob 95–100%', 'Liquidity ≥ $500'],
-                        icon: 'ph-hand-heart',
-                        class: 'bg-poly-green/20 text-poly-green border-poly-green/50 hover:bg-poly-green/30',
+                        id: 'smart_money_edge',
+                        label: 'Smart Money Edge',
+                        description: 'Markets where profitable holders cluster on one side and the opposite side looks weaker.',
+                        summary: ['15+ profitable holders', '15+ losing opposite', 'Spread ≤ 5%', 'Liquidity ≥ $1k'],
+                        icon: 'ph-brain',
+                        view: 'smart',
+                        class: 'bg-poly-blue/20 text-poly-blue border-poly-blue/50 hover:bg-poly-blue/30',
                         apply: () => {
-                            filters.value.min_price = 0.95;
-                            filters.value.max_price = 1.00;
-                            filters.value.min_liquidity = 500;
+                            filters.value.min_profitable = 15;
+                            filters.value.min_losing_opposite = 15;
+                            filters.value.max_spread = 0.05;
+                            filters.value.min_liquidity = 1000;
+                            filters.value.sort_by = 'volume_usd';
+                            filters.value.sort_dir = 'desc';
                         }
                     },
                     {
-                        id: 'yolo',
-                        label: 'YOLO',
-                        description: 'Low-probability long shots (≤5%), sorted by cheapest odds.',
-                        summary: ['Prob ≤ 5%', 'Volume ≥ $1k', 'Sort: price ↑'],
-                        icon: 'ph-smiley-x-eyes',
-                        class: 'bg-poly-red/20 text-poly-red border-poly-red/50 hover:bg-poly-red/30',
+                        id: 'safe_haven',
+                        label: 'Safe Haven (>90%)',
+                        description: 'High-probability outcomes (90–100%) with tighter spreads and decent liquidity.',
+                        summary: ['Prob 90–100%', 'Spread ≤ 2%', 'Liquidity ≥ $500'],
+                        icon: 'ph-hand-heart',
+                        class: 'bg-poly-green/20 text-poly-green border-poly-green/50 hover:bg-poly-green/30',
                         apply: () => {
-                            filters.value.max_price = 0.05;
-                            filters.value.min_volume = 1000;
-                            filters.value.sort_by = 'price';
-                            filters.value.sort_dir = 'asc';
+                            filters.value.min_price = 0.90;
+                            filters.value.max_price = 1.00;
+                            filters.value.max_spread = 0.02;
+                            filters.value.min_liquidity = 500;
                         }
                     },
                     {
                         id: 'buffett',
                         label: 'Warren Buffett',
-                        description: 'High confidence, tight spreads, and very liquid markets (excluding crypto).',
+                        description: 'High-confidence, size-friendly markets with tight spreads and deep liquidity (excluding crypto).',
                         summary: ['Prob ≥ 90%', 'Liquidity ≥ $50k', 'Spread ≤ 2%', 'No crypto'],
                         icon: 'ph-briefcase',
                         class: 'bg-poly-green/20 text-poly-green border-poly-green/50 hover:bg-poly-green/30',
@@ -2290,6 +2303,20 @@
                         apply: () => {
                             filters.value.min_price = 0.45;
                             filters.value.max_price = 0.55;
+                        }
+                    },
+                    {
+                        id: 'yolo',
+                        label: 'YOLO',
+                        description: 'Low-probability long shots (≤5%), sorted by cheapest odds.',
+                        summary: ['Prob ≤ 5%', 'Volume ≥ $1k', 'Sort: price ↑'],
+                        icon: 'ph-smiley-x-eyes',
+                        class: 'bg-poly-red/20 text-poly-red border-poly-red/50 hover:bg-poly-red/30',
+                        apply: () => {
+                            filters.value.max_price = 0.05;
+                            filters.value.min_volume = 1000;
+                            filters.value.sort_by = 'price';
+                            filters.value.sort_dir = 'asc';
                         }
                     },
                     {
@@ -2594,16 +2621,27 @@
 
                 const updateUrlParams = (marketId) => {
                     const url = new URL(window.location);
-                    if (marketId) {
-                        url.searchParams.set('market_id', marketId);
+                    if (typeof marketId !== 'undefined') {
+                        if (marketId) {
+                            url.searchParams.set('market_id', marketId);
+                        } else {
+                            url.searchParams.delete('market_id');
+                        }
+                    }
+                    if (currentView.value === 'smart') {
+                        url.searchParams.set('view', 'smart');
                     } else {
-                        url.searchParams.delete('market_id');
+                        url.searchParams.delete('view');
                     }
                     window.history.replaceState({}, '', url);
                 };
 
                 const checkDeepLink = () => {
                     const params = new URLSearchParams(window.location.search);
+                    const view = params.get('view');
+                    if (view === 'smart' || view === 'scanner') {
+                        setViewState(view);
+                    }
                     const id = params.get('market_id');
                     if (id && markets.value.length > 0) {
                         const m = markets.value.find(m => String(m.market_id) === id);
@@ -2642,6 +2680,7 @@
                     }
 
                     activePresetId.value = preset && preset.id ? preset.id : null;
+                    setViewState(preset && preset.view ? preset.view : 'scanner');
                     // Reset defaults
                     filters.value.min_volume = 5000;
                     filters.value.min_liquidity = 1000;
@@ -2652,6 +2691,8 @@
 	                    filters.value.min_hours_to_expire = 0;
 	                    setExpiryHours(0);
 	                    filters.value.include_expired = true;
+                        filters.value.min_profitable = 0;
+                        filters.value.min_losing_opposite = 0;
 	                    filters.value.includedTags = [];
 	                    filters.value.excludedTags = [];
                     filters.value.sort_by = "volume_usd";
@@ -2660,6 +2701,7 @@
                     if (preset && preset.apply) {
                         preset.apply();
                     }
+                    updateUrlParams();
                     resetAndFetch();
                 };
 
@@ -3168,8 +3210,26 @@
                 onMounted(async () => {
                     fetchTags();
                     fetchStatus();
+                    const initialParams = new URLSearchParams(window.location.search);
+                    const initialView = initialParams.get('view');
+                    if (initialView === 'smart' || initialView === 'scanner') {
+                        setViewState(initialView);
+                    }
                     await fetchMarkets();
                     checkDeepLink();
+
+                    // Preset deep-link from homepage (e.g. /app?preset=safe_haven)
+                    const presetParam = initialParams.get('preset');
+                    if (presetParam) {
+                        const targetPreset = presetDefinitions.find(p => p.id === presetParam);
+                        if (targetPreset) {
+                            applyPreset(targetPreset);
+                        }
+                        const cleanUrl = new URL(window.location);
+                        cleanUrl.searchParams.delete('preset');
+                        window.history.replaceState({}, '', cleanUrl);
+                    }
+
                     updateScreenFlags();
                     window.addEventListener('resize', updateScreenFlags);
                     window.addEventListener("keydown", onKeyDown);

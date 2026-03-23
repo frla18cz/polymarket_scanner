@@ -91,6 +91,13 @@ Both desktop and mobile “details” must include (when available):
 - Category (`category`) and outcome (`outcome_name`)
 - Derived: implied odds (`1 / price`)
 
+## Deep-link contract
+
+- `market_id=<market_id>` expands the matching market row after load.
+- `preset=<preset_id>` applies a known preset after load.
+- `view=scanner|smart` selects the app view after load.
+- `Smart Money Edge` homepage CTA should deep-link as `preset=smart_money_edge&view=smart`.
+
 ## Deployment expectations
 
 - **Same-origin deploy (recommended):** serve UI and `/api` from the same host (FastAPI serves HTML, or reverse-proxy). `API_BASE_URL` should stay empty (`""`).

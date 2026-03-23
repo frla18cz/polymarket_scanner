@@ -1928,8 +1928,8 @@
                   <span>Filter raw market chaos into one clean scanner.</span>
                 </div>
                 <div class="proof-pill">
-                  <strong>7 trading playbooks</strong>
-                  <span>Pre-built strategies from safe haven to YOLO.</span>
+                  <strong>8 trading playbooks</strong>
+                  <span>Pre-built strategies from smart money edge to YOLO.</span>
                 </div>
                 <div class="proof-pill">
                   <strong>Hourly smart money updates</strong>
@@ -2465,29 +2465,30 @@
           // ─── Preset definitions ───
           var presetDefinitions = [
             {
-              id: 'safe_haven',
-              label: 'Safe Haven (>95%)',
-              emoji: '🛡️',
-              difficulty: 'Beginner',
-              description: 'High-probability outcomes with decent liquidity.',
-              summary: ['Prob 95\u2013100%', 'Liquidity \u2265 $500'],
-              icon: 'ph-hand-heart',
-              iconStyle: { background: 'rgba(0,195,136,0.12)', color: '#00c388' },
-              ctaStyle: { background: 'rgba(0,195,136,0.12)', border: '1px solid rgba(0,195,136,0.30)', color: '#7ee8c4' },
-              apiQuery: 'min_price=0.95&max_price=1.00&min_liquidity=500&limit=3',
+              id: 'smart_money_edge',
+              label: 'Smart Money Edge',
+              emoji: '🧠',
+              difficulty: 'Featured',
+              description: 'Markets where profitable holders cluster on one side and the opposite side looks weaker.',
+              summary: ['15+ profitable holders', '15+ losing opposite', 'Spread ≤ 5%', 'Liquidity ≥ $1k'],
+              icon: 'ph-brain',
+              iconStyle: { background: 'rgba(46,117,255,0.12)', color: '#2e75ff' },
+              ctaStyle: { background: 'rgba(46,117,255,0.12)', border: '1px solid rgba(46,117,255,0.30)', color: '#7aadff' },
+              apiQuery: 'min_profitable=15&min_losing_opposite=15&max_spread=0.05&min_liquidity=1000&sort_by=volume_usd&sort_dir=desc&limit=3',
+              targetView: 'smart',
               locked: false
             },
             {
-              id: 'yolo',
-              label: 'YOLO',
-              emoji: '🎰',
-              difficulty: 'Degen',
-              description: 'Low-probability long shots, sorted by cheapest odds.',
-              summary: ['Prob \u2264 5%', 'Volume \u2265 $1k', 'Sort: price \u2191'],
-              icon: 'ph-smiley-x-eyes',
-              iconStyle: { background: 'rgba(255,77,77,0.12)', color: '#ff4d4d' },
-              ctaStyle: { background: 'rgba(255,77,77,0.12)', border: '1px solid rgba(255,77,77,0.30)', color: '#ff8a8a' },
-              apiQuery: 'max_price=0.05&min_volume=1000&sort_by=price&sort_dir=asc&limit=3',
+              id: 'safe_haven',
+              label: 'Safe Haven (>90%)',
+              emoji: '🛡️',
+              difficulty: 'Beginner',
+              description: 'High-probability outcomes with tighter spreads and decent liquidity.',
+              summary: ['Prob 90\u2013100%', 'Spread \u2264 2%', 'Liquidity \u2265 $500'],
+              icon: 'ph-hand-heart',
+              iconStyle: { background: 'rgba(0,195,136,0.12)', color: '#00c388' },
+              ctaStyle: { background: 'rgba(0,195,136,0.12)', border: '1px solid rgba(0,195,136,0.30)', color: '#7ee8c4' },
+              apiQuery: 'min_price=0.90&max_price=1.00&max_spread=0.02&min_liquidity=500&limit=3',
               locked: false
             },
             {
@@ -2495,7 +2496,7 @@
               label: 'Warren Buffett',
               emoji: '🎩',
               difficulty: 'Advanced',
-              description: 'High confidence, tight spreads, and very liquid markets (excluding crypto).',
+              description: 'High-confidence, size-friendly markets with tight spreads and deep liquidity (excluding crypto).',
               summary: ['Prob \u2265 90%', 'Liquidity \u2265 $50k', 'Spread \u2264 2%', 'No crypto'],
               icon: 'ph-briefcase',
               iconStyle: { background: 'rgba(0,195,136,0.12)', color: '#00c388' },
@@ -2527,6 +2528,19 @@
               iconStyle: { background: 'rgba(168,85,247,0.12)', color: '#a855f7' },
               ctaStyle: { background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.30)', color: '#c084fc' },
               apiQuery: 'min_price=0.45&max_price=0.55&limit=3',
+              locked: false
+            },
+            {
+              id: 'yolo',
+              label: 'YOLO',
+              emoji: '🎰',
+              difficulty: 'Degen',
+              description: 'Low-probability long shots, sorted by cheapest odds.',
+              summary: ['Prob \u2264 5%', 'Volume \u2265 $1k', 'Sort: price \u2191'],
+              icon: 'ph-smiley-x-eyes',
+              iconStyle: { background: 'rgba(255,77,77,0.12)', color: '#ff4d4d' },
+              ctaStyle: { background: 'rgba(255,77,77,0.12)', border: '1px solid rgba(255,77,77,0.30)', color: '#ff8a8a' },
+              apiQuery: 'max_price=0.05&min_volume=1000&sort_by=price&sort_dir=asc&limit=3',
               locked: false
             },
             {
@@ -2828,7 +2842,11 @@
           }
 
           function buildPresetUrl(preset) {
-            return '/app?preset=' + encodeURIComponent(preset.id);
+            var url = '/app?preset=' + encodeURIComponent(preset.id);
+            if (preset.targetView) {
+              url += '&view=' + encodeURIComponent(preset.targetView);
+            }
+            return url;
           }
 
           function holderPnlBarWidth(pnl, holders) {
