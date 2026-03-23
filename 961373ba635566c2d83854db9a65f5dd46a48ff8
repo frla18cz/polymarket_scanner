@@ -1,0 +1,14 @@
+Task: Speed up homepage smart money loading on production
+
+Summary:
+- Reworked homepage spotlight sourcing to avoid expensive server-side smart-money filter queries on the marketing page.
+- Switched the homepage signal pool to a fast volume/liquidity/spread query and rank signals client-side using existing profitable/losing holder counts.
+- Decoupled signal loading from /api/status so the grid no longer stays in skeleton state while waiting on the freshness timestamp.
+- Preserved the centered CTA and manual rotation behavior added in the previous homepage pass.
+
+Files changed:
+- frontend_deploy/index.html
+- static/index.html
+
+Why:
+- Production /api/markets calls using min_profitable and min_losing_opposite were taking tens of seconds, which left the homepage stuck on loading skeletons. The homepage now uses a much cheaper query path and should render signal cards quickly against the live production dataset.
