@@ -1,0 +1,22 @@
+Task: Trading playbooks refinement
+
+Summary:
+- Added Smart Money Edge as the first homepage/app preset
+- Updated Safe Haven to 90-100% with 2% max spread
+- Added app deep-link support for view=scanner|smart and homepage linking into smart view
+- Updated homepage/app contract tests and UI contract docs
+
+Files:
+- docs/UI_CONTRACT.md
+- frontend_deploy/index.html
+- static/index.html
+- frontend_deploy/app/index.html
+- static/app/index.html
+- tests/test_frontend_contract_unittest.py
+- tests/test_home_contract_unittest.py
+- tests/test_ui_deep_linking_contract_unittest.py
+
+Why:
+- Make playbooks reflect PolyLab differentiation around smart money
+- Preserve explicit deep-linking into the smart-money app view
+- Keep homepage and app preset behavior aligned and test-covered
