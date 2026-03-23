@@ -4,6 +4,7 @@ set -Eeuo pipefail
 APP_DIR="${APP_DIR:-$HOME/polymarket_scanner}"
 BRANCH="${BRANCH:-main}"
 API_ORIGIN="${API_ORIGIN:-https://api.polylab.app}"
+BACKUP_DIR="${BACKUP_DIR:-$HOME/polymarket_backups}"
 
 if docker compose version >/dev/null 2>&1; then
   COMPOSE_CMD=(docker compose)
@@ -27,9 +28,9 @@ git checkout "$BRANCH"
 git pull --ff-only origin "$BRANCH"
 
 echo "[2/8] Optional DB backup"
-mkdir -p backups
+mkdir -p "$BACKUP_DIR"
 if [ -f data/markets.db ]; then
-  cp data/markets.db "backups/markets_$(date +%Y%m%d_%H%M%S).db"
+  cp data/markets.db "$BACKUP_DIR/markets_$(date +%Y%m%d_%H%M%S).db"
 fi
 
 echo "[3/8] Rebuild and restart services"
