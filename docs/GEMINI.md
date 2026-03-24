@@ -103,18 +103,21 @@ RUN_PERF_TESTS=1 python -m unittest discover -s tests -p "*_unittest.py"
 
 ## 7. Infrastructure & Production State (Current)
 
-As of December 27, 2025, the production environment is configured as follows:
+As of March 24, 2026, the production environment is configured as follows:
 
 *   **Frontend:** Hosted on Vercel at `https://www.polylab.app` and `https://polylab.app`.
-*   **Backend API:** Hosted on Google Cloud VPS at `https://api.polylab.app` (IP: `35.238.7.116`).
+*   **Backend API:** Hosted on Google Cloud VPS at `https://api.polylab.app`.
 *   **DNS (Domain `polylab.app`):**
     *   `@` and `www` point to Vercel.
-    *   `api` (A record) points to `35.238.7.116`.
+    *   `api` (A record) must point to the VM's current external IP.
 *   **HTTPS:** Managed by Caddy on the VPS for `api.polylab.app`.
+*   **Operational caveat:** If the VM is stopped/started for a machine type change or maintenance, the external IP can change unless a static IP is reserved. After any such change, compare:
+    *   `getent ahosts api.polylab.app | head -n 1`
+    *   `curl -4 ifconfig.me`
+    If the IPs differ, update the `api.polylab.app` DNS `A` record before debugging Caddy or the app.
 *   **Authentication (Supabase):**
     *   Redirect URLs must include: `http://127.0.0.1:8000`, `https://www.polylab.app`, and `https://polylab.app`.
     *   Configuration is documented in `docs/AUTH_SETUP.md`.
 
 ---
-*Last Updated: 2025-12-27*
-
+*Last Updated: 2026-03-24*

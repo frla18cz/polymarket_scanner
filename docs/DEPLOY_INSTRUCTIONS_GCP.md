@@ -5,6 +5,19 @@ Tento návod předpokládá, že máš vytvořenou VM instanci (např. e2-small)
 ## 1. Připojení k serveru
 V Google Cloud Console klikni na tlačítko **SSH** vedle své instance.
 
+## Důležitá poznámka k IP a DNS
+
+Pokud VM **zastavíš a znovu spustíš** (např. při změně machine type), Google Cloud může přidělit novou **ephemeral external IP**. Pokud není k instanci přiřazená **static external IP**, může se po restartu rozbít `api.polylab.app`, i když kontejnery běží správně.
+
+Po každém `stop/start` nebo změně machine type ověř:
+
+```bash
+getent ahosts api.polylab.app | head -n 1
+curl -4 ifconfig.me
+```
+
+Obě IP adresy musí být stejné. Pokud se liší, aktualizuj DNS `A` record pro `api.polylab.app`.
+
 ## 2. Instalace Dockeru
 Zkopíruj a spusť tyto příkazy (jeden po druhém):
 
@@ -40,8 +53,24 @@ docker compose up -d --build
 ```
 
 ## 4. Ověření
-Aplikace by měla běžet na IP adrese tvé instance na portu 80 (pokud používáš Caddy) nebo 8000.
-Otevři v prohlížeči: `http://TVOJE_EXTERNAL_IP:8000` nebo `https://api.polylab.app` (pokud máš DNS + HTTPS).
+Aplikace by měla běžet na IP adrese tvé instance na portu 80/443 (pokud používáš Caddy). Port 8000 typicky běží jen uvnitř `web` kontejneru a nemusí být publikovaný na hostu.
+
+Otevři v prohlížeči:
+- `http://TVOJE_EXTERNAL_IP`
+- `https://api.polylab.app` (pokud máš DNS + HTTPS)
+
+Rychlá kontrola po deployi:
+
+```bash
+curl -fsS https://api.polylab.app/api/status
+```
+
+Pokud `api.polylab.app` neodpovídá, ale kontejnery běží, zkontroluj nejdřív DNS/IP shodu:
+
+```bash
+getent ahosts api.polylab.app | head -n 1
+curl -4 ifconfig.me
+```
 
 ## 5. Správa
 *   **Logy:** `docker compose logs -f`
