@@ -150,6 +150,111 @@
             box-shadow: 0 0 0 4px rgba(46, 117, 255, 0.18);
         }
 
+        .playbook-rail-card {
+            width: 208px;
+            min-width: 208px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .playbook-rail-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--playbook-accent, rgba(46, 117, 255, 0.8));
+            opacity: 0.62;
+            transition: opacity 220ms ease;
+        }
+
+        .playbook-rail-card:hover::before,
+        .playbook-rail-card:focus-visible::before,
+        .playbook-rail-card:focus-within::before {
+            opacity: 1;
+        }
+
+        .playbook-rail-card:hover,
+        .playbook-rail-card:focus-visible,
+        .playbook-rail-card:focus-within {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+        }
+
+        .playbook-rail-desc {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 1;
+            overflow: hidden;
+            max-height: 1rem;
+            transition: max-height 220ms ease, color 220ms ease;
+        }
+
+        .playbook-rail-card:hover .playbook-rail-desc,
+        .playbook-rail-card:focus-visible .playbook-rail-desc,
+        .playbook-rail-card:focus-within .playbook-rail-desc {
+            -webkit-line-clamp: 3;
+            max-height: 3.4rem;
+            color: rgba(226, 232, 240, 0.92);
+        }
+
+        .smart-slider {
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .smart-slider::-webkit-slider-runnable-track {
+            height: 0.375rem;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(45, 51, 72, 0.9), rgba(64, 74, 104, 0.94));
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+        }
+
+        .smart-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            margin-top: -5px;
+            border-radius: 999px;
+            border: 1px solid rgba(15, 17, 26, 0.8);
+        }
+
+        .smart-slider::-moz-range-track {
+            height: 0.375rem;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(45, 51, 72, 0.9), rgba(64, 74, 104, 0.94));
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+        }
+
+        .smart-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 999px;
+            border: 1px solid rgba(15, 17, 26, 0.8);
+        }
+
+        .smart-slider-profitable::-webkit-slider-thumb {
+            background: linear-gradient(135deg, rgba(0, 195, 136, 1), rgba(46, 117, 255, 0.92));
+            box-shadow: 0 0 0 6px rgba(0, 195, 136, 0.16);
+        }
+
+        .smart-slider-profitable::-moz-range-thumb {
+            background: linear-gradient(135deg, rgba(0, 195, 136, 1), rgba(46, 117, 255, 0.92));
+            box-shadow: 0 0 0 6px rgba(0, 195, 136, 0.16);
+        }
+
+        .smart-slider-losing::-webkit-slider-thumb {
+            background: linear-gradient(135deg, rgba(255, 77, 77, 1), rgba(46, 117, 255, 0.9));
+            box-shadow: 0 0 0 6px rgba(255, 77, 77, 0.16);
+        }
+
+        .smart-slider-losing::-moz-range-thumb {
+            background: linear-gradient(135deg, rgba(255, 77, 77, 1), rgba(46, 117, 255, 0.9));
+            box-shadow: 0 0 0 6px rgba(255, 77, 77, 0.16);
+        }
+
         * {
             scrollbar-width: thin;
             scrollbar-color: rgba(45, 51, 72, 0.9) rgba(15, 17, 26, 0.2);
@@ -256,7 +361,90 @@
                 </button>
                 <div v-if="currentView === 'smart'" class="hidden sm:flex items-center gap-2 text-[10px] text-gray-500 font-mono uppercase tracking-wider">
                     <i class="ph ph-brain mr-1 text-poly-blue/60"></i>
-                    Top holders · profitable vs losing split
+                    Winners on this side · weaker crowd opposite
+                </div>
+            </div>
+        </div>
+
+        <!-- Playbook Rail -->
+        <div class="bg-poly-bg/80 border-b border-poly-accent/30 px-4 py-2 shrink-0" data-app-playbooks>
+            <div class="flex items-center gap-2">
+                <button
+                    type="button"
+                    data-playbook-rail-handle
+                    @click="togglePlaybookRail"
+                    class="shrink-0 self-stretch rounded-2xl border border-poly-accent/55 bg-poly-card/35 px-2.5 text-gray-400 transition hover:border-poly-blue/35 hover:text-white"
+                    :aria-expanded="showPlaybookRail ? 'true' : 'false'"
+                    :aria-label="showPlaybookRail ? 'Hide playbooks' : 'Show playbooks'"
+                    :title="showPlaybookRail ? 'Hide playbooks' : 'Show playbooks'"
+                >
+                    <span class="flex h-full min-h-[56px] flex-col items-center justify-center gap-1">
+                        <i class="ph text-xs" :class="showPlaybookRail ? 'ph-caret-left' : 'ph-caret-right'"></i>
+                        <span class="inline-flex h-6 w-6 items-center justify-center rounded-full border border-poly-accent/55 bg-poly-bg text-poly-blue">
+                            <i class="ph ph-squares-four text-[11px]"></i>
+                        </span>
+                    </span>
+                </button>
+
+                <div v-if="showPlaybookRail" class="min-w-0 flex-1 overflow-hidden">
+                    <div
+                        ref="playbookRailViewport"
+                        class="overflow-x-auto scrollbar-hide"
+                        @mouseenter="pausePlaybookRail"
+                        @mouseleave="resumePlaybookRail"
+                        @focusin="pausePlaybookRail"
+                        @focusout="resumePlaybookRail"
+                        @touchstart="pausePlaybookRail"
+                        @touchend="resumePlaybookRail"
+                        @scroll.passive="handlePlaybookRailScroll"
+                    >
+                        <div ref="playbookRailTrack" class="flex gap-2 min-w-max py-0.5" data-playbook-autorotate>
+                            <button
+                                v-for="(preset, presetIndex) in rotatingPresets"
+                                :key="`${preset.id}-${presetIndex}`"
+                                type="button"
+                                @click="applyPreset(preset)"
+                                :style="{ '--playbook-accent': preset.iconStyle.color }"
+                                :class="activePresetId === preset.id ? 'border-poly-blue/45 bg-poly-card/92' : 'border-poly-accent/60 bg-poly-bg/72 hover:border-poly-accent/95 hover:bg-poly-card/75'"
+                                class="playbook-rail-card shrink-0 rounded-2xl border px-3 py-3 text-left transition-all"
+                            >
+                                <div class="flex items-start gap-2">
+                                    <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-poly-accent/45"
+                                        :style="preset.iconStyle">
+                                        <i class="ph text-base" :class="preset.icon"></i>
+                                    </span>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="truncate text-xs font-bold text-white">{{ preset.label }}</div>
+                                        <div class="playbook-rail-desc mt-1 text-[10px] leading-snug text-gray-500">{{ preset.description }}</div>
+                                    </div>
+                                </div>
+                                <div class="mt-2 flex flex-wrap gap-1">
+                                    <span
+                                        v-for="tag in preset.summary.slice(0, 2)"
+                                        :key="tag"
+                                        class="rounded-full border border-poly-accent/35 bg-poly-card/35 px-2 py-0.5 text-[10px] text-gray-400"
+                                    >
+                                        {{ tag }}
+                                    </span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-else class="min-w-0 flex-1 rounded-2xl border border-dashed border-poly-accent/35 bg-poly-card/18 px-3 py-2.5 text-[11px] text-gray-500">
+                    Playbooks hidden. Open the rail to scan presets.
+                </div>
+
+                <div v-if="activePreset" class="hidden min-w-0 items-center gap-2 text-[11px] text-gray-400 md:flex">
+                    <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-poly-accent/45"
+                        :style="activePreset.iconStyle">
+                        <i class="ph text-sm" :class="activePreset.icon"></i>
+                    </span>
+                    <div class="min-w-0">
+                        <div class="text-[10px] uppercase tracking-[0.12em] text-gray-500">Active</div>
+                        <div class="truncate font-semibold text-white">{{ activePreset.label }}</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -415,56 +603,101 @@
                         <span class="text-xs font-mono text-white">{{ markets.length }}</span>
                     </div>
 
-                    <!-- Smart Money Signals (top of sidebar, only in Smart Money view) -->
+                    <!-- Smart Money (top of sidebar, only in Smart Money view) -->
                     <div v-if="currentView === 'smart'"
-                        class="rounded-xl border border-poly-blue/40 bg-poly-blue/5 p-3 animate-in fade-in slide-in-from-top-1 duration-200">
-                        <div class="flex items-center gap-2 mb-2">
-                            <i class="ph ph-brain text-poly-blue text-base"></i>
-                            <span class="text-xs font-bold text-poly-blue uppercase tracking-wider">Smart Money Signals</span>
-                        </div>
-                        <p class="text-[10px] text-gray-400 leading-relaxed mb-3">
-                            Filter by top holder positioning:
-                            <span class="text-poly-green font-semibold">profitable</span> vs
-                            <span class="text-poly-red font-semibold">losing</span> traders.
-                        </p>
-                        <div class="mb-4">
-                            <label class="text-xs text-gray-400 font-semibold mb-2 flex justify-between">
-                                <span>Min <span class="text-poly-green">profitable</span> holders (this side)</span>
-                                <span class="text-white font-mono tabular-nums">{{ filters.min_profitable }}</span>
-                            </label>
-                            <div class="flex items-center gap-2">
-                                <button @click="filters.min_profitable = Math.max(0, Math.min(20, (Number(filters.min_profitable) || 0) - 1)); resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">-</button>
-                                <input type="number" min="0" max="20" v-model.number="filters.min_profitable" @change="filters.min_profitable = Math.max(0, Math.min(20, Number(filters.min_profitable) || 0)); resetAndFetch()" class="flex-1 bg-poly-bg border border-poly-accent rounded h-8 text-center text-xs text-white outline-none focus:border-poly-blue">
-                                <button @click="filters.min_profitable = Math.max(0, Math.min(20, (Number(filters.min_profitable) || 0) + 1)); resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">+</button>
+                        class="rounded-xl border border-poly-blue/20 bg-poly-bg/28 p-2.5 shadow-[0_8px_20px_rgba(46,117,255,0.05)]">
+                        <div class="mb-2.5 flex items-center gap-2.5">
+                            <div class="min-w-0 flex items-center gap-2.5">
+                                <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl border border-poly-blue/20 bg-poly-blue/8 text-poly-blue">
+                                    <i class="ph ph-brain text-[15px]"></i>
+                                </span>
+                                <div class="min-w-0 text-[11px] font-bold uppercase tracking-[0.14em] text-poly-blue whitespace-nowrap">
+                                    Smart Money
+                                </div>
                             </div>
                         </div>
-                        <div>
-                            <label class="text-xs text-gray-400 font-semibold mb-2 flex justify-between">
-                                <span>Min <span class="text-poly-red">losing</span> holders (opposite side)</span>
-                                <span class="text-white font-mono tabular-nums">{{ filters.min_losing_opposite }}</span>
-                            </label>
-                            <div class="flex items-center gap-2">
-                                <button @click="filters.min_losing_opposite = Math.max(0, Math.min(20, (Number(filters.min_losing_opposite) || 0) - 1)); resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">-</button>
-                                <input type="number" min="0" max="20" v-model.number="filters.min_losing_opposite" @change="filters.min_losing_opposite = Math.max(0, Math.min(20, Number(filters.min_losing_opposite) || 0)); resetAndFetch()" class="flex-1 bg-poly-bg border border-poly-accent rounded h-8 text-center text-xs text-white outline-none focus:border-poly-blue">
-                                <button @click="filters.min_losing_opposite = Math.max(0, Math.min(20, (Number(filters.min_losing_opposite) || 0) + 1)); resetAndFetch()" class="w-8 h-8 rounded border border-poly-accent bg-poly-bg hover:bg-poly-accent text-white flex items-center justify-center">+</button>
+
+                        <div class="grid gap-3">
+                            <div class="rounded-[1.2rem] border border-poly-green/22 bg-[linear-gradient(180deg,rgba(0,195,136,0.04),rgba(0,0,0,0.03))] p-2.5">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2">
+                                            <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl border border-poly-green/25 bg-poly-green/10 text-poly-green">
+                                                <i class="ph ph-trend-up text-[13px]"></i>
+                                            </span>
+                                            <div>
+                                                <div class="text-sm font-semibold text-white">Profitable</div>
+                                                <div class="text-[10px] uppercase tracking-[0.14em] text-poly-green/80">This side</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="rounded-xl border border-poly-green/30 bg-poly-green/10 px-2.5 py-1 text-base font-mono font-bold text-poly-green tabular-nums shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                                        {{ smartMoneyProfitableDraft }}
+                                    </div>
+                                </div>
+                                <input
+                                    data-smart-money-slider="profitable"
+                                    type="range"
+                                    min="0"
+                                    max="20"
+                                    step="1"
+                                    v-model.number="smartMoneyProfitableDraft"
+                                    @change="commitSmartMoneySlider('profitable')"
+                                    class="smart-slider smart-slider-profitable mt-2.5 w-full cursor-pointer"
+                                >
+                                <div class="mt-2 flex items-center justify-between text-[10px] text-gray-500">
+                                    <span>0</span>
+                                    <span>10</span>
+                                    <span>20</span>
+                                </div>
+                            </div>
+
+                            <div class="rounded-[1.2rem] border border-poly-red/22 bg-[linear-gradient(180deg,rgba(255,77,77,0.04),rgba(0,0,0,0.03))] p-2.5">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2">
+                                            <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl border border-poly-red/25 bg-poly-red/10 text-poly-red">
+                                                <i class="ph ph-arrow-bend-down-right text-[13px]"></i>
+                                            </span>
+                                            <div>
+                                                <div class="text-sm font-semibold text-white">Losing</div>
+                                                <div class="text-[10px] uppercase tracking-[0.14em] text-poly-red/80">Opposite side</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="rounded-xl border border-poly-red/30 bg-poly-red/10 px-2.5 py-1 text-base font-mono font-bold text-poly-red tabular-nums shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                                        {{ smartMoneyLosingDraft }}
+                                    </div>
+                                </div>
+                                <input
+                                    data-smart-money-slider="losing"
+                                    type="range"
+                                    min="0"
+                                    max="20"
+                                    step="1"
+                                    v-model.number="smartMoneyLosingDraft"
+                                    @change="commitSmartMoneySlider('losing')"
+                                    class="smart-slider smart-slider-losing mt-2.5 w-full cursor-pointer"
+                                >
+                                <div class="mt-2 flex items-center justify-between text-[10px] text-gray-500">
+                                    <span>0</span>
+                                    <span>10</span>
+                                    <span>20</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                <div v-if="activePreset" class="rounded-xl border border-poly-accent/50 bg-poly-bg/30 p-3">
+                <div v-if="activePreset" class="rounded-xl border border-poly-accent/50 bg-poly-bg/20 p-2.5">
                     <div class="flex items-start justify-between gap-3">
-                        <div class="min-w-0">
-                            <div class="text-xs text-gray-500 font-semibold">Last preset</div>
-                            <div class="text-xs font-semibold text-white truncate">{{ activePreset.label }}</div>
-                            <div v-if="activePreset.description" class="text-[11px] text-gray-400 mt-1 leading-snug">
-                                {{ activePreset.description }}
-                            </div>
-                            <div v-if="activePreset.summary && activePreset.summary.length"
-                                class="flex flex-wrap gap-1 mt-2">
-                                <span v-for="item in activePreset.summary" :key="item"
-                                    class="px-2 py-0.5 rounded-full text-[10px] font-medium border border-poly-accent/60 bg-poly-card/40 text-gray-300">
-                                    {{ item }}
-                                </span>
+                        <div class="min-w-0 flex items-center gap-2">
+                            <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-poly-accent/50"
+                                :style="activePreset.iconStyle">
+                                <i class="ph text-sm" :class="activePreset.icon"></i>
+                            </span>
+                            <div class="min-w-0">
+                                <div class="text-[10px] text-gray-500 font-semibold uppercase tracking-[0.14em]">Preset</div>
+                                <div class="text-xs font-semibold text-white truncate">{{ activePreset.label }}</div>
                             </div>
                         </div>
                         <button @click="activePresetId = null"
@@ -1648,6 +1881,10 @@
                             <button @click="openInfoModal('terms')" class="hover:text-poly-blue transition-colors">Terms</button>
                             <button @click="openInfoModal('privacy')" class="hover:text-poly-blue transition-colors">Privacy</button>
                             <a :href="`mailto:${contactEmail}`" class="hover:text-poly-blue transition-colors">Contact</a>
+                            <a href="https://x.com/PolyLab_app" target="_blank" rel="noreferrer" class="hover:text-poly-blue transition-colors inline-flex items-center gap-1.5">
+                                <i class="ph ph-x-logo"></i>
+                                <span>@PolyLab_app</span>
+                            </a>
                         </div>
                         <div class="text-white/30 hidden md:block">
                             Independent analyzer for Polymarket
@@ -1719,7 +1956,7 @@
                                 const expandedId = ref(null);
                                 const selectedIndex = ref(0);
                                 const compactMode = ref(false);
-                                const currentView = ref('scanner'); // 'scanner' | 'smart'
+                                const currentView = ref(new URLSearchParams(window.location.search).get('view') === 'scanner' ? 'scanner' : 'smart'); // 'scanner' | 'smart'
                                 const offset = ref(0);
                                 const limit = 100; // Load 100 at a time
                                 const serverLastUpdated = ref(null);
@@ -1903,7 +2140,21 @@
                                 const showExcludeDropdown = ref(false);
                 
                                 // Presets State
+                                const PLAYBOOK_RAIL_KEY = "polylab_playbook_rail_collapsed";
                                 const showAllPresets = ref(false);
+                                const playbookRailCollapsed = ref(_safeGetLocalStorage(PLAYBOOK_RAIL_KEY) !== "0");
+                                const showPlaybookRail = Vue.computed(() => !playbookRailCollapsed.value);
+                                const playbookRailViewport = ref(null);
+                                const playbookRailTrack = ref(null);
+                                const playbookRailPaused = ref(false);
+                                let playbookRailFrame = null;
+                                let playbookRailResumeTimer = null;
+                                let prefersReducedMotionQuery = null;
+                                let prefersReducedMotionHandler = null;
+                                const togglePlaybookRail = () => {
+                                    playbookRailCollapsed.value = !playbookRailCollapsed.value;
+                                    _safeSetLocalStorage(PLAYBOOK_RAIL_KEY, playbookRailCollapsed.value ? "1" : "0");
+                                };
                                 const showMobileFilters = ref(false);
                                 const showAdvancedFilters = ref(false);
                                 const showMobileFilterHint = ref(false);
@@ -1968,8 +2219,8 @@
                 	                    expiry_index: 0,
                 	                    include_expired: true,
                                         // Smart Money filters
-                                        min_profitable: 0,
-                                        min_losing_opposite: 0,
+                                        min_profitable: 10,
+                                        min_losing_opposite: 10,
                 	                    search: "",
                                     sort_by: "volume_usd",
                                     sort_dir: "desc"
@@ -1988,14 +2239,52 @@
                     max_hours_to_expire: 0,
                     expiry_index: 0,
                     include_expired: true,
-                    min_profitable: 0,
-                    min_losing_opposite: 0,
+                    min_profitable: 10,
+                    min_losing_opposite: 10,
                     search: "",
                     sort_by: "volume_usd",
                     sort_dir: "desc"
                 });
 
                 let suppressFilterTracking = false;
+
+                const clampSmartMoneyThreshold = (value) => {
+                    const numeric = Number(value);
+                    if (!Number.isFinite(numeric)) return 0;
+                    return Math.max(0, Math.min(20, Math.round(numeric)));
+                };
+
+                const smartMoneyProfitableDraft = ref(clampSmartMoneyThreshold(filters.value.min_profitable));
+                const smartMoneyLosingDraft = ref(clampSmartMoneyThreshold(filters.value.min_losing_opposite));
+
+                watch(() => filters.value.min_profitable, (value) => {
+                    const next = clampSmartMoneyThreshold(value);
+                    if (smartMoneyProfitableDraft.value !== next) {
+                        smartMoneyProfitableDraft.value = next;
+                    }
+                });
+
+                watch(() => filters.value.min_losing_opposite, (value) => {
+                    const next = clampSmartMoneyThreshold(value);
+                    if (smartMoneyLosingDraft.value !== next) {
+                        smartMoneyLosingDraft.value = next;
+                    }
+                });
+
+                const commitSmartMoneySlider = (kind) => {
+                    const isProfitable = kind === 'profitable';
+                    const next = clampSmartMoneyThreshold(isProfitable ? smartMoneyProfitableDraft.value : smartMoneyLosingDraft.value);
+                    if (isProfitable) {
+                        smartMoneyProfitableDraft.value = next;
+                        if (filters.value.min_profitable === next) return;
+                        filters.value.min_profitable = next;
+                    } else {
+                        smartMoneyLosingDraft.value = next;
+                        if (filters.value.min_losing_opposite === next) return;
+                        filters.value.min_losing_opposite = next;
+                    }
+                    resetAndFetch();
+                };
 
                 const sectionActive = Vue.computed(() => ({
                     search: !!filters.value.search,
@@ -2311,6 +2600,7 @@
                         description: 'Markets where profitable holders cluster on one side and the opposite side looks weaker.',
                         summary: ['15+ profitable holders', '15+ losing opposite', 'Spread ≤ 5%', 'Liquidity ≥ $1k'],
                         icon: 'ph-brain',
+                        iconStyle: { background: 'rgba(46,117,255,0.12)', color: '#2e75ff' },
                         view: 'smart',
                         class: 'bg-poly-blue/20 text-poly-blue border-poly-blue/50 hover:bg-poly-blue/30',
                         apply: () => {
@@ -2328,6 +2618,7 @@
                         description: 'High-probability outcomes (90–100%) with tighter spreads and decent liquidity.',
                         summary: ['Prob 90–100%', 'Spread ≤ 2%', 'Liquidity ≥ $500'],
                         icon: 'ph-hand-heart',
+                        iconStyle: { background: 'rgba(0,195,136,0.12)', color: '#00c388' },
                         class: 'bg-poly-green/20 text-poly-green border-poly-green/50 hover:bg-poly-green/30',
                         apply: () => {
                             filters.value.min_price = 0.90;
@@ -2342,6 +2633,7 @@
                         description: 'High-confidence, size-friendly markets with tight spreads and deep liquidity (excluding crypto).',
                         summary: ['Prob ≥ 90%', 'Liquidity ≥ $50k', 'Spread ≤ 2%', 'No crypto'],
                         icon: 'ph-briefcase',
+                        iconStyle: { background: 'rgba(0,195,136,0.12)', color: '#00c388' },
                         class: 'bg-poly-green/20 text-poly-green border-poly-green/50 hover:bg-poly-green/30',
                         apply: () => {
                             filters.value.min_price = 0.90;
@@ -2365,6 +2657,7 @@
                         description: 'Markets ending within 24h, sorted by soonest to expire.',
                         summary: ['Ends ≤ 24h', 'Hide expired', 'Sort: end date ↑'],
                         icon: 'ph-crosshair',
+                        iconStyle: { background: 'rgba(245,158,11,0.12)', color: '#f59e0b' },
                         class: 'bg-orange-500/20 text-orange-400 border-orange-500/50 hover:bg-orange-500/30',
                         apply: () => {
                             setExpiryHours(24);
@@ -2379,6 +2672,7 @@
                         description: 'Near 50/50 markets (45–55%).',
                         summary: ['Prob 45–55%'],
                         icon: 'ph-coins',
+                        iconStyle: { background: 'rgba(168,85,247,0.12)', color: '#a855f7' },
                         class: 'bg-purple-500/20 text-purple-400 border-purple-500/50 hover:bg-purple-500/30',
                         apply: () => {
                             filters.value.min_price = 0.45;
@@ -2391,6 +2685,7 @@
                         description: 'Low-probability long shots (≤5%), sorted by cheapest odds.',
                         summary: ['Prob ≤ 5%', 'Volume ≥ $1k', 'Sort: price ↑'],
                         icon: 'ph-smiley-x-eyes',
+                        iconStyle: { background: 'rgba(255,77,77,0.12)', color: '#ff4d4d' },
                         class: 'bg-poly-red/20 text-poly-red border-poly-red/50 hover:bg-poly-red/30',
                         apply: () => {
                             filters.value.max_price = 0.05;
@@ -2405,6 +2700,7 @@
                         description: 'Underdogs up to 15% with some liquidity.',
                         summary: ['Prob ≤ 15%', 'Liquidity ≥ $500'],
                         icon: 'ph-trend-up',
+                        iconStyle: { background: 'rgba(236,72,153,0.12)', color: '#ec4899' },
                         class: 'bg-pink-500/20 text-pink-400 border-pink-500/50 hover:bg-pink-500/30',
                         apply: () => {
                             filters.value.max_price = 0.15;
@@ -2417,6 +2713,7 @@
                         description: 'High-volume trending markets.',
                         summary: ['Volume ≥ $100k', 'Sort: volume ↓'],
                         icon: 'ph-newspaper',
+                        iconStyle: { background: 'rgba(46,117,255,0.12)', color: '#2e75ff' },
                         class: 'bg-poly-blue/20 text-poly-blue border-poly-blue/50 hover:bg-poly-blue/30',
                         apply: () => {
                             filters.value.min_volume = 100000;
@@ -2427,7 +2724,12 @@
                 ];
 
                 const displayedPresets = Vue.computed(() => {
-                    return showAllPresets.value ? presetDefinitions : presetDefinitions.slice(0, 4);
+                    return presetDefinitions;
+                });
+
+                const rotatingPresets = Vue.computed(() => {
+                    const items = displayedPresets.value;
+                    return items.length > 1 ? [...items, ...items] : items;
                 });
 
                 const activePresetId = ref(null);
@@ -2531,6 +2833,14 @@
 
                     const bootstrapView = payload.view === 'smart' ? 'smart' : 'scanner';
                     const normalizedFilters = normalizeBootstrapFilters(payload.filters);
+                    if (bootstrapView === 'smart' && !payload.active_preset_id) {
+                        if (Number(normalizedFilters.min_profitable || 0) <= 0) {
+                            normalizedFilters.min_profitable = 10;
+                        }
+                        if (Number(normalizedFilters.min_losing_opposite || 0) <= 0) {
+                            normalizedFilters.min_losing_opposite = 10;
+                        }
+                    }
                     const nextTags = Array.isArray(payload.tags) ? payload.tags : [];
                     const nextMarkets = Array.isArray(payload.markets) ? payload.markets : [];
 
@@ -2908,6 +3218,9 @@
                     }
 
                     applyPresetState(preset);
+                    playbookRailCollapsed.value = true;
+                    showAllPresets.value = false;
+                    _safeSetLocalStorage(PLAYBOOK_RAIL_KEY, "1");
                     updateUrlParams();
                     resetAndFetch();
                 };
@@ -2924,6 +3237,52 @@
                     });
 
                     resetAndFetch();
+                };
+
+                const clearPlaybookRailResume = () => {
+                    if (playbookRailResumeTimer) {
+                        clearTimeout(playbookRailResumeTimer);
+                        playbookRailResumeTimer = null;
+                    }
+                };
+
+                const pausePlaybookRail = () => {
+                    clearPlaybookRailResume();
+                    playbookRailPaused.value = true;
+                };
+
+                const resumePlaybookRail = () => {
+                    clearPlaybookRailResume();
+                    playbookRailResumeTimer = setTimeout(() => {
+                        playbookRailPaused.value = false;
+                    }, 1400);
+                };
+
+                const handlePlaybookRailScroll = () => {
+                    pausePlaybookRail();
+                    resumePlaybookRail();
+                };
+
+                const shouldAutoRotatePlaybooks = () => {
+                    if (!showPlaybookRail.value) return false;
+                    if (playbookRailPaused.value) return false;
+                    if (!playbookRailViewport.value) return false;
+                    if (displayedPresets.value.length < 2) return false;
+                    return !(prefersReducedMotionQuery && prefersReducedMotionQuery.matches);
+                };
+
+                const stepPlaybookRail = () => {
+                    const viewport = playbookRailViewport.value;
+                    if (viewport && shouldAutoRotatePlaybooks()) {
+                        const loopWidth = viewport.scrollWidth / 2;
+                        if (loopWidth > viewport.clientWidth + 40) {
+                            viewport.scrollLeft += 0.22;
+                            if (viewport.scrollLeft >= loopWidth) {
+                                viewport.scrollLeft -= loopWidth;
+                            }
+                        }
+                    }
+                    playbookRailFrame = requestAnimationFrame(stepPlaybookRail);
                 };
 
                 // Formatters
@@ -3008,6 +3367,8 @@
 	                    max_hours_to_expire: 0,
 	                    expiry_index: 0,
 	                    include_expired: true,
+                        min_profitable: 10,
+                        min_losing_opposite: 10,
 	                    search: "",
                     sort_by: "volume_usd",
                     sort_dir: "desc",
@@ -3077,6 +3438,12 @@
                     if (f.min_liquidity !== DEFAULT_FILTERS.min_liquidity) {
                         chips.push({ label: `Liq ≥ ${formatCompact(f.min_liquidity)}`, key: 'min_liquidity' });
                     }
+                    if (currentView.value === 'smart' && f.min_profitable !== DEFAULT_FILTERS.min_profitable) {
+                        chips.push({ label: `Profitable ≥ ${f.min_profitable}`, key: 'min_profitable' });
+                    }
+                    if (currentView.value === 'smart' && f.min_losing_opposite !== DEFAULT_FILTERS.min_losing_opposite) {
+                        chips.push({ label: `Opp. losing ≥ ${f.min_losing_opposite}`, key: 'min_losing_opposite' });
+                    }
                     if (f.sort_by !== DEFAULT_FILTERS.sort_by || f.sort_dir !== DEFAULT_FILTERS.sort_dir) {
                         const arrow = f.sort_dir === "asc" ? "↑" : "↓";
                         chips.push({ label: `Sort: ${_sortLabel(f.sort_by)} ${arrow}`, key: 'sort' });
@@ -3103,6 +3470,8 @@
                     else if (key === 'min_apr_percent') filters.value.min_apr_percent = DEFAULT_FILTERS.min_apr_percent;
                     else if (key === 'min_volume') filters.value.min_volume = DEFAULT_FILTERS.min_volume;
                     else if (key === 'min_liquidity') filters.value.min_liquidity = DEFAULT_FILTERS.min_liquidity;
+                    else if (key === 'min_profitable') filters.value.min_profitable = DEFAULT_FILTERS.min_profitable;
+                    else if (key === 'min_losing_opposite') filters.value.min_losing_opposite = DEFAULT_FILTERS.min_losing_opposite;
                     else if (key === 'sort') {
                         filters.value.sort_by = DEFAULT_FILTERS.sort_by;
                         filters.value.sort_dir = DEFAULT_FILTERS.sort_dir;
@@ -3398,13 +3767,18 @@
                     window.removeEventListener("keydown", onKeyDown);
                     window.removeEventListener("resize", updateScreenFlags);
                     if (refreshInterval) clearInterval(refreshInterval);
+                    clearPlaybookRailResume();
+                    if (playbookRailFrame) cancelAnimationFrame(playbookRailFrame);
+                    if (prefersReducedMotionQuery && prefersReducedMotionHandler && typeof prefersReducedMotionQuery.removeEventListener === 'function') {
+                        prefersReducedMotionQuery.removeEventListener('change', prefersReducedMotionHandler);
+                    }
                 });
 
                 onMounted(async () => {
                     const initialParams = new URLSearchParams(window.location.search);
                     const presetParam = initialParams.get('preset');
                     const targetPreset = getPresetById(presetParam);
-                    const requestedView = initialParams.get('view') === 'smart' ? 'smart' : 'scanner';
+                    const requestedView = initialParams.get('view') === 'scanner' ? 'scanner' : 'smart';
 
                     const needsEarlySession = isLockedPreset(targetPreset);
                     if (needsEarlySession && supabase) {
@@ -3462,6 +3836,19 @@
                     window.addEventListener('resize', updateScreenFlags);
                     window.addEventListener("keydown", onKeyDown);
                     maybeAutoOpenMobileFilters();
+                    prefersReducedMotionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+                    prefersReducedMotionHandler = (event) => {
+                        if (event && event.matches) {
+                            pausePlaybookRail();
+                        } else {
+                            resumePlaybookRail();
+                        }
+                    };
+                    if (prefersReducedMotionQuery && typeof prefersReducedMotionQuery.addEventListener === 'function') {
+                        prefersReducedMotionQuery.addEventListener('change', prefersReducedMotionHandler);
+                    }
+                    if (playbookRailFrame) cancelAnimationFrame(playbookRailFrame);
+                    playbookRailFrame = requestAnimationFrame(stepPlaybookRail);
 
                     if (refreshInterval) clearInterval(refreshInterval);
                     refreshInterval = setInterval(() => {
@@ -3553,11 +3940,18 @@
                     availableTagsForInclude,
                     availableTagsForExclude,
                     // Presets
+                    showPlaybookRail,
+                    togglePlaybookRail,
                     showAllPresets,
                     displayedPresets,
+                    rotatingPresets,
                     presetDefinitions,
                     activePresetId,
                     activePreset,
+                    playbookRailViewport,
+                    playbookRailTrack,
+                    smartMoneyProfitableDraft,
+                    smartMoneyLosingDraft,
                     // Methods
                     addIncludedTag,
                     commitIncludeSearch,
@@ -3594,6 +3988,10 @@
                     toggleDetails,
                     toggleViewMode,
                     applyPreset,
+                    commitSmartMoneySlider,
+                    pausePlaybookRail,
+                    resumePlaybookRail,
+                    handlePlaybookRailScroll,
                     resetAllFilters,
                     toggleHoldersSort,
                     getSortedHolders,

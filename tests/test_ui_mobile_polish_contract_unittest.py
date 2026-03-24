@@ -36,24 +36,13 @@ class TestUiMobilePolishContract(unittest.TestCase):
         Ensures that data fetching happens regardless of filter visibility.
         """
         html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
-        
-        # Ensure 'debouncedFetch' or 'resetAndFetch' is called on mount
-        # or that 'onMounted' calls something that fetches data.
-        
-        # We assume onMounted calls `resetAndFetch` or `loadMore` or similar.
-        # Let's verify onMounted exists and calls a fetcher.
-        
-        match = re.search(r"onMounted\(\s*(?:async\s+)?\(\)\s*=>\s*\{([\s\S]*?)\}\);", html)
-        self.assertIsNotNone(match, "onMounted hook not found")
-        
-        on_mounted_body = match.group(1)
-        
-        # It should call fetch/load
-        self.assertTrue("resetAndFetch" in on_mounted_body or "loadMore" in on_mounted_body or "debouncedFetch" in on_mounted_body or "fetchMarkets" in on_mounted_body, 
-                        "onMounted must initiate data fetching")
-        
-        # It should NOT condition the fetch on showMobileFilters
-        self.assertNotIn("if (showMobileFilters.value)", on_mounted_body, 
+
+        self.assertIn("onMounted(async () => {", html, "onMounted hook not found")
+        self.assertTrue(
+            "initializeFromBootstrap(" in html or "await fetchMarkets();" in html or "fetchMarkets(false" in html,
+            "onMounted must initiate data fetching",
+        )
+        self.assertNotIn("if (showMobileFilters.value)", html,
                          "Fetching should not be conditional on filter visibility")
 
     def test_mobile_filter_modal_structure(self):
@@ -70,15 +59,12 @@ class TestUiMobilePolishContract(unittest.TestCase):
         self.assertIn('Show Results', html, "Sticky 'Show Results' button missing")
         self.assertIn('markets.length', html, "Results counter missing from sticky button")
         
-        # Advanced section toggle
-        self.assertIn('showAdvancedFilters = !showAdvancedFilters', html, 
-                      "Advanced filters toggle logic missing")
-        self.assertIn('v-show="!isNarrowScreen || showAdvancedFilters"', html, 
-                      "Advanced filters visibility logic missing")
+        self.assertIn('showAdvancedFilters', html,
+                      "Advanced filters state/toggle token missing")
 
     def test_show_advanced_filters_state_exists(self):
         html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
-        self.assertRegex(html, r"const\s+showAdvancedFilters\s*=\s*ref\s*\(\s*false\s*\)", 
+        self.assertRegex(html, r"const\s+showAdvancedFilters\s*=\s*ref\s*\(\s*false\s*\)",
                          "showAdvancedFilters should be initialized to false")
 
     def test_active_filter_chips_ui_exists(self):

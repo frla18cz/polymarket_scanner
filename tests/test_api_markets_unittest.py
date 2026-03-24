@@ -512,7 +512,7 @@ class TestMarketsFilters(unittest.TestCase):
 
         response = Response()
         # Frontend sends min_apr=0 by default
-        markets = self.app_main.get_markets(response=response, min_apr=0.0)
+        markets = self.app_main.get_markets(response=response, min_apr=0.0, limit=2000)
         
         null_market = next((m for m in markets if m["market_id"] == 'test_apr_null'), None)
         self.assertIsNotNone(null_market, "Market with NULL APR should be visible when filter is 0.0")

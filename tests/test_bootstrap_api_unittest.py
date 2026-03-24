@@ -67,6 +67,13 @@ class TestBootstrapApi(unittest.TestCase):
         self.assertEqual(payload["filters"]["max_spread"], 0.05)
         self.assertEqual(payload["filters"]["min_liquidity"], 1000)
 
+    def test_app_bootstrap_default_smart_contains_ten_and_ten_thresholds(self):
+        payload = self.app_main.get_app_bootstrap(Response(), view="smart")
+
+        self.assertEqual(payload["view"], "smart")
+        self.assertEqual(payload["filters"]["min_profitable"], 10)
+        self.assertEqual(payload["filters"]["min_losing_opposite"], 10)
+
     def test_refresh_snapshots_persists_expected_keys(self):
         conn = sqlite3.connect(str(self._snapshot.path))
         try:
