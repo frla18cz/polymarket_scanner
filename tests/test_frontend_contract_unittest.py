@@ -6,6 +6,8 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FRONTEND_DEPLOY = REPO_ROOT / "frontend_deploy" / "app" / "index.html"
 STATIC_INDEX = REPO_ROOT / "static" / "app" / "index.html"
+HOME_FRONTEND = REPO_ROOT / "frontend_deploy" / "index.html"
+HOME_STATIC = REPO_ROOT / "static" / "index.html"
 
 
 class TestFrontendContract(unittest.TestCase):
@@ -129,6 +131,59 @@ class TestFrontendContract(unittest.TestCase):
         self.assertIn("filters.value.min_price = 0.90;", html)
         self.assertIn("filters.value.max_price = 1.00;", html)
         self.assertIn("filters.value.max_spread = 0.02;", html)
+
+    def test_smart_money_defaults_and_slider_contract(self):
+        html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
+        self.assertIn("min_profitable: 10", html)
+        self.assertIn("min_losing_opposite: 10", html)
+        self.assertIn("if (bootstrapView === 'smart' && !payload.active_preset_id)", html)
+        self.assertIn("normalizedFilters.min_profitable = 10;", html)
+        self.assertIn("normalizedFilters.min_losing_opposite = 10;", html)
+        self.assertIn('data-smart-money-slider="profitable"', html)
+        self.assertIn('data-smart-money-slider="losing"', html)
+        self.assertIn("smartMoneyProfitableDraft", html)
+        self.assertIn("smartMoneyLosingDraft", html)
+        self.assertIn("const requestedView = initialParams.get('view') === 'scanner' ? 'scanner' : 'smart';", html)
+
+    def test_app_playbook_rail_contract_tokens_exist(self):
+        html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
+        self.assertIn('data-app-playbooks', html)
+        self.assertIn("showPlaybookRail", html)
+        self.assertIn("togglePlaybookRail", html)
+        self.assertIn("data-playbook-rail-handle", html)
+        self.assertIn("data-playbook-autorotate", html)
+        self.assertIn("pausePlaybookRail", html)
+        self.assertIn("resumePlaybookRail", html)
+        self.assertIn("handlePlaybookRailScroll", html)
+        self.assertIn("rotatingPresets", html)
+        self.assertIn("playbook-rail-card", html)
+        self.assertIn("playbook-rail-desc", html)
+
+    def test_playbook_cards_keep_homepage_icon_style_tokens(self):
+        html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
+        self.assertIn("iconStyle: { background: 'rgba(46,117,255,0.12)', color: '#2e75ff' }", html)
+        self.assertIn("iconStyle: { background: 'rgba(0,195,136,0.12)', color: '#00c388' }", html)
+        self.assertIn("iconStyle: { background: 'rgba(245,158,11,0.12)', color: '#f59e0b' }", html)
+
+    def test_smart_money_console_visual_tokens_exist(self):
+        html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
+        self.assertIn("Smart Money", html)
+        self.assertIn("This side", html)
+        self.assertIn("Opposite side", html)
+        self.assertIn("smart-slider smart-slider-profitable", html)
+        self.assertIn("smart-slider smart-slider-losing", html)
+        self.assertNotIn("Midpoint 10", html)
+
+    def test_public_surfaces_link_to_x_account(self):
+        self.assertTrue(HOME_FRONTEND.exists(), f"Missing {HOME_FRONTEND}")
+        self.assertTrue(HOME_STATIC.exists(), f"Missing {HOME_STATIC}")
+        self.assertEqual(HOME_FRONTEND.read_bytes(), HOME_STATIC.read_bytes())
+        home_html = HOME_FRONTEND.read_text("utf-8", errors="replace")
+        app_html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
+        self.assertIn("https://x.com/PolyLab_app", home_html)
+        self.assertIn("@PolyLab_app", home_html)
+        self.assertIn("https://x.com/PolyLab_app", app_html)
+        self.assertIn("@PolyLab_app", app_html)
 
     def test_table_headers_and_sorts_exist(self):
         html = FRONTEND_DEPLOY.read_text("utf-8", errors="replace")
