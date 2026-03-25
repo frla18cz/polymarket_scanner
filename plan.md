@@ -24,3 +24,7 @@
 - [x] Create three ultra-minimal X header SVG assets centered on background and logo only.
 - [x] Export 2x PNG upload versions for the minimal headers and verify dimensions.
 - [x] Add concise notes recommending the strongest default minimal header.
+
+## Phase 5: Docs Messaging Cleanup
+
+- [x] Centralize the public docs "in progress" disclosure so it is prominent on the docs home page and compact in the shared layout elsewhere. (7fe4eff)
