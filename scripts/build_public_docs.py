@@ -336,7 +336,11 @@ def render_sidebar(pages: list[Page], current_page: Page) -> str:
     for page in pages:
         groups.setdefault(page.section, []).append(page)
 
-    parts = ['<aside class="docs-sidebar">', '<div class="docs-sidebar-inner">']
+    parts = [
+        '<aside class="docs-sidebar">',
+        '<div class="docs-sidebar-inner">',
+        '<p class="docs-sidebar-note">Current implementation docs. Details may change as PolyLab evolves.</p>',
+    ]
     for section in SECTION_ORDER:
         items = groups.get(section, [])
         if not items:
@@ -347,7 +351,6 @@ def render_sidebar(pages: list[Page], current_page: Page) -> str:
             parts.append(
                 f'<a class="docs-sidebar-link{active_class}" href="{page.public_url}">'
                 f'<span>{html.escape(page.title)}</span>'
-                f'<span class="docs-sidebar-link-status">{html.escape(page.status_label)}</span>'
                 "</a>"
             )
         parts.append("</section>")
@@ -444,19 +447,14 @@ def render_page(page: Page, pages: list[Page], build_label: str) -> str:
     if faq_graph is not None:
         graph.append(faq_graph)
 
-    status_badge = f'<span class="docs-status-badge {page.status_class}">{html.escape(page.status_label)}</span>'
-    global_progress_banner = (
-        '<section class="docs-global-banner" aria-label="Documentation progress notice">'
-        '<strong>Documentation is in progress.</strong> '
-        "<span>Every page in this section describes the current implementation and may change as PolyLab evolves.</span>"
-        "</section>"
-    )
-    progress_banner = (
-        '<div class="docs-admonition docs-admonition-in-progress">'
-        '<div class="docs-admonition-title">Current Implementation</div>'
-        "<p>This page is intentionally explicit and implementation-first. If the product or upstream APIs change, the current behavior described here can change with them.</p>"
-        "</div>"
-    )
+    home_banner = ""
+    if not page.route:
+        home_banner = (
+            '<section class="docs-home-banner" aria-label="Documentation introduction notice">'
+            "<strong>Implementation-first docs.</strong> "
+            "<span>Start here: every page in this section describes the current PolyLab implementation and may change as the product evolves.</span>"
+            "</section>"
+        )
 
     article_nav = ['<nav class="docs-article-nav">']
     if prev_page is not None:
@@ -523,17 +521,15 @@ def render_page(page: Page, pages: list[Page], build_label: str) -> str:
       {sidebar_html}
       <main class="docs-content">
         <article class="docs-article">
-          {global_progress_banner}
+          {home_banner}
           <div class="docs-page-header">
             <div class="docs-page-kicker">{html.escape(page.section)}</div>
             <h1>{html.escape(page.title)}</h1>
             <div class="docs-page-meta">
-              {status_badge}
               <span class="docs-page-updated">Last updated {html.escape(build_label)}</span>
             </div>
             <p class="docs-page-summary">{html.escape(page.summary)}</p>
           </div>
-          {progress_banner}
           {body_html}
           {''.join(article_nav)}
         </article>
@@ -719,6 +715,17 @@ def build_css() -> str:
     }
 
     .docs-sidebar-inner { padding: 18px 16px; }
+    .docs-sidebar-note {
+      margin: 0 0 18px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(130, 148, 194, 0.16);
+      background: rgba(12, 17, 27, 0.48);
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.55;
+    }
+
     .docs-sidebar-group + .docs-sidebar-group { margin-top: 18px; }
     .docs-sidebar-group-label {
       color: var(--amber);
@@ -731,8 +738,7 @@ def build_css() -> str:
     .docs-sidebar-link {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 12px;
+      justify-content: flex-start;
       padding: 10px 12px;
       border-radius: 12px;
       color: var(--muted);
@@ -746,16 +752,10 @@ def build_css() -> str:
       color: var(--text);
     }
 
-    .docs-sidebar-link-status {
-      font-size: 0.72rem;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-
     .docs-content { min-width: 0; }
     .docs-article { padding: 28px 32px; }
 
-    .docs-global-banner {
+    .docs-home-banner {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
@@ -768,7 +768,7 @@ def build_css() -> str:
       line-height: 1.55;
     }
 
-    .docs-global-banner strong {
+    .docs-home-banner strong {
       font-family: 'Space Grotesk', sans-serif;
       letter-spacing: -0.02em;
     }
@@ -792,29 +792,6 @@ def build_css() -> str:
       gap: 10px;
       align-items: center;
       margin-bottom: 14px;
-    }
-
-    .docs-status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 12px;
-      border-radius: 999px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      border: 1px solid transparent;
-    }
-
-    .docs-status-badge.is-stable {
-      color: #d9fff2;
-      background: rgba(0, 195, 136, 0.12);
-      border-color: rgba(0, 195, 136, 0.22);
-    }
-
-    .docs-status-badge.is-in-progress {
-      color: #ffe4ae;
-      background: rgba(242, 188, 88, 0.12);
-      border-color: rgba(242, 188, 88, 0.22);
     }
 
     .docs-page-updated {

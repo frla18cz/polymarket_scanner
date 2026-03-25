@@ -25,8 +25,8 @@ class TestDocsContract(unittest.TestCase):
         required_tokens = [
             "PolyLab Docs | Documentation",
             "Documentation",
-            "In Progress",
-            "Documentation is in progress.",
+            "Implementation-first docs.",
+            "Current implementation docs.",
             "Start Here",
             "Using the Scanner",
             "Understanding the Data",
@@ -67,9 +67,25 @@ class TestDocsContract(unittest.TestCase):
         self.assertIn(".info-modal-item", html)
         self.assertIn("docs-sidebar", html)
         self.assertIn("docs-toc", html)
-        self.assertIn("docs-global-banner", html)
+        self.assertIn('<section class="docs-home-banner"', html)
+        self.assertIn('<p class="docs-sidebar-note">Current implementation docs.', html)
         self.assertNotIn('noindex,follow', html)
         self.assertNotIn("docs_hero_primary", html)
+        self.assertNotIn("docs-sidebar-link-status", html)
+        self.assertNotIn("docs-status-badge", html)
+
+    def test_docs_article_pages_use_compact_shared_notice_without_home_banner(self):
+        article_page = REPO_ROOT / "frontend_deploy" / "docs" / "methodology" / "apr" / "index.html"
+        self.assertTrue(article_page.exists(), f"Missing {article_page}")
+
+        html = article_page.read_text("utf-8", errors="replace")
+
+        self.assertIn("Current implementation docs.", html)
+        self.assertNotIn("Implementation-first docs.", html)
+        self.assertNotIn("Documentation is in progress.", html)
+        self.assertNotIn('<section class="docs-home-banner"', html)
+        self.assertNotIn("docs-sidebar-link-status", html)
+        self.assertNotIn("docs-status-badge", html)
 
     def test_docs_home_and_expected_generated_pages_exist(self):
         expected_pages = [

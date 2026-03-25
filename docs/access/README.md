@@ -35,5 +35,5 @@ They should explain:
 ## Notes
 
 - Keep public docs aligned with actual implementation behavior.
-- Every public docs page currently carries `In Progress` disclosure.
+- Use one prominent implementation-status note on the docs home page plus one compact shared note in the docs layout.
 - Prefer explicit implementation detail over vague product copy when the two are in tension.

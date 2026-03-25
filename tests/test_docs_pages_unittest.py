@@ -15,8 +15,7 @@ class TestDocsPages(unittest.TestCase):
 
         required_tokens = [
             "APR Methodology",
-            "In Progress",
-            "Documentation is in progress.",
+            "Current implementation docs.",
             "((1.0 / price) - 1.0) * (365.0 / days)",
             "APR is only computed when price is greater than 0 and less than 1",
             "When APR is null",
@@ -34,7 +33,7 @@ class TestDocsPages(unittest.TestCase):
 
         required_tokens = [
             "Smart Money Methodology",
-            "In Progress",
+            "Current implementation docs.",
             "top 20 holders per outcome",
             "ws.total_pnl &gt; 0",
             "ws.total_pnl &lt; 0",
@@ -57,7 +56,7 @@ class TestDocsPages(unittest.TestCase):
 
         required_tokens = [
             "Freshness and Limitations",
-            "Documentation is in progress.",
+            "Current implementation docs.",
             "Market snapshots refresh every hour",
             "Smart Money analysis refreshes every 6 hours",
             "Why numbers can differ from Polymarket",

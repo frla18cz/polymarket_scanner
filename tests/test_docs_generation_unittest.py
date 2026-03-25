@@ -67,6 +67,14 @@ class TestDocsGeneration(unittest.TestCase):
             f"Docs generator --check failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}",
         )
 
+    def test_generator_source_uses_single_homepage_intro_pattern(self):
+        script_path = REPO_ROOT / "scripts" / "build_public_docs.py"
+        content = script_path.read_text("utf-8", errors="replace")
+
+        self.assertIn("docs-home-banner", content)
+        self.assertIn("docs-sidebar-note", content)
+        self.assertNotIn("Documentation is in progress.", content)
+
 
 if __name__ == "__main__":
     unittest.main()

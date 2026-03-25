@@ -155,6 +155,17 @@
     }
 
     .docs-sidebar-inner { padding: 18px 16px; }
+    .docs-sidebar-note {
+      margin: 0 0 18px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(130, 148, 194, 0.16);
+      background: rgba(12, 17, 27, 0.48);
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.55;
+    }
+
     .docs-sidebar-group + .docs-sidebar-group { margin-top: 18px; }
     .docs-sidebar-group-label {
       color: var(--amber);
@@ -167,8 +178,7 @@
     .docs-sidebar-link {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 12px;
+      justify-content: flex-start;
       padding: 10px 12px;
       border-radius: 12px;
       color: var(--muted);
@@ -182,16 +192,10 @@
       color: var(--text);
     }
 
-    .docs-sidebar-link-status {
-      font-size: 0.72rem;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-
     .docs-content { min-width: 0; }
     .docs-article { padding: 28px 32px; }
 
-    .docs-global-banner {
+    .docs-home-banner {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
@@ -204,7 +208,7 @@
       line-height: 1.55;
     }
 
-    .docs-global-banner strong {
+    .docs-home-banner strong {
       font-family: 'Space Grotesk', sans-serif;
       letter-spacing: -0.02em;
     }
@@ -228,29 +232,6 @@
       gap: 10px;
       align-items: center;
       margin-bottom: 14px;
-    }
-
-    .docs-status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 12px;
-      border-radius: 999px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      border: 1px solid transparent;
-    }
-
-    .docs-status-badge.is-stable {
-      color: #d9fff2;
-      background: rgba(0, 195, 136, 0.12);
-      border-color: rgba(0, 195, 136, 0.22);
-    }
-
-    .docs-status-badge.is-in-progress {
-      color: #ffe4ae;
-      background: rgba(242, 188, 88, 0.12);
-      border-color: rgba(242, 188, 88, 0.22);
     }
 
     .docs-page-updated {
@@ -606,53 +587,52 @@
     <div class="docs-layout">
       <aside class="docs-sidebar">
 <div class="docs-sidebar-inner">
+<p class="docs-sidebar-note">Current implementation docs. Details may change as PolyLab evolves.</p>
 <section class="docs-sidebar-group"><div class="docs-sidebar-group-label">Start Here</div>
-<a class="docs-sidebar-link" href="/docs"><span>Documentation</span><span class="docs-sidebar-link-status">In Progress</span></a>
-<a class="docs-sidebar-link" href="/docs/getting-started"><span>Getting Started</span><span class="docs-sidebar-link-status">In Progress</span></a>
-<a class="docs-sidebar-link" href="/docs/how-polylab-works"><span>How PolyLab Works</span><span class="docs-sidebar-link-status">In Progress</span></a>
+<a class="docs-sidebar-link" href="/docs"><span>Documentation</span></a>
+<a class="docs-sidebar-link" href="/docs/getting-started"><span>Getting Started</span></a>
+<a class="docs-sidebar-link" href="/docs/how-polylab-works"><span>How PolyLab Works</span></a>
 </section>
 <section class="docs-sidebar-group"><div class="docs-sidebar-group-label">Using the Scanner</div>
-<a class="docs-sidebar-link" href="/docs/workflows"><span>Workflows</span><span class="docs-sidebar-link-status">In Progress</span></a>
-<a class="docs-sidebar-link" href="/docs/scanner/filters-and-sorting"><span>Filters and Sorting</span><span class="docs-sidebar-link-status">In Progress</span></a>
-<a class="docs-sidebar-link" href="/docs/scanner/market-details-and-holders"><span>Market Details and Holders</span><span class="docs-sidebar-link-status">In Progress</span></a>
+<a class="docs-sidebar-link" href="/docs/workflows"><span>Workflows</span></a>
+<a class="docs-sidebar-link" href="/docs/scanner/filters-and-sorting"><span>Filters and Sorting</span></a>
+<a class="docs-sidebar-link" href="/docs/scanner/market-details-and-holders"><span>Market Details and Holders</span></a>
 </section>
 <section class="docs-sidebar-group"><div class="docs-sidebar-group-label">Understanding the Data</div>
-<a class="docs-sidebar-link" href="/docs/metrics/core-metrics"><span>Core Metrics</span><span class="docs-sidebar-link-status">In Progress</span></a>
-<a class="docs-sidebar-link is-active" href="/docs/methodology/apr"><span>APR Methodology</span><span class="docs-sidebar-link-status">In Progress</span></a>
-<a class="docs-sidebar-link" href="/docs/methodology/smart-money"><span>Smart Money Methodology</span><span class="docs-sidebar-link-status">In Progress</span></a>
-<a class="docs-sidebar-link" href="/docs/data/freshness-and-limitations"><span>Freshness and Limitations</span><span class="docs-sidebar-link-status">In Progress</span></a>
+<a class="docs-sidebar-link" href="/docs/metrics/core-metrics"><span>Core Metrics</span></a>
+<a class="docs-sidebar-link is-active" href="/docs/methodology/apr"><span>APR Methodology</span></a>
+<a class="docs-sidebar-link" href="/docs/methodology/smart-money"><span>Smart Money Methodology</span></a>
+<a class="docs-sidebar-link" href="/docs/data/freshness-and-limitations"><span>Freshness and Limitations</span></a>
 </section>
 <section class="docs-sidebar-group"><div class="docs-sidebar-group-label">Data Sources</div>
-<a class="docs-sidebar-link" href="/docs/sources/markets-and-events"><span>Markets and Events Source</span><span class="docs-sidebar-link-status">In Progress</span></a>
-<a class="docs-sidebar-link" href="/docs/sources/holders-and-wallet-pnl"><span>Holders and Wallet PnL Source</span><span class="docs-sidebar-link-status">In Progress</span></a>
+<a class="docs-sidebar-link" href="/docs/sources/markets-and-events"><span>Markets and Events Source</span></a>
+<a class="docs-sidebar-link" href="/docs/sources/holders-and-wallet-pnl"><span>Holders and Wallet PnL Source</span></a>
 </section>
 <section class="docs-sidebar-group"><div class="docs-sidebar-group-label">Pipeline</div>
-<a class="docs-sidebar-link" href="/docs/pipeline/refresh-storage-and-snapshots"><span>Refresh, Storage, and Snapshots</span><span class="docs-sidebar-link-status">In Progress</span></a>
+<a class="docs-sidebar-link" href="/docs/pipeline/refresh-storage-and-snapshots"><span>Refresh, Storage, and Snapshots</span></a>
 </section>
 <section class="docs-sidebar-group"><div class="docs-sidebar-group-label">Reference</div>
-<a class="docs-sidebar-link" href="/docs/reference/upstream-field-map"><span>Upstream to PolyLab Field Map</span><span class="docs-sidebar-link-status">In Progress</span></a>
-<a class="docs-sidebar-link" href="/docs/reference/scanner-query-contract"><span>Scanner Query and Filter Contract</span><span class="docs-sidebar-link-status">In Progress</span></a>
-<a class="docs-sidebar-link" href="/docs/reference/public-api-contract"><span>Public API Contract</span><span class="docs-sidebar-link-status">In Progress</span></a>
-<a class="docs-sidebar-link" href="/docs/faq"><span>FAQ</span><span class="docs-sidebar-link-status">In Progress</span></a>
+<a class="docs-sidebar-link" href="/docs/reference/upstream-field-map"><span>Upstream to PolyLab Field Map</span></a>
+<a class="docs-sidebar-link" href="/docs/reference/scanner-query-contract"><span>Scanner Query and Filter Contract</span></a>
+<a class="docs-sidebar-link" href="/docs/reference/public-api-contract"><span>Public API Contract</span></a>
+<a class="docs-sidebar-link" href="/docs/faq"><span>FAQ</span></a>
 </section>
 <section class="docs-sidebar-group"><div class="docs-sidebar-group-label">Appendix</div>
-<a class="docs-sidebar-link" href="/docs/appendix/access-model"><span>Access Model</span><span class="docs-sidebar-link-status">In Progress</span></a>
-<a class="docs-sidebar-link" href="/docs/appendix/storage-and-runtime"><span>Storage and Runtime Reference</span><span class="docs-sidebar-link-status">In Progress</span></a>
+<a class="docs-sidebar-link" href="/docs/appendix/access-model"><span>Access Model</span></a>
+<a class="docs-sidebar-link" href="/docs/appendix/storage-and-runtime"><span>Storage and Runtime Reference</span></a>
 </section>
 </div></aside>
       <main class="docs-content">
         <article class="docs-article">
-          <section class="docs-global-banner" aria-label="Documentation progress notice"><strong>Documentation is in progress.</strong> <span>Every page in this section describes the current implementation and may change as PolyLab evolves.</span></section>
+          
           <div class="docs-page-header">
             <div class="docs-page-kicker">Understanding the Data</div>
             <h1>APR Methodology</h1>
             <div class="docs-page-meta">
-              <span class="docs-status-badge is-in-progress">In Progress</span>
               <span class="docs-page-updated">Last updated 2026-03-10</span>
             </div>
             <p class="docs-page-summary">The exact APR calculation used by the current implementation, including when the value is intentionally null and why short-dated rows can look extreme.</p>
           </div>
-          <div class="docs-admonition docs-admonition-in-progress"><div class="docs-admonition-title">Current Implementation</div><p>This page is intentionally explicit and implementation-first. If the product or upstream APIs change, the current behavior described here can change with them.</p></div>
           <h2 id="exact-formula">Exact formula</h2>
 <p>The current implementation computes APR with the formula:</p>
 <pre><code class="language-text">((1.0 / price) - 1.0) * (365.0 / days)</code></pre>
