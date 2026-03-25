@@ -1,0 +1,22 @@
+Task: Centralize the public docs "in progress" disclosure
+
+Summary:
+- changed the public docs generator so the prominent implementation-status banner appears only on /docs
+- replaced repeated per-page and per-link in-progress labels with one compact shared sidebar note
+- regenerated checked-in docs output under frontend_deploy/docs and static/docs
+- updated docs tests to assert the new homepage-banner plus shared-layout-note behavior
+
+Files changed:
+- docs/access/README.md
+- scripts/build_public_docs.py
+- tests/test_docs_contract_unittest.py
+- tests/test_docs_generation_unittest.py
+- tests/test_docs_pages_unittest.py
+- frontend_deploy/docs/**
+- static/docs/**
+
+Why:
+- reduce repetitive status noise across the docs surface while still clearly signaling that the docs describe the current implementation and may evolve
+
+Verification:
+- python -m unittest tests.test_docs_pages_unittest tests.test_docs_contract_unittest tests.test_docs_generation_unittest
