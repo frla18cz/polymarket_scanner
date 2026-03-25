@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <title>PolyLab X Avatar</title>
+  <defs>
+    <linearGradient id="avatar-bg" x1="96" y1="72" x2="416" y2="440" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#14213d"/>
+      <stop offset="1" stop-color="#08101f"/>
+    </linearGradient>
+    <linearGradient id="avatar-liquid" x1="196" y1="252" x2="338" y2="378" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#67e8f9"/>
+      <stop offset="1" stop-color="#2e75ff"/>
+    </linearGradient>
+  </defs>
+  <circle cx="256" cy="256" r="256" fill="#050b16"/>
+  <circle cx="256" cy="256" r="232" fill="url(#avatar-bg)"/>
+  <circle cx="256" cy="256" r="232" stroke="#1e2d4b" stroke-width="8"/>
+  <path d="M192 128h128" stroke="#f8fafc" stroke-width="30" stroke-linecap="round"/>
+  <path d="M224 128v48l-72 112a80 80 0 0 0 67.2 120h73.6A80 80 0 0 0 360 288l-72-112v-48" stroke="#f8fafc" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M212 286c26-24 58 21 92-4 16-11 31-16 44-16v114H164V286c15-8 30-11 48 0z" fill="url(#avatar-liquid)"/>
+  <path d="M186 290c20-11 38-12 56-2 24 15 54 15 80-6 15-11 28-15 38-15" stroke="#dff9ff" stroke-width="18" stroke-linecap="round" opacity="0.9"/>
+</svg>

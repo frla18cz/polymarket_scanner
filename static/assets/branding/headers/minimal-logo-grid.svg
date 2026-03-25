@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="500" viewBox="0 0 1500 500" fill="none">
+  <title>PolyLab Minimal Logo Grid Header</title>
+  <rect width="1500" height="500" fill="#091223"/>
+  <path d="M0 70H1500" stroke="#16233D" stroke-width="1"/>
+  <path d="M0 145H1500" stroke="#111B31" stroke-width="1"/>
+  <path d="M0 220H1500" stroke="#111B31" stroke-width="1"/>
+  <path d="M0 295H1500" stroke="#111B31" stroke-width="1"/>
+  <path d="M0 370H1500" stroke="#111B31" stroke-width="1"/>
+  <path d="M0 445H1500" stroke="#16233D" stroke-width="1"/>
+  <path d="M120 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M240 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M360 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M480 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M600 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M720 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M840 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M960 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M1080 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M1200 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M1320 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M1440 0V500" stroke="#111B31" stroke-width="1"/>
+  <circle cx="1146" cy="248" r="246" fill="#2E75FF" fill-opacity="0.06"/>
+  <circle cx="1146" cy="248" r="176" stroke="#203561" stroke-width="1.2" opacity="0.4"/>
+  <rect x="984" y="118" width="324" height="260" rx="44" fill="#0F1A30" fill-opacity="0.82" stroke="#233A66" stroke-width="1.4"/>
+  <path d="M1092 176H1200" stroke="#F8FAFC" stroke-width="12" stroke-linecap="round"/>
+  <path d="M1120 176V214L1057 312A64 64 0 0 0 1112 408H1180A64 64 0 0 0 1235 312L1172 214V176" stroke="#F8FAFC" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M1075 289H1217" stroke="#2E75FF" stroke-width="10.5" stroke-linecap="round"/>
+  <path d="M1082 333L1118 297L1154 327L1198 274" stroke="#2E75FF" stroke-width="10.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="1082" cy="333" r="5.8" fill="#2E75FF"/>
+  <circle cx="1118" cy="297" r="5.8" fill="#2E75FF"/>
+  <circle cx="1154" cy="327" r="5.8" fill="#2E75FF"/>
+  <circle cx="1198" cy="274" r="5.8" fill="#2E75FF"/>
+</svg>

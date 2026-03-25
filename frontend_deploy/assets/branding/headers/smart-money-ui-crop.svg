@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="500" viewBox="0 0 1500 500" fill="none">
+  <title>PolyLab Smart Money UI Crop Header</title>
+  <defs>
+    <linearGradient id="ui-bg" x1="0" y1="0" x2="1500" y2="500" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#07101d"/>
+      <stop offset="1" stop-color="#0b1324"/>
+    </linearGradient>
+    <linearGradient id="ui-panel" x1="944" y1="72" x2="1320" y2="408" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#101c34"/>
+      <stop offset="1" stop-color="#0a1221"/>
+    </linearGradient>
+    <linearGradient id="ui-copy" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#F6F9FF"/>
+      <stop offset="1" stop-color="#DDE7FF"/>
+    </linearGradient>
+    <radialGradient id="ui-glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1170 208) rotate(136.131) scale(356.884 298.691)">
+      <stop stop-color="#2E75FF" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#2E75FF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1500" height="500" rx="0" fill="url(#ui-bg)"/>
+  <path d="M0 64H1500" stroke="#18243D" stroke-width="1"/>
+  <path d="M0 126H1500" stroke="#111B31" stroke-width="1"/>
+  <path d="M0 188H1500" stroke="#111B31" stroke-width="1"/>
+  <path d="M0 250H1500" stroke="#111B31" stroke-width="1"/>
+  <path d="M0 312H1500" stroke="#111B31" stroke-width="1"/>
+  <path d="M0 374H1500" stroke="#111B31" stroke-width="1"/>
+  <path d="M0 436H1500" stroke="#18243D" stroke-width="1"/>
+  <path d="M120 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M244 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M368 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M492 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M616 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M740 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M864 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M988 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M1112 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M1236 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M1360 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M1484 0V500" stroke="#111B31" stroke-width="1"/>
+  <rect x="54" y="52" width="372" height="396" rx="38" fill="#0A1324" fill-opacity="0.42"/>
+  <circle cx="1146" cy="214" r="286" fill="url(#ui-glow)"/>
+  <g opacity="0.95">
+    <rect x="86" y="76" width="250" height="46" rx="23" fill="#12213D" stroke="#203561"/>
+    <g transform="translate(104 87)">
+      <rect x="0" y="0" width="24" height="24" rx="7" fill="#1A2238" stroke="#2D3348" stroke-width="0.8"/>
+      <path d="M8 6H16" stroke="#F8FAFC" stroke-width="1.2" stroke-linecap="round"/>
+      <path d="M10 6V9L6.5 14.5A3.9 3.9 0 0 0 9.8 20H14.2A3.9 3.9 0 0 0 17.5 14.5L14 9V6" stroke="#F8FAFC" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M7.5 14.2H15.5" stroke="#2E75FF" stroke-width="1.2" stroke-linecap="round"/>
+      <path d="M8 17L10.2 14.8L12.3 16.4L15 13.2" stroke="#2E75FF" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text x="142" y="107" fill="#D9E4FF" font-family="Avenir Next, Segoe UI, Helvetica Neue, Arial" font-size="22" font-weight="700">PolyLab smart money</text>
+  </g>
+  <text x="86" y="184" fill="url(#ui-copy)" font-family="Avenir Next, Segoe UI, Helvetica Neue, Arial" font-size="60" font-weight="800" letter-spacing="-2.4">
+    <tspan x="86" dy="0">See where</tspan>
+    <tspan x="86" dy="62">profitable wallets</tspan>
+    <tspan x="86" dy="62">are already</tspan>
+    <tspan x="86" dy="62">positioned</tspan>
+  </text>
+  <text x="88" y="398" fill="#A8B7D9" font-family="Avenir Next, Segoe UI, Helvetica Neue, Arial" font-size="26" font-weight="500" letter-spacing="-0.3">
+    Track conviction before price action forces it into the open.
+  </text>
+  <rect x="920" y="72" width="470" height="356" rx="30" fill="url(#ui-panel)" stroke="#203561" stroke-width="1.5"/>
+  <g>
+    <rect x="956" y="116" width="398" height="268" rx="24" fill="#0B1426" stroke="#1A2B4E"/>
+    <path d="M985 164H1328" stroke="#182946" stroke-width="1"/>
+    <path d="M985 206H1328" stroke="#162540" stroke-width="1"/>
+    <path d="M985 248H1328" stroke="#162540" stroke-width="1"/>
+    <path d="M985 290H1328" stroke="#162540" stroke-width="1"/>
+    <path d="M985 332H1328" stroke="#162540" stroke-width="1"/>
+    <rect x="1000" y="178" width="84" height="16" rx="8" fill="#111D34"/>
+    <rect x="1096" y="178" width="160" height="16" rx="8" fill="#131F37"/>
+    <rect x="1268" y="176" width="46" height="20" rx="10" fill="#0D1A2E" stroke="#21406D"/>
+    <text x="1279" y="190" fill="#89F0C9" font-family="Avenir Next, Segoe UI, Helvetica Neue, Arial" font-size="12" font-weight="800">+71%</text>
+    <rect x="1000" y="220" width="72" height="16" rx="8" fill="#111D34"/>
+    <rect x="1084" y="220" width="188" height="16" rx="8" fill="#131F37"/>
+    <rect x="1284" y="220" width="30" height="16" rx="8" fill="#15233C"/>
+    <rect x="1000" y="262" width="112" height="16" rx="8" fill="#111D34"/>
+    <rect x="1124" y="262" width="148" height="16" rx="8" fill="#131F37"/>
+    <rect x="1284" y="262" width="32" height="16" rx="8" fill="#15233C"/>
+    <rect x="990" y="301" width="336" height="50" rx="18" fill="#0F1D35" stroke="#25457A"/>
+    <text x="1012" y="321" fill="#7EE7C0" font-family="Avenir Next, Segoe UI, Helvetica Neue, Arial" font-size="12" font-weight="800" letter-spacing="1.2">HOLDER POSITIONING</text>
+    <path d="M1014 334L1072 334L1120 298L1160 322L1234 274L1292 286" stroke="#2E75FF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="1234" cy="274" r="8" fill="#2E75FF"/>
+  </g>
+  <rect x="959" y="103" width="221" height="86" rx="22" fill="#091121" fill-opacity="0.84" stroke="#1D315A"/>
+  <text x="987" y="137" fill="#89F0C9" font-family="Avenir Next, Segoe UI, Helvetica Neue, Arial" font-size="16" font-weight="800" letter-spacing="1.6">WALLET CONVICTION</text>
+  <text x="987" y="170" fill="#F6F9FF" font-family="Avenir Next, Segoe UI, Helvetica Neue, Arial" font-size="30" font-weight="800" letter-spacing="-1.2">Signal before consensus</text>
+  <rect x="1088" y="326" width="264" height="66" rx="22" fill="#091121" fill-opacity="0.86" stroke="#1D315A"/>
+  <circle cx="1123" cy="359" r="8" fill="#2E75FF"/>
+  <text x="1144" y="350" fill="#D9E4FF" font-family="Avenir Next, Segoe UI, Helvetica Neue, Arial" font-size="16" font-weight="700">Holder quality</text>
+  <text x="1144" y="374" fill="#89F0C9" font-family="Avenir Next, Segoe UI, Helvetica Neue, Arial" font-size="20" font-weight="800">Quality wallets first</text>
+</svg>

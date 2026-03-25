@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="500" viewBox="0 0 1500 500" fill="none">
+  <title>PolyLab Minimal Logo Glow Header</title>
+  <defs>
+    <linearGradient id="bg-glow" x1="0" y1="0" x2="1500" y2="500" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#06101C"/>
+      <stop offset="1" stop-color="#091223"/>
+    </linearGradient>
+    <radialGradient id="blue-halo" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1136 246) rotate(132.804) scale(382.739 313.919)">
+      <stop stop-color="#2E75FF" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#2E75FF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1500" height="500" fill="url(#bg-glow)"/>
+  <circle cx="1138" cy="246" r="286" fill="url(#blue-halo)"/>
+  <circle cx="1138" cy="246" r="172" stroke="#203561" stroke-width="1.4" opacity="0.42"/>
+  <circle cx="1138" cy="246" r="116" stroke="#203561" stroke-width="1.4" opacity="0.3"/>
+  <rect x="978" y="86" width="320" height="320" rx="62" fill="#111C33" fill-opacity="0.7" stroke="#2A4477" stroke-width="1.6"/>
+  <path d="M1088 152H1188" stroke="#F8FAFC" stroke-width="13" stroke-linecap="round"/>
+  <path d="M1114 152V195L1054 288A61 61 0 0 0 1106 380H1170A61 61 0 0 0 1222 288L1162 195V152" stroke="#F8FAFC" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M1072 266H1204" stroke="#2E75FF" stroke-width="11" stroke-linecap="round"/>
+  <path d="M1078 307L1112 273L1148 301L1188 252" stroke="#2E75FF" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="1078" cy="307" r="6.2" fill="#2E75FF"/>
+  <circle cx="1112" cy="273" r="6.2" fill="#2E75FF"/>
+  <circle cx="1148" cy="301" r="6.2" fill="#2E75FF"/>
+  <circle cx="1188" cy="252" r="6.2" fill="#2E75FF"/>
+</svg>

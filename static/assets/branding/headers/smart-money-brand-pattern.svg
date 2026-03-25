@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="500" viewBox="0 0 1500 500" fill="none">
+  <title>PolyLab Smart Money Brand Pattern Header</title>
+  <defs>
+    <linearGradient id="brand-bg" x1="0" y1="0" x2="1500" y2="500" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#06101D"/>
+      <stop offset="1" stop-color="#0B1323"/>
+    </linearGradient>
+    <radialGradient id="brand-blue" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1134 180) rotate(134.064) scale(358.28 311.514)">
+      <stop stop-color="#2E75FF" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="#2E75FF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="brand-copy" x1="84" y1="92" x2="662" y2="392" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F6F9FF"/>
+      <stop offset="1" stop-color="#DCE6FF"/>
+    </linearGradient>
+    <linearGradient id="signal-line" x1="958" y1="338" x2="1272" y2="232" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5A95FF"/>
+      <stop offset="1" stop-color="#2E75FF"/>
+    </linearGradient>
+  </defs>
+  <rect width="1500" height="500" fill="url(#brand-bg)"/>
+  <circle cx="1184" cy="184" r="286" fill="url(#brand-blue)"/>
+  <path d="M0 72H1500" stroke="#16233D" stroke-width="1"/>
+  <path d="M0 148H1500" stroke="#111B31" stroke-width="1"/>
+  <path d="M0 224H1500" stroke="#111B31" stroke-width="1"/>
+  <path d="M0 300H1500" stroke="#111B31" stroke-width="1"/>
+  <path d="M0 376H1500" stroke="#111B31" stroke-width="1"/>
+  <path d="M132 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M264 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M396 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M528 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M660 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M792 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M924 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M1056 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M1188 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M1320 0V500" stroke="#111B31" stroke-width="1"/>
+  <path d="M1452 0V500" stroke="#111B31" stroke-width="1"/>
+  <rect x="82" y="76" width="222" height="46" rx="23" fill="#12213D" stroke="#203561"/>
+  <g transform="translate(100 87)">
+    <rect x="0" y="0" width="24" height="24" rx="7" fill="#1A2238" stroke="#2D3348" stroke-width="0.8"/>
+    <path d="M8 6H16" stroke="#F8FAFC" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M10 6V9L6.5 14.5A3.9 3.9 0 0 0 9.8 20H14.2A3.9 3.9 0 0 0 17.5 14.5L14 9V6" stroke="#F8FAFC" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M7.5 14.2H15.5" stroke="#2E75FF" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M8 17L10.2 14.8L12.3 16.4L15 13.2" stroke="#2E75FF" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="138" y="107" fill="#D9E4FF" font-family="Avenir Next, Segoe UI, Helvetica Neue, Arial" font-size="22" font-weight="700">PolyLab smart money</text>
+  <text x="84" y="198" fill="url(#brand-copy)" font-family="Avenir Next, Segoe UI, Helvetica Neue, Arial" font-size="72" font-weight="800" letter-spacing="-3.2">
+    <tspan x="84" dy="0">Follow conviction,</tspan>
+    <tspan x="84" dy="74">not noise</tspan>
+  </text>
+  <text x="86" y="334" fill="#A8B7D9" font-family="Avenir Next, Segoe UI, Helvetica Neue, Arial" font-size="26" font-weight="500" letter-spacing="-0.3">
+    Read wallet quality before the crowd sees the same market.
+  </text>
+  <g opacity="0.28">
+    <circle cx="1128" cy="250" r="194" stroke="#203561" stroke-width="1.5"/>
+    <circle cx="1128" cy="250" r="138" stroke="#203561" stroke-width="1.5"/>
+    <circle cx="1128" cy="250" r="82" stroke="#203561" stroke-width="1.5"/>
+  </g>
+  <rect x="916" y="84" width="454" height="332" rx="34" fill="#0A1222" fill-opacity="0.62" stroke="#203561"/>
+  <rect x="956" y="126" width="262" height="210" rx="26" fill="#0C1629" stroke="#1D315A"/>
+  <g opacity="0.18">
+    <circle cx="1087" cy="232" r="92" stroke="#244170" stroke-width="1.5"/>
+    <circle cx="1087" cy="232" r="66" stroke="#244170" stroke-width="1.5"/>
+  </g>
+  <rect x="1018" y="162" width="138" height="138" rx="30" fill="#1A2238" stroke="#365086" stroke-width="2.2"/>
+  <path d="M1066 196H1108" stroke="#F8FAFC" stroke-width="6.2" stroke-linecap="round"/>
+  <path d="M1077 196V213L1054 249A23 23 0 0 0 1073.7 284H1100.3A23 23 0 0 0 1120 249L1097 213V196" stroke="#F8FAFC" stroke-width="6.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M1061 245H1113" stroke="#2E75FF" stroke-width="5.6" stroke-linecap="round"/>
+  <path d="M1063 264L1077 250L1089 260L1108 236" stroke="#2E75FF" stroke-width="5.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="1063" cy="264" r="3.2" fill="#2E75FF"/>
+  <circle cx="1077" cy="250" r="3.2" fill="#2E75FF"/>
+  <circle cx="1089" cy="260" r="3.2" fill="#2E75FF"/>
+  <circle cx="1108" cy="236" r="3.2" fill="#2E75FF"/>
+  <path d="M958 318L1026 318L1082 270L1132 304L1208 234L1266 254" stroke="url(#signal-line)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="1208" cy="234" r="12" fill="#2E75FF"/>
+  <rect x="1228" y="120" width="104" height="48" rx="18" fill="#0D182C" stroke="#1D315A"/>
+  <text x="1251" y="151" fill="#89F0C9" font-family="Avenir Next, Segoe UI, Helvetica Neue, Arial" font-size="18" font-weight="800">+71%</text>
+  <rect x="1204" y="334" width="132" height="48" rx="18" fill="#0D182C" stroke="#1D315A"/>
+  <text x="1231" y="365" fill="#D9E4FF" font-family="Avenir Next, Segoe UI, Helvetica Neue, Arial" font-size="18" font-weight="700">wallet quality</text>
+</svg>

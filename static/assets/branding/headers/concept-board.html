@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PolyLab Header Concepts</title>
+  <style>
+    :root {
+      --bg: #070c17;
+      --panel: #0f1728;
+      --panel-2: #14213d;
+      --panel-3: #101a2f;
+      --ink: #eef3ff;
+      --muted: #a8b6d7;
+      --line: rgba(112, 144, 222, 0.14);
+      --blue: #2e75ff;
+      --blue-soft: #79a9ff;
+      --green: #1cc58d;
+      --cyan: #6ee7ff;
+      --gold: #f7b955;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px;
+      background:
+        radial-gradient(circle at top, rgba(46, 117, 255, 0.15), transparent 28%),
+        linear-gradient(180deg, #08101b 0%, #050811 100%);
+      color: var(--ink);
+      font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    .board {
+      display: grid;
+      gap: 28px;
+      justify-content: center;
+    }
+
+    .header {
+      position: relative;
+      width: 1500px;
+      height: 500px;
+      overflow: hidden;
+      border-radius: 28px;
+      background: var(--bg);
+      border: 1px solid rgba(117, 147, 219, 0.18);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+      isolation: isolate;
+    }
+
+    .header::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.035), transparent 30%),
+        linear-gradient(180deg, rgba(7, 12, 23, 0) 0%, rgba(7, 12, 23, 0.4) 100%);
+      pointer-events: none;
+    }
+
+    .grid-bg::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,0.75), transparent 90%);
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
+    .bg-image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: blur(2px) saturate(0.9) brightness(0.52);
+      transform: scale(1.03);
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(5, 10, 22, 0.95) 0%, rgba(5, 10, 22, 0.86) 42%, rgba(5, 10, 22, 0.42) 66%, rgba(5, 10, 22, 0.18) 100%);
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+      width: 760px;
+      padding: 54px 64px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      width: fit-content;
+      padding: 12px 18px;
+      border-radius: 999px;
+      background: rgba(23, 38, 72, 0.88);
+      border: 1px solid rgba(126, 158, 236, 0.22);
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .eyebrow img {
+      width: 28px;
+      height: 28px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 74px;
+      line-height: 0.98;
+      letter-spacing: -0.045em;
+      max-width: 760px;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 30px;
+      line-height: 1.28;
+      max-width: 760px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .chip {
+      padding: 13px 20px;
+      border-radius: 999px;
+      background: rgba(17, 28, 49, 0.92);
+      border: 1px solid rgba(126, 158, 236, 0.18);
+      color: #d7e4ff;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .hero-shot {
+      position: absolute;
+      right: 46px;
+      top: 48px;
+      width: 560px;
+      height: 404px;
+      border-radius: 26px;
+      overflow: hidden;
+      border: 1px solid rgba(126, 158, 236, 0.14);
+      box-shadow: 0 28px 70px rgba(0, 0, 0, 0.48);
+      z-index: 1;
+    }
+
+    .hero-shot img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top left;
+    }
+
+    .metric-stack {
+      position: absolute;
+      right: 58px;
+      bottom: 58px;
+      display: grid;
+      gap: 14px;
+      z-index: 2;
+    }
+
+    .metric {
+      min-width: 260px;
+      padding: 18px 22px;
+      border-radius: 22px;
+      background: rgba(9, 16, 31, 0.84);
+      border: 1px solid rgba(126, 158, 236, 0.15);
+      backdrop-filter: blur(14px);
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 34px;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 20px;
+    }
+
+    .metric.blue strong { color: var(--cyan); }
+    .metric.green strong { color: #8ef0c8; }
+    .metric.gold strong { color: #ffd795; }
+
+    .smart-accent {
+      position: absolute;
+      inset: auto 48px 48px auto;
+      width: 430px;
+      padding: 22px 24px;
+      border-radius: 28px;
+      background: linear-gradient(135deg, rgba(10, 21, 40, 0.92), rgba(7, 13, 25, 0.92));
+      border: 1px solid rgba(43, 117, 255, 0.22);
+      box-shadow: 0 22px 55px rgba(0, 0, 0, 0.42);
+      z-index: 2;
+    }
+
+    .smart-accent .label {
+      display: inline-block;
+      margin-bottom: 14px;
+      color: #8ef0c8;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .smart-accent .big {
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      margin-bottom: 10px;
+    }
+
+    .smart-accent .small {
+      color: var(--muted);
+      font-size: 20px;
+      line-height: 1.35;
+    }
+
+    .signals {
+      position: absolute;
+      right: 56px;
+      top: 62px;
+      display: grid;
+      gap: 14px;
+      z-index: 2;
+      width: 410px;
+    }
+
+    .signal {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px 20px;
+      padding: 18px 20px;
+      border-radius: 22px;
+      background: rgba(10, 17, 31, 0.8);
+      border: 1px solid rgba(126, 158, 236, 0.14);
+      backdrop-filter: blur(14px);
+    }
+
+    .signal .name {
+      color: #e4ecff;
+      font-size: 25px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .signal .value {
+      align-self: start;
+      color: #8ef0c8;
+      font-size: 25px;
+      font-weight: 800;
+    }
+
+    .signal .meta {
+      grid-column: 1 / -1;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .brand-rings {
+      position: absolute;
+      right: -60px;
+      top: -90px;
+      width: 580px;
+      height: 580px;
+      border-radius: 50%;
+      border: 1px solid rgba(46, 117, 255, 0.2);
+      box-shadow:
+        0 0 0 70px rgba(46, 117, 255, 0.08),
+        0 0 0 140px rgba(46, 117, 255, 0.04);
+      opacity: 0.95;
+      z-index: 0;
+    }
+
+    .brand-mark {
+      position: absolute;
+      right: 150px;
+      top: 86px;
+      width: 220px;
+      height: 220px;
+      padding: 28px;
+      border-radius: 42px;
+      background: rgba(11, 18, 33, 0.72);
+      border: 1px solid rgba(117, 147, 219, 0.15);
+      z-index: 2;
+      box-shadow: 0 20px 55px rgba(0,0,0,0.36);
+    }
+
+    .brand-mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .footer-note {
+      position: absolute;
+      left: 64px;
+      bottom: 40px;
+      color: rgba(210, 223, 255, 0.52);
+      font-size: 18px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <main class="board">
+    <section class="header grid-bg" data-shot="product-first">
+      <img class="bg-image" src="../../landing-scanner-view.png" alt="">
+      <div class="overlay"></div>
+      <div class="content">
+        <div class="eyebrow"><img src="../polylab-mark.svg" alt="">PolyLab scanner</div>
+        <h1>Find better Polymarket trades before the crowd</h1>
+        <p>Scan price, spread, APR, liquidity and event context in one fast research workflow.</p>
+        <div class="chips">
+          <span class="chip">16,000+ active markets</span>
+          <span class="chip">Fast filters</span>
+          <span class="chip">Scanner-first UX</span>
+        </div>
+      </div>
+      <div class="metric-stack">
+        <div class="metric blue"><strong>Price + Spread</strong><span>See cost before conviction</span></div>
+        <div class="metric green"><strong>APR + Liquidity</strong><span>Prioritize setups worth sizing</span></div>
+      </div>
+      <div class="footer-note">Concept A / Product-first</div>
+    </section>
+
+    <section class="header grid-bg" data-shot="trust-first">
+      <div class="brand-rings"></div>
+      <div class="content">
+        <div class="eyebrow"><img src="../polylab-mark.svg" alt="">PolyLab research</div>
+        <h1>Trading signal, not crypto wallpaper</h1>
+        <p>Built for serious market scanning with transparent metrics, fast filters and direct visibility into market structure.</p>
+        <div class="chips">
+          <span class="chip">APR estimates</span>
+          <span class="chip">Spread analysis</span>
+          <span class="chip">Liquidity depth</span>
+          <span class="chip">Market freshness</span>
+        </div>
+      </div>
+      <div class="hero-shot">
+        <img src="../../landing-scanner-view.png" alt="">
+      </div>
+      <div class="footer-note">Concept B / Trust-first</div>
+    </section>
+
+    <section class="header grid-bg" data-shot="smart-money-signal">
+      <img class="bg-image" src="../../landing-smart-money-view.png" alt="">
+      <div class="overlay"></div>
+      <div class="content">
+        <div class="eyebrow"><img src="../polylab-mark.svg" alt="">Smart money</div>
+        <h1>See where profitable wallets are already positioned</h1>
+        <p>Track top holders, compare yes vs no conviction and spot where smart money diverges from the market.</p>
+        <div class="chips">
+          <span class="chip">Holder positioning</span>
+          <span class="chip">Profitability split</span>
+          <span class="chip">Alias-aware research</span>
+        </div>
+      </div>
+      <div class="smart-accent">
+        <div class="label">Smart money view</div>
+        <div class="big">Follow conviction, not noise</div>
+        <div class="small">Turn holder concentration and wallet quality into a fast read on which side of a market deserves attention.</div>
+      </div>
+      <div class="footer-note">Concept C / Smart money signal</div>
+    </section>
+
+    <section class="header grid-bg" data-shot="smart-money-scoreboard">
+      <img class="bg-image" src="../../landing-smart-money-view.png" alt="">
+      <div class="overlay"></div>
+      <div class="content">
+        <div class="eyebrow"><img src="../polylab-mark.svg" alt="">Smart money scoreboard</div>
+        <h1>Separate consensus from real wallet conviction</h1>
+        <p>A sharper angle for X: less “analytics platform”, more “we know where good wallets are leaning”.</p>
+      </div>
+      <div class="signals">
+        <div class="signal">
+          <div class="name">YES holder quality</div>
+          <div class="value">71%</div>
+          <div class="meta">Top wallets profitable, concentrated, recently active</div>
+        </div>
+        <div class="signal">
+          <div class="name">NO holder quality</div>
+          <div class="value">44%</div>
+          <div class="meta">More dispersed positioning, weaker realized edge</div>
+        </div>
+        <div class="signal">
+          <div class="name">Actionable read</div>
+          <div class="value">YES</div>
+          <div class="meta">Use smart money to narrow the watchlist before deeper market work</div>
+        </div>
+      </div>
+      <div class="footer-note">Concept D / Smart money scoreboard</div>
+    </section>
+
+    <section class="header grid-bg" data-shot="brand-minimal">
+      <div class="brand-rings"></div>
+      <div class="content">
+        <div class="eyebrow"><img src="../polylab-mark.svg" alt="">PolyLab</div>
+        <h1>Polymarket research that feels immediate</h1>
+        <p>A cleaner, more brand-led direction for periods when you want the account to feel sharper and less like a product screenshot.</p>
+        <div class="chips">
+          <span class="chip">Scanner</span>
+          <span class="chip">Smart money</span>
+          <span class="chip">Liquidity</span>
+        </div>
+      </div>
+      <div class="brand-mark">
+        <img src="../polylab-mark.svg" alt="">
+      </div>
+      <div class="metric-stack">
+        <div class="metric blue"><strong>Fast discovery</strong><span>Wide scan, quick narrowing</span></div>
+        <div class="metric gold"><strong>Research depth</strong><span>From raw market table to holder behavior</span></div>
+      </div>
+      <div class="footer-note">Concept E / Brand minimal</div>
+    </section>
+  </main>
+</body>
+</html>
