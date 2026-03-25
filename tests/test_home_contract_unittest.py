@@ -25,7 +25,7 @@ class TestHomeContract(unittest.TestCase):
             "PolyLab",
             "Follow the smart money on Polymarket",
             "Open APP",
-            "See live signals",
+            "See live flow",
             "8 trading playbooks",
             "Show me the next edge",
             "/api/homepage-bootstrap",
