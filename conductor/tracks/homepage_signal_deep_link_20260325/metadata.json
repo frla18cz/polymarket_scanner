@@ -1,0 +1,8 @@
+{
+  "track_id": "homepage_signal_deep_link_20260325",
+  "type": "bugfix",
+  "status": "completed",
+  "created_at": "2026-03-25T00:00:00Z",
+  "updated_at": "2026-03-25T00:30:00Z",
+  "description": "Fix the homepage Smart Money signal handoff so Open in scanner opens the exact selected market in the Smart Money app view."
+}

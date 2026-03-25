@@ -2271,7 +2271,7 @@
 
                   <!-- Actions -->
                   <div class="signal-modal-actions">
-                    <a class="action-primary" :href="'/app'" data-track-event="cta_click" data-track-placement="home_signal_modal" data-track-target="app">
+                    <a class="action-primary" :href="buildSignalScannerHref(expandedMarket)" data-track-event="cta_click" data-track-placement="home_signal_modal" data-track-target="app">
                       <i class="ph ph-arrow-right"></i> Open in scanner
                     </a>
                   </div>
@@ -3102,6 +3102,15 @@
             return url;
           }
 
+          function buildSignalScannerHref(market) {
+            var searchParams = new URLSearchParams();
+            searchParams.set('view', 'smart');
+            if (market && market.market_id) {
+              searchParams.set('market_id', String(market.market_id));
+            }
+            return '/app?' + searchParams.toString();
+          }
+
           function advanceSpotlightPage() {
             if (!canAdvanceSpotlight.value) return;
             var pageCount = spotlightPageCount.value;
@@ -3235,6 +3244,7 @@
             toggleShowAll: toggleShowAll,
             showAllHolders: showAllHolders,
             buildPresetUrl: buildPresetUrl,
+            buildSignalScannerHref: buildSignalScannerHref,
             advanceSpotlightPage: advanceSpotlightPage,
             holderPnlBarWidth: holderPnlBarWidth,
             SPOTLIGHT_CONFIG: SPOTLIGHT_CONFIG

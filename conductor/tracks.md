@@ -31,3 +31,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## [ ] Track: Paid Traffic SEO and Trust Polish (Mar 2026)
 *Link: [./tracks/paid_traffic_seo_trust_polish_20260310/](./tracks/paid_traffic_seo_trust_polish_20260310/)*
+
+---
+
+## [ ] Track: Homepage Smart Money Signal Deep Link Fix (Mar 2026)
+*Link: [./tracks/homepage_signal_deep_link_20260325/](./tracks/homepage_signal_deep_link_20260325/)*
