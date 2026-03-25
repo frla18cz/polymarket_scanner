@@ -1,0 +1,20 @@
+Task: Homepage Smart Money Signal Deep Link Fix
+
+Summary:
+- added a regression test for homepage Smart Money signal CTA deep links
+- updated homepage Open in scanner CTA to preserve the selected market via market_id
+- forced Smart Money handoff into /app with view=smart
+- kept static/index.html and frontend_deploy/index.html in sync
+- registered the bugfix in a dedicated Conductor track
+
+Files:
+- conductor/tracks.md
+- conductor/tracks/homepage_signal_deep_link_20260325/spec.md
+- conductor/tracks/homepage_signal_deep_link_20260325/plan.md
+- conductor/tracks/homepage_signal_deep_link_20260325/metadata.json
+- frontend_deploy/index.html
+- static/index.html
+- tests/test_home_signal_deep_link_unittest.py
+
+Why:
+The homepage signal modal previously linked to generic /app, so users lost context and landed on an unrelated market instead of the selected Smart Money event.
