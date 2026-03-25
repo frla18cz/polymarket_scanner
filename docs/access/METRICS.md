@@ -76,7 +76,7 @@ Smart Money Win Rate is intended to summarize how successful relevant tracked ho
 
 Use it as:
 
-- a directional signal
+- a directional indicator
 - a prioritization hint
 - one more piece of context when deciding what to inspect manually
 
@@ -92,7 +92,7 @@ These counts help show how tracked holders are distributed around the market.
 
 They are useful when you want to see whether stronger historical participants are clustering on one side or whether conviction looks mixed.
 
-The counts are more meaningful in combination than alone. A single count without market context can exaggerate weak signals.
+The counts are more meaningful in combination than alone. A single count without market context can exaggerate weak indicators.
 
 ## Freshness / Last Updated
 

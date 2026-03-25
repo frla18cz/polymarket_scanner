@@ -29,7 +29,7 @@ This is normal for an analytics layer. Use the scanner to prioritize attention, 
 
 ## Why does a market with high APR still look bad?
 
-Because APR is not a complete quality signal.
+Because APR is not a complete quality indicator.
 
 A market can show strong annualized return while still having:
 
@@ -40,11 +40,11 @@ A market can show strong annualized return while still having:
 
 High APR is a prompt to investigate, not a reason to trust the setup automatically.
 
-## Should I trust Smart Money signals?
+## Should I trust Smart Money flow data?
 
-Treat them as informative but imperfect.
+Treat it as informative but imperfect.
 
-They can help surface patterns that are hard to see manually, but they are still a layer of interpretation over incomplete and changing market data. They are best used to prioritize review, not to outsource judgment.
+It can help surface patterns that are hard to see manually, but it is still a layer of interpretation over incomplete and changing market data. It is best used to prioritize review, not to outsource judgment.
 
 ## What should I check before acting on a market?
 

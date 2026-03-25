@@ -67,7 +67,7 @@ APR is useful for comparing potential annualized return, but it should never be 
 
 ### Smart Money Context
 
-Treat Smart Money signals as context, not proof.
+Treat Smart Money flow data as context, not proof.
 
 They can help you notice where historically stronger wallets are concentrated, but they do not guarantee the current market is mispriced.
 
