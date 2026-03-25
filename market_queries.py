@@ -202,6 +202,8 @@ def build_markets_sql(
     if min_hours_to_expire is not None and max_hours_to_expire is not None and int(min_hours_to_expire) > int(max_hours_to_expire):
         min_hours_to_expire, max_hours_to_expire = max_hours_to_expire, min_hours_to_expire
 
+    has_expiry_window = min_hours_to_expire is not None or max_hours_to_expire is not None
+
     if min_hours_to_expire is not None:
         min_dt = datetime.now(timezone.utc) + timedelta(hours=int(min_hours_to_expire))
         where_clauses.append("amo.end_date >= ?")
@@ -212,9 +214,13 @@ def build_markets_sql(
         where_clauses.append("amo.end_date <= ?")
         params.append(cutoff_dt.strftime("%Y-%m-%dT%H:%M:%SZ"))
 
-    if (min_hours_to_expire is not None or max_hours_to_expire is not None) and not include_expired:
+    if not include_expired and has_expiry_window:
         now_str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         where_clauses.append("amo.end_date >= ?")
+        params.append(now_str)
+    elif not include_expired:
+        now_str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        where_clauses.append("(amo.end_date IS NULL OR amo.end_date >= ?)")
         params.append(now_str)
 
     included_tags = normalize_tag_filters(included_tags)

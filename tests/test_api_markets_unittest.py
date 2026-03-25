@@ -1,7 +1,7 @@
 import os
 import sqlite3
 import unittest
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Iterable
 
 from fastapi import Response
@@ -16,9 +16,11 @@ class TestMarketsFilters(unittest.TestCase):
         os.environ["MARKETS_DB_PATH"] = str(cls._snapshot.path)
 
         import main as app_main
+        import market_queries as market_queries_module
         # CRITICAL: Overwrite module-level constant if already imported by other tests
         app_main.DB_PATH = str(cls._snapshot.path)
         cls.app_main = app_main
+        cls.market_queries = market_queries_module
         cls.app_main.ensure_indices()
 
         cls._conn = sqlite3.connect(str(cls._snapshot.path))
@@ -112,6 +114,28 @@ class TestMarketsFilters(unittest.TestCase):
         cls.min_volume_threshold = _percentile_value("volume_usd", 0.75) or 1000.0
         cls.min_liquidity_threshold = _percentile_value("liquidity_usd", 0.75) or 100.0
 
+        cls.expiry_regression_search = "expiry-regression-case"
+        now = datetime.now(timezone.utc)
+        cls._insert_market(
+            market_id="expiry_future_case",
+            condition_id="cond_expiry_future_case",
+            question=f"{cls.expiry_regression_search} future market",
+            end_date=(now + timedelta(days=2)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        )
+        cls._insert_market(
+            market_id="expiry_expired_case",
+            condition_id="cond_expiry_expired_case",
+            question=f"{cls.expiry_regression_search} expired market",
+            end_date=(now - timedelta(days=2)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        )
+        cls._insert_market(
+            market_id="expiry_null_case",
+            condition_id="cond_expiry_null_case",
+            question=f"{cls.expiry_regression_search} null end market",
+            end_date=None,
+        )
+        cls._conn.commit()
+
     @classmethod
     def tearDownClass(cls):
         os.environ.pop("MARKETS_DB_PATH", None)
@@ -139,6 +163,47 @@ class TestMarketsFilters(unittest.TestCase):
     def _assert_all_ids_not_in(self, ids: Iterable[str], forbidden: set[str]) -> None:
         for mid in ids:
             self.assertNotIn(mid, forbidden)
+
+    @classmethod
+    def _insert_market(
+        cls,
+        *,
+        market_id: str,
+        condition_id: str,
+        question: str,
+        end_date: str | None,
+        outcome_name: str = "Yes",
+        outcome_index: int = 0,
+    ) -> None:
+        now_str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        cls._conn.execute(
+            """
+            INSERT INTO active_market_outcomes (
+                snapshot_at, market_id, condition_id, outcome_index, event_slug, question, url,
+                outcome_name, price, apr, spread, volume_usd, liquidity_usd, start_date, end_date,
+                category, icon_url
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                now_str,
+                market_id,
+                condition_id,
+                outcome_index,
+                market_id,
+                question,
+                f"https://example.com/{market_id}",
+                outcome_name,
+                0.55,
+                None,
+                0.01,
+                250000.0,
+                25000.0,
+                now_str,
+                end_date,
+                "Regression",
+                None,
+            ),
+        )
 
     def test_excluded_single_tag(self):
         excluded = [self.tag_a]
@@ -390,6 +455,52 @@ class TestMarketsFilters(unittest.TestCase):
             self.assertGreaterEqual(parsed, min_dt - timedelta(minutes=5))
             self.assertLessEqual(parsed, max_dt + timedelta(minutes=5))
 
+    def test_hide_expired_without_window_excludes_expired_rows(self):
+        rows = self.app_main.get_markets(
+            Response(),
+            included_tags=None,
+            excluded_tags=None,
+            search=self.expiry_regression_search,
+            include_expired=False,
+            min_volume=0,
+            min_liquidity=0,
+            limit=200,
+        )
+        ids = self._market_ids(rows)
+        self.assertIn("expiry_future_case", ids)
+        self.assertIn("expiry_null_case", ids)
+        self.assertNotIn("expiry_expired_case", ids)
+
+    def test_include_expired_true_keeps_expired_rows(self):
+        rows = self.app_main.get_markets(
+            Response(),
+            included_tags=None,
+            excluded_tags=None,
+            search=self.expiry_regression_search,
+            include_expired=True,
+            min_volume=0,
+            min_liquidity=0,
+            limit=200,
+        )
+        ids = self._market_ids(rows)
+        self.assertIn("expiry_future_case", ids)
+        self.assertIn("expiry_null_case", ids)
+        self.assertIn("expiry_expired_case", ids)
+
+    def test_hide_expired_keeps_null_end_date_rows_without_window(self):
+        rows = self.app_main.get_markets(
+            Response(),
+            included_tags=None,
+            excluded_tags=None,
+            search="null end market",
+            include_expired=False,
+            min_volume=0,
+            min_liquidity=0,
+            limit=50,
+        )
+        ids = self._market_ids(rows)
+        self.assertIn("expiry_null_case", ids)
+
     def test_search_term_filters(self):
         term = self.search_term
         rows = self.app_main.get_markets(
@@ -413,6 +524,30 @@ class TestMarketsFilters(unittest.TestCase):
         rows = self._conn.execute("PRAGMA index_list(active_market_outcomes)").fetchall()
         idx_names = {r["name"] for r in rows if r and r["name"]}
         self.assertIn("idx_amo_apr", idx_names)
+
+    def test_end_date_index_exists(self):
+        rows = self._conn.execute("PRAGMA index_list(active_market_outcomes)").fetchall()
+        idx_names = {r["name"] for r in rows if r and r["name"]}
+        self.assertIn("idx_amo_end_date", idx_names)
+
+    def test_expiry_query_plan_uses_end_date_index_when_windowed(self):
+        sql, params = self.market_queries.build_markets_sql(
+            self._conn,
+            include_expired=False,
+            max_hours_to_expire=24 * 7,
+            sort_by="end_date",
+            sort_dir="asc",
+            min_volume=0,
+            min_liquidity=0,
+            limit=100,
+            offset=0,
+        )
+        plan_rows = self._conn.execute(f"EXPLAIN QUERY PLAN {sql}", params).fetchall()
+        details = " | ".join(
+            str(row["detail"] if hasattr(row, "keys") and "detail" in row.keys() else row)
+            for row in plan_rows
+        )
+        self.assertIn("idx_amo_end_date", details)
 
     def test_min_apr_filters_and_sorts(self):
         total = self._conn.execute(
